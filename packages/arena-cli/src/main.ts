@@ -63,7 +63,7 @@ run options:
                              budget_violation|combined>  (short forms table:commitment, … accepted)
   --horizon <year>         diplomacy_standard: last game year, 1901..1908 (default 1906)
   --secret <64 hex>        diplomacy_standard, hosted only (the control plane draws the episode secret); refused locally
-  --tier <tier>            edge | core | frontier (default core)
+  --tier <tier>            edge | core | frontier | extended (default core; extended: Dh 30 s)
   --seeds <a,b,...>        uint32 seeds (default the five gate seeds 20260720,1,2,3,5); --seed is an alias
   --episodes <n>           default = number of seeds
   --target <url>           http(s)://… (rest|mcp|a2a) or ws(s)://… ; ref:coordinated|ref:naive runs in-process

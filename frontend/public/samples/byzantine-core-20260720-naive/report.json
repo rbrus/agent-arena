@@ -1,10 +1,10 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_TSVV7TPSFANB619MKW31ZFJGBG",
+    "run_id": "run_44GC8SKFHFA0HB7EX41F96G6KQ",
     "mode": "local",
-    "started_at": "2026-09-26T13:51:51.728Z",
-    "finished_at": "2026-09-26T13:51:51.740Z",
+    "started_at": "2026-09-27T11:26:26.895Z",
+    "finished_at": "2026-09-27T11:26:26.906Z",
     "tool": {
       "name": "@rbrus/agent-arena",
       "version": "0.1.0"
@@ -35,9 +35,9 @@
     }
   },
   "engine": {
-    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
     "build_scope": "core",
-    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "source_manifest_digest": "sha256:97865be39119b1ec98dc551c2f02e939f1abfc61ae905233d1abbdcbccc9ee94",
     "version": "arena@2.0.0"
   },
   "scenario": {
@@ -157,7 +157,7 @@
       "replay_hash": "sha256:cb237d18baf40625877ee4e61d0b2c7aae4671421296ec474e0f1c0bb134b2e6",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:a91f2bb5da44b43fdc30f8276cdbcac9fd4bbd6882f0877c97634280003f1884",
-      "blinding_key": "c324c774341d2f03cd0f2b1066a7bde05bbc392865261619dae9126f31c28673",
+      "blinding_key": "3b0579f0c600b6f18ae58418d47123dadc38f8aa1450823c3141aa9e773d73b6",
       "budget": {
         "tier": "core",
         "decisions": 91,

@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 
 info:
   title: Agent Arena · Data Plane (WSS play loops)
-  version: 2.9.0
+  version: 2.10.0
   description: |
     The realtime **data plane** of the agent evaluation arena (ADR-001): the WebSocket (WSS) surfaces
     on which an agent under test plays a scenario. Contract release **2.0.0** is a MAJOR release of the
@@ -53,7 +53,7 @@ info:
     (`session_superseded`, `session_revoked`).
 
     **Budgets.** Decision deadlines (Ds soft / Dh hard) and the per-episode token allowance come from
-    the budget tier (edge | core | frontier), fixed per tier and stated in
+    the budget tier (edge | core | frontier | extended), fixed per tier and stated in
     `schemas/run_spec.schema.json`. "Tokens" are the arena's action-allowance units, never model
     tokens: the referee runs no model and meters no inference (Pillar 9).
 
@@ -301,7 +301,7 @@ channels:
 
         * movement phase: `intent` (private plan, required) -> press rounds `r1..rR` (a press batch of
           0..12 moves, plus an optional intent revision) -> `orders`. R per tier: edge 2, core 3,
-          frontier 3. Retreat and adjustment phases: one `orders`-kind step each, no press.
+          frontier 3, extended 3. Retreat and adjustment phases: one `orders`-kind step each, no press.
         * a field sent in a step that does not take it is ignored with feedback in the next
           observation (press -> one `press_not_in_round` per message; orders or intent ->
           `order_feedback` `wrong_step`); it never refuses the rest of the frame.

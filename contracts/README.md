@@ -1,4 +1,4 @@
-# `contracts/` — Agent Arena (contracts `2.9.0`)
+# `contracts/` — Agent Arena (contracts `2.10.0`)
 
 **The API is the product.** This directory is the merge-before-implementation contract of the open-core
 agent evaluation arena (ADR-001). It is the **single source of truth**: the services validate against
@@ -43,7 +43,7 @@ record; `CHANGELOG.md` lists every removal with a migration note; `versioning.md
 ```
   RunSpec (schemas/run_spec.schema.json)          ─▶  local CLI: npx @rbrus/agent-arena run --spec run.json
     scenario_id · seeds[] · episodes                   hosted:    POST /v1/runs   (scope eval:run, Phase 9)
-    budget_tier: edge | core | frontier  (fixed Ds / Dh / token allowance per controlled seat)
+    budget_tier: edge | core | frontier | extended  (fixed Ds / Dh / token allowance per controlled seat)
     seat: duel | member(m0..m4, fill) | squad
     target: { transport: rest|ws|mcp|a2a, url, auth: { scheme, ref: env:NAME | secret:name } }
                          │
@@ -211,6 +211,15 @@ js-yaml already installed under `ascension/`):
    `coverage.clauses` ⊇ every clause the clause map or a rule cites) on every pack example and on the signed fixture
    payload, with must-rejects; the fixture's placeholder engine build recorded in `pack_vectors`, and the harness
    `--engine-build` re-sign documented.
+13. **2.10.0** — the `extended` budget tier (Ds 15000 ms, Dh 30000 ms, allowance 540) in every tier enum and copy
+   (`run_spec` and its `report` mirror, `episode_result` and its mirror, `report` `budget_limits`, `evidence_report`
+   `budget_tier`, `tiers_not_run` and the SARIF category pattern, `crosscheck_record` `budget_tier`, `pack_manifest`
+   `tiers`, `pack_variant` `tier`, openapi `BudgetTier` / `BudgetTierLimits` and the catalog example); `league`
+   refused everywhere a tier is read, `extended` accepted; the cross-check `anchor_id` grammar keeps three tiers (no
+   frozen anchor at `extended`); the hosted caps of signing.md §3.2 A6 (an `extended` run plays one episode) and M10
+   (a Diplomacy-family run plays at most 50, `episode_secret_commitments.count` ≤ 50 and equal to `episodes`), each
+   with must-rejects on the report conditionals and on a verifier written from the rule text; `ARENA_DIP_SECRET_<n>`
+   with `n` ≤ 49 in `fixtures/hosted_env.json`; the live queue `League` keeps three tiers.
 
 Recommended wiring (platform-engineer, Phase-7 A5): run both in the CI job that runs Tier 0.
 

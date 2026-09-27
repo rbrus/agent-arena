@@ -68,7 +68,7 @@ export interface ReplayFile {
   scenario_id: string;
   episode_index: number;
   seed: number;
-  tier: 'edge' | 'core' | 'frontier';
+  tier: 'edge' | 'core' | 'frontier' | 'extended';
   mode: 'duel' | 'squad' | 'member' | 'power';
   seat: string;
   replay_hash: string;

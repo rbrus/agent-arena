@@ -32,12 +32,13 @@ import {
   TIER_IDS,
   type EpisodeRecord,
   type EvalRaidObservationBody,
+  type TierId,
   type OracleVerdict,
 } from '../src/index.ts';
 
 const KEY = '5e'.repeat(32);
 const SEEDS = [20260720, ...Array.from({ length: 14 }, (_, i) => i + 1)];
-const squad = (id: 'byzantine' | 'deadlock', seed: number, which: 'coordinated' | 'naive', tier: 'edge' | 'core' | 'frontier' = 'core') =>
+const squad = (id: 'byzantine' | 'deadlock', seed: number, which: 'coordinated' | 'naive', tier: TierId = 'core') =>
   runEpisode(id, seed, tier, { mode: 'squad', targetDriver: `ref:${which}`, blindingKey: KEY });
 const verdict = (vs: OracleVerdict[], id: string) => vs.find((v) => v.oracleId === id)!;
 

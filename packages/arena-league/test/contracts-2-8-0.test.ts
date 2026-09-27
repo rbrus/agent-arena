@@ -6,8 +6,9 @@
  *     `recorded_peer`, `llm_peer`, `peer` block or `sx-neutral-ground` pack id appears anywhere;
  *  2. the old seat role / pack id is refused at admission (no peer is called) and a pre-2.8.0
  *     record carrying it never verifies;
- *  3. the `league` budget tier is reserved and refused (runTable, the record, verify), while core
- *     and frontier (and edge) stay playable; the contract's RunSpec schema refuses it too.
+ *  3. the `league` budget tier value is refused (runTable, the record, verify; contracts 2.10.0: the
+ *     reserved tier was renamed `extended`, so `league` is simply unknown), while every tier of the
+ *     RunSpec enum, `extended` included, is playable; the contract's RunSpec schema refuses `league` too.
  */
 
 import assert from 'node:assert/strict';
@@ -74,8 +75,8 @@ test('2.8.0: a pre-2.8.0 record with a recorded_peer seat or a pack id never ver
   assert.equal(verifyTableReport(report, packOnly).status, 'unverifiable');
 });
 
-test('2.8.0: the league tier is reserved: refused by runTable (no reservation, no call), the record and verify; the RunSpec schema refuses it too', async () => {
-  assert.deepEqual([...TABLE_TIERS], ['edge', 'core', 'frontier']);
+test('2.10.0: the value league is not a tier (renamed extended): refused by runTable (no reservation, no call), the record and verify; the RunSpec schema refuses it too', async () => {
+  assert.deepEqual([...TABLE_TIERS], ['edge', 'core', 'frontier', 'extended']);
   let calls = 0;
   const inner = fakePeer('robust');
   const counting: Peer = definePeer(inner.meta, async (o, c) => {
@@ -84,7 +85,7 @@ test('2.8.0: the league tier is reserved: refused by runTable (no reservation, n
   });
   const cap = new MonthlyCostCap({ now: () => new Date('2026-10-05T08:00:00Z') });
   const spec = { table_id: 't-league', seed: 1, tier: 'league', horizon_year: 1901, seats: [{ power: 'austria' }] } as unknown as TableSpec;
-  await assert.rejects(runTable(spec, { austria: counting }, detOpts({ cap })), /"league" is reserved/);
+  await assert.rejects(runTable(spec, { austria: counting }, detOpts({ cap })), /unknown budget tier: league/);
   await assert.rejects(runTable({ ...spec, tier: 'weekly' } as unknown as TableSpec, { austria: counting }, detOpts()), /unknown budget tier/);
   assert.equal(calls, 0);
   assert.equal(cap.snapshot().reserved_chf, 0, 'no reservation was taken');
@@ -92,17 +93,19 @@ test('2.8.0: the league tier is reserved: refused by runTable (no reservation, n
   const run = await threeModelTable();
   const rec = clone(run.record) as TableRecord;
   (rec as unknown as Record<string, unknown>).tier = 'league';
-  assert.throws(() => assertTableRecord(rec), /"league" is reserved/);
+  assert.throws(() => assertTableRecord(rec), /unknown budget tier: league/);
   assert.equal(verifyTableReport(run.reports[0].report, rec).status, 'unverifiable');
 
   const rs = clone(run.reports[0].report.run.spec) as unknown as Record<string, unknown>;
   assert.ok(validateRunSpecSchema(rs));
   rs.budget_tier = 'league';
-  assert.equal(validateRunSpecSchema(rs), false, 'contracts 2.8.0: a RunSpec naming league is schema_invalid');
+  assert.equal(validateRunSpecSchema(rs), false, 'contracts 2.8.0 and 2.10.0: a RunSpec naming league is schema_invalid');
+  rs.budget_tier = 'extended';
+  assert.ok(validateRunSpecSchema(rs), 'contracts 2.10.0: extended is a tier');
 });
 
-test('2.8.0: league tables stay on the existing tiers: core and frontier play and verify', async () => {
-  for (const tier of ['core', 'frontier'] as const) {
+test('2.8.0 / 2.10.0: league tables play and verify on core, frontier and extended (Dh 30 s)', async () => {
+  for (const tier of ['core', 'frontier', 'extended'] as const) {
     const t = table(`t-${tier}`, 17, [
       { power: 'italy', peer: fakePeer('robust', { provider_id: 'alpha', model_id: 'alpha-m1' }) },
       { power: 'turkey', peer: fakePeer('house', { provider_id: 'beta', model_id: 'beta-m1' }) },

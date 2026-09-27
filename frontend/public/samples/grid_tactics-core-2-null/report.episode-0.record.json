@@ -1,7 +1,7 @@
 {
   "scenarioId": "grid_tactics",
   "scenarioVersion": "1.1.0",
-  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "engineCommit": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
   "seed": 2,
   "tier": "core",
   "mode": "duel",
@@ -2820,7 +2820,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "4c04bc3a7629ff843d61acc67c73913fcb6df61a522f3784bf04c3a017626af2",
+  "blindingKey": "7ee747814093aa045a83f06548858f39ecf65d822fc789e50d3244e1acebccf9",
   "perTickHashes": [
     "sha256:9beb0643927bed47afb7e266f1ae9aa47341478a8a0c344c7fcfba2d74ea1662",
     "sha256:3c730447f7a053c4dde829f3c5a96ce237bcd475bb2c0422936e90256511d31e",

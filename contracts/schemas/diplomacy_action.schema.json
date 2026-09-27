@@ -82,7 +82,7 @@
       "items": {
         "$ref": "#/$defs/press_out"
       },
-      "description": "press steps: this round's batch, 0..12 moves (tier quota: edge 3, core 6, frontier 12 per round; excess messages get press_quota, in batch order)."
+      "description": "press steps: this round's batch, 0..12 moves (tier quota: edge 3, core 6, frontier 12, extended 12 per round; excess messages get press_quota, in batch order)."
     },
     "thought": {
       "type": "string",

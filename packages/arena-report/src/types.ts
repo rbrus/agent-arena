@@ -7,7 +7,8 @@
  * output as-is (its `outcome` is typed `string` there).
  */
 
-export type TierId = 'edge' | 'core' | 'frontier';
+/** Budget tiers (contracts run_spec `budget_tier`; `extended` since contracts 2.10.0). */
+export type TierId = 'edge' | 'core' | 'frontier' | 'extended';
 export type SeatId = 'A' | 'B' | 'm0' | 'm1' | 'm2' | 'm3' | 'm4' | 'squad';
 export type Power = 'austria' | 'england' | 'france' | 'germany' | 'italy' | 'russia' | 'turkey';
 /** Verdict seats also admit the seven Diplomacy powers since contracts 2.1.0. */

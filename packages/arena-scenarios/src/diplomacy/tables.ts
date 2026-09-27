@@ -150,7 +150,7 @@ function toSeatSpec(r: DipSeatRoster): DipSeatSpec {
 }
 
 /** The engine TableSpec of a roster (what `rebuildDipRegistry` consumes). */
-export function tableSpecOf(seed: number, cls: 'edge' | 'core' | 'frontier', roster: Record<PowerSeat, DipSeatRoster>, overrides: { horizonYear: number; secret: string }): DipTableSpec {
+export function tableSpecOf(seed: number, cls: 'edge' | 'core' | 'frontier' | 'extended', roster: Record<PowerSeat, DipSeatRoster>, overrides: { horizonYear: number; secret: string }): DipTableSpec {
   const seats = {} as Record<Power, DipSeatSpec>;
   for (const p of DIP_POWERS) seats[p] = toSeatSpec(roster[p]);
   return { seed, seats, cls, overrides: { horizonYear: overrides.horizonYear, secret: overrides.secret } };

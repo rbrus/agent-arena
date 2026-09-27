@@ -167,8 +167,13 @@ export const HOSTED_ALLOWED_ENV: Readonly<Record<string, string>> = {
   NODE_VERSION: 'base image (informational)',
   YARN_VERSION: 'base image (informational)',
 };
-/** Per-run secret names (hosted_env.json `secrets`); taken and scrubbed before this check runs. */
-export const HOSTED_SECRET_PATTERNS: readonly RegExp[] = [/^ARENA_TARGET_CREDENTIAL$/, /^ARENA_SEAT_CREDENTIAL_[A-Z]{1,16}$/, /^ARENA_DIP_SECRET_(0|[1-9][0-9]{0,3})$/];
+/**
+ * Per-run secret names (hosted_env.json `secrets`); taken and scrubbed before this check runs.
+ * (contracts 2.10.0, signing.md §3.2 M10) an episode-secret index is 0..49: a hosted Diplomacy-family run has
+ * at most 50 episodes. A canonical index of 50 or more is not malformed (DIP_VAR): it is taken as a secret
+ * and refused as n >= count (`episode_secret_commitments`).
+ */
+export const HOSTED_SECRET_PATTERNS: readonly RegExp[] = [/^ARENA_TARGET_CREDENTIAL$/, /^ARENA_SEAT_CREDENTIAL_[A-Z]{1,16}$/, /^ARENA_DIP_SECRET_([0-9]|[1-4][0-9])$/];
 const SECRET_NAME = HOSTED_SECRET_PATTERNS;
 const GUARDED_FAMILY = /^(?:ARENA_|NODE_|SSL|OPENSSL)/i;
 const PROXY_VAR = /^(?:https?|all|no|ftp|grpc|ws|wss)_proxy$/i;

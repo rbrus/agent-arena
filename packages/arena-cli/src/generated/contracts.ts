@@ -30,19 +30,19 @@ seeds: [number, ...(number)[]]
  */
 episodes: number
 /**
- * Budget tier = evaluation class (docs/design/arena-scenarios.md §3). Only three dials vary by tier; everything else is structural and identical in every tier. The numbers are FIXED: changing one is a MAJOR contract change + ADR, because results across the change would silently stop being comparable.
+ * Budget tier = evaluation class (docs/design/arena-scenarios.md §3). Only three dials vary by tier; everything else is structural and identical in every tier. The numbers are FIXED: changing one is a MAJOR contract change + ADR, because results across the change would silently stop being comparable. `extended` (2.10.0) is the tier for agents whose decisions wait on slow calls (for example a hosted model), such as Neutral Ground tables: Dh 30 s by decision, with the other dials derived by the rules that already hold across edge, core and frontier (Ds = Dh / 2; the allowance grows by x1.5 per tier step, 360 x 1.5 = 540). No other value is a tier: `league` (reserved in 2.8.0, never specified) is not a member, and a RunSpec naming it is schema_invalid. No frozen reference anchor exists at `extended`: `verify` still re-simulates such a report, but no anchor match is claimed. Worst-case wall time per episode is tick cap x Dh: 192 s, 360 s, 720 s and 3600 s. On the hosted runner an `extended` run plays exactly one episode (signing.md §3.2 A6).
  * 
- * | dial | edge | core | frontier |
- * |---|---:|---:|---:|
- * | soft decision deadline Ds (late action still applies, counted as a soft miss) | 800 ms | 1500 ms | 3000 ms |
- * | hard decision deadline Dh (no valid action by Dh: every controlled unit Holds, a hard miss) | 1600 ms | 3000 ms | 6000 ms |
- * | token allowance per controlled seat per episode | 160 | 240 | 360 |
+ * | dial | edge | core | frontier | extended |
+ * |---|---:|---:|---:|---:|
+ * | soft decision deadline Ds (late action still applies, counted as a soft miss) | 800 ms | 1500 ms | 3000 ms | 15000 ms |
+ * | hard decision deadline Dh (no valid action by Dh: every controlled unit Holds, a hard miss) | 1600 ms | 3000 ms | 6000 ms | 30000 ms |
+ * | token allowance per controlled seat per episode | 160 | 240 | 360 | 540 |
  * 
  * Structural, all tiers: 3 consecutive hard misses forfeit the episode; tick cap 120; one action set per decision (squad mode: all five members in one frame under one Ds/Dh); at most one order per controlled unit per tick (duel <= 4 units; raid member = 1 avatar + free pings); token costs move 1/step, attack 2, hold 0, revive 3, ping 0; inbound frame cap 8192 bytes. Decision time is measured by the arena from sending the observation to receiving the action set, whatever the transport. 'Tokens' are the engine's ACTION-ALLOWANCE units; they are NOT model tokens: the arena never observes, meters, or runs inference (Pillars 4 and 9).
  * 
- * `diplomacy_standard` (2.1.0): the same Ds/Dh apply to every decision step (intent, each press round, orders, retreat, adjustment) and 3 consecutive hard misses forfeit the seat (its power plays on in civil disorder). Orders and press cost no allowance tokens (tokens_spent stays 0); press is bounded by per-tier quotas instead. Its action frame carries a press batch, so its inbound frame cap is 16384 bytes (every other scenario: 8192). The tick cap of 120 holds: the longest horizon (1908) at 3 press rounds is 103 ticks.
+ * `diplomacy_standard` (2.1.0): the same Ds/Dh apply to every decision step (intent, each press round, orders, retreat, adjustment) and 3 consecutive hard misses forfeit the seat (its power plays on in civil disorder). Orders and press cost no allowance tokens (tokens_spent stays 0); press is bounded by per-tier quotas instead. Its action frame carries a press batch, so its inbound frame cap is 16384 bytes (every other scenario: 8192). The tick cap of 120 holds: the longest horizon (1908) at 3 press rounds is 103 ticks (at `extended`, up to 103 x 30 s, about 51.5 minutes per episode).
  */
-budget_tier: ("edge" | "core" | "frontier")
+budget_tier: ("edge" | "core" | "frontier" | "extended")
 /**
  * Which seat(s) the target controls (arena-scenarios.md §1.2). duel = Grid Tactics player A or B against the house bot; position absent = A on even episode indexes, B on odd (side bias cancels). member = one raid seat (default m1), the other seats filled in-process by the scripted `fill` reference (default coordinated). squad = the target controls all five raid members and receives all five egress views per tick. Absent = duel for a duel scenario, member for an encounter. The resolved seat of every episode is recorded in its EpisodeResult. power (2.1.0, diplomacy_standard only) = the target plays one of the seven powers; position = the power, or `auto` (the default) = a pure function of the seed fixed by the scenario version, so the power varies deterministically across seeds. The other six seats are scripted reference agents per `diplomacy.fill` (2.4.0) or, without it, `diplomacy.profile`. With `seats[]` (2.2.0) the primary seat's position MUST be a named power (not `auto`), so that no listed seat can collide with it.
  */
@@ -55,7 +55,7 @@ position?: ("A" | "B" | "m0" | "m1" | "m2" | "m3" | "m4" | "austria" | "england"
 fill?: ("coordinated" | "naive")
 }
 /**
- * diplomacy_standard only (2.1.0; forbidden for every other scenario). Press rounds per movement phase by tier (scenario-version data, diplomacy-scenario.md §1.2 and §8 Q7, decided in contracts 2.1.0): edge 2, core 3, frontier 3. Press quotas per power: core 6 messages per round, 12 per movement window, 4096 body bytes per window, 2 broadcasts per window, 4 live offers; edge halves the counts and bytes, frontier doubles them. Every step (intent, each round, orders, retreat, adjustment) is one decision under the tier Ds/Dh. Press rounds and quotas are NOT caller-settable: they are comparability dials versioned with the scenario, and every EpisodeResult records the values in force.
+ * diplomacy_standard only (2.1.0; forbidden for every other scenario). Press rounds per movement phase by tier (scenario-version data, diplomacy-scenario.md §1.2 and §8 Q7, decided in contracts 2.1.0): edge 2, core 3, frontier 3, extended 3 (2.10.0). Press quotas per power: core 6 messages per round, 12 per movement window, 4096 body bytes per window, 2 broadcasts per window, 4 live offers; edge halves the counts and bytes, frontier doubles them, and extended (2.10.0) uses the frontier quotas: doubling again would give 24 messages per round, over the structural press batch cap of 12 (diplomacy_action `press`), and every other quota scales with messages per round. Every step (intent, each round, orders, retreat, adjustment) is one decision under the tier Ds/Dh. Press rounds and quotas are NOT caller-settable: they are comparability dials versioned with the scenario, and every EpisodeResult records the values in force.
  */
 diplomacy?: {
 /**
@@ -447,7 +447,7 @@ max_output_tokens: number
 token_budget: number
 })[]]
 /**
- * Diplomacy family only (K4): the commitments to the per-episode secrets, fixed before the run. The secrets themselves travel through the per-run secret channel, never in this document. (2.5.0) The runner receives the secrets in the environment variables ARENA_DIP_SECRET_<n>, one per episode index n = 0..count-1 (decimal, no leading zero), each exactly 64 lower-case hex characters, backed by per-run secret references and never by overrides. Before any I/O it requires exactly those `count` variables, checks each against its commitment and the list against `digest` (signing.md §4), and deletes them from its environment. A missing, extra, malformed or mismatching secret is hosted_context_invalid (detail.field `episode_secret_commitments`), and nothing is sent to the target.
+ * Diplomacy family only (K4): the commitments to the per-episode secrets, fixed before the run. The secrets themselves travel through the per-run secret channel, never in this document. (2.5.0) The runner receives the secrets in the environment variables ARENA_DIP_SECRET_<n>, one per episode index n = 0..count-1 (decimal, no leading zero), each exactly 64 lower-case hex characters, backed by per-run secret references and never by overrides. Before any I/O it requires exactly those `count` variables, checks each against its commitment and the list against `digest` (signing.md §4), and deletes them from its environment. A missing, extra, malformed or mismatching secret is hosted_context_invalid (detail.field `episode_secret_commitments`), and nothing is sent to the target. (2.10.0, signing.md §3.2 M10) count is at most 50 and equals the RunSpec's episodes: a hosted Diplomacy-family run plays at most 50 episodes, whatever the plan (the per-episode secret delivery of §3.1.2 is bounded by the secret store's version-add rate). The open CLI keeps the RunSpec limit of 1000 episodes.
  */
 episode_secret_commitments?: {
 count: number
@@ -586,7 +586,7 @@ seat_modes: [("duel" | "member" | "squad" | "power"), ...(("duel" | "member" | "
  * @minItems 1
  * @maxItems 3
  */
-tiers: [("edge" | "core" | "frontier"), ...(("edge" | "core" | "frontier"))[]]
+tiers: [("edge" | "core" | "frontier" | "extended"), ...(("edge" | "core" | "frontier" | "extended"))[]]
 /**
  * Variant only: the parameter and template data file, pinned by digest.
  */

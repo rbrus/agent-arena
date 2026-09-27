@@ -19,7 +19,8 @@
       "enum": [
         "edge",
         "core",
-        "frontier"
+        "frontier",
+        "extended"
       ],
       "description": "The one budget tier the variant always runs at. Absent: any tier in the manifest entry's `tiers`. Present: it must be listed there, and the RunSpec's `budget_tier` must equal it."
     },

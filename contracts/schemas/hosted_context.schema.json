@@ -339,12 +339,12 @@
         "count",
         "digest"
       ],
-      "description": "Diplomacy family only (K4): the commitments to the per-episode secrets, fixed before the run. The secrets themselves travel through the per-run secret channel, never in this document. (2.5.0) The runner receives the secrets in the environment variables ARENA_DIP_SECRET_<n>, one per episode index n = 0..count-1 (decimal, no leading zero), each exactly 64 lower-case hex characters, backed by per-run secret references and never by overrides. Before any I/O it requires exactly those `count` variables, checks each against its commitment and the list against `digest` (signing.md §4), and deletes them from its environment. A missing, extra, malformed or mismatching secret is hosted_context_invalid (detail.field `episode_secret_commitments`), and nothing is sent to the target.",
+      "description": "Diplomacy family only (K4): the commitments to the per-episode secrets, fixed before the run. The secrets themselves travel through the per-run secret channel, never in this document. (2.5.0) The runner receives the secrets in the environment variables ARENA_DIP_SECRET_<n>, one per episode index n = 0..count-1 (decimal, no leading zero), each exactly 64 lower-case hex characters, backed by per-run secret references and never by overrides. Before any I/O it requires exactly those `count` variables, checks each against its commitment and the list against `digest` (signing.md §4), and deletes them from its environment. A missing, extra, malformed or mismatching secret is hosted_context_invalid (detail.field `episode_secret_commitments`), and nothing is sent to the target. (2.10.0, signing.md §3.2 M10) count is at most 50 and equals the RunSpec's episodes: a hosted Diplomacy-family run plays at most 50 episodes, whatever the plan (the per-episode secret delivery of §3.1.2 is bounded by the secret store's version-add rate). The open CLI keeps the RunSpec limit of 1000 episodes.",
       "properties": {
         "count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 1000
+          "maximum": 50
         },
         "digest": {
           "type": "string",

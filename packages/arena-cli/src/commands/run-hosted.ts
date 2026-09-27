@@ -14,7 +14,8 @@
  *   1. take + scrub every per-run secret variable (credentials registered with the Redactor)
  *   2. refuse relaxing variables and diagnostics
  *   3. pinned key set → manifest file → schema → Ed25519 over JCS (RUN_MANIFEST_PAYLOAD_TYPE) → kid
- *   4. policy + clock, image digest allowlist + platform, bound RunSpec
+ *   4. policy + clock, image digest allowlist + platform, bound RunSpec; episode caps (contracts 2.10.0,
+ *      signing.md §3.2 A6: an extended run plays 1 episode; M10: a Diplomacy-family run at most 50)
  *   5. scenario (open, or an `sx_` variant of a mounted signed pack), engine build, packs
  *   6. target: RunSpec origin == verified origin == the egress allowlist's target (scheme, host, port)
  *   7. credential per credential_mode (env:ARENA_TARGET_CREDENTIAL only; tables: ARENA_SEAT_CREDENTIAL_<POWER>)
@@ -36,6 +37,7 @@ import type { HostedContextContract, RunSpecContract } from '../generated/contra
 import { diagnosticFlags } from '../hardening.ts';
 import { assertHostedEnvironment, assertNoEnvDocuments, IMAGE_DIGEST_VAR, PACKS_DIR_VAR, takeHostedSecrets, TARGET_CREDENTIAL_VAR, type HostedSecrets } from '../hosted/env.ts';
 import { bindRunSpec, checkEngine, checkImage, checkPolicyAndClock, commitmentListDigest, episodeSecretCommitment, invalid, readManifestFile, readRunSpecFile, runningPlatform, verifyManifest, type VerifiedManifest } from '../hosted/manifest.ts';
+import { assertHostedDiplomacyEpisodes, assertHostedTierEpisodes } from '../hosted/admission.ts';
 import { installHostedLogFilter, scrubHostedError, type HostedLogFilter } from '../hosted/log-filter.ts';
 import { resolveManifestKeys } from '../hosted/pinned-keys.ts';
 import { checkVariantAgainstRunSpec, isPackScenarioId, loadPacks, packUnavailable, resolveVariant, type LoadedPack } from '../hosted/packs.ts';
@@ -262,6 +264,7 @@ async function runVerifiedManifest(vm: VerifiedManifest, keys: readonly PinnedKe
   const deadlineEpoch = checkPolicyAndClock(m, now);
   checkImage(m, env[IMAGE_DIGEST_VAR], o.platform === undefined ? runningPlatform() : o.platform);
   const spec = bindRunSpec(m, readRunSpecFile(f.runSpec!));
+  assertHostedTierEpisodes(spec);
   if (m.peers?.length || m.egress_allowlist.some((e) => e.role === 'peer_gateway')) {
     throw specInvalid('seats', 'LLM peer seats (adversarial_peer packs) are blocked on K7 in this runner build.', 'run the pack without peer seats until K7 lands (HOSTED-PROFILE §5.7).');
   }
@@ -277,6 +280,7 @@ async function runVerifiedManifest(vm: VerifiedManifest, keys: readonly PinnedKe
     if (!m.packs.length) throw packUnavailable(`${requested.slice(0, 40)} is a Sixi Arena pack scenario and the run manifest mounts no pack.`, 'the control plane must list the entitled pack in the run manifest and mount it under ARENA_PACKS_DIR.');
     const probe = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, null);
     const variant = resolveVariant(requested, probe);
+    assertHostedDiplomacyEpisodes(m, spec, variant.base === DIPLOMACY);
     checkVariantAgainstRunSpec(variant, spec as never);
     throw packUnavailable(
       `${requested} resolves to base ${variant.base} with parameters ${JSON.stringify(variant.params).slice(0, 200)} from pack ${variant.packId}, but this runner build cannot yet report a pack scenario (report scenario.base_scenario_id).`,
@@ -284,6 +288,7 @@ async function runVerifiedManifest(vm: VerifiedManifest, keys: readonly PinnedKe
     );
   }
   checkEngine(m, engineBuildFor(base).digest);
+  assertHostedDiplomacyEpisodes(m, spec, base === DIPLOMACY);
   const packs = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, base);
   // ── 6. Target, 7. credential, tables ──
   refuseTables(spec, secrets);

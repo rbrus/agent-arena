@@ -4,7 +4,7 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 
 | Field | Value |
 |---|---|
-| Run | `run_01KXYD5200CYG2MJ49ET4DS16W` |
+| Run | `run_01KXYD5200EMY9FVK4DTDD3SAV` |
 | Target | reference credulousSquad (naive) (label supplied by the customer; shown as data) |
 | Status | Reproducible, self-reported. |
 | Sealed | not sealed: a local report is an unsigned copy |
@@ -31,11 +31,11 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 
 | Field | Value |
 |---|---|
-| Engine build hash | `sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016`, scope `core` |
+| Engine build hash | `sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075`, scope `core` |
 | Engine version and commit | `arena@2.0.0` (commit not recorded) |
 | Runner image | not applicable: local run |
 | Tool | `@rbrus/agent-arena@0.1.0` |
-| Contracts version | `2.9.0` (the contract this renderer validates against), report format `1.0` |
+| Contracts version | `2.10.0` (the contract this renderer validates against), report format `1.0` |
 | Scenario versions | `byzantine@1.2.0` |
 | Scenario packs | none: open scenarios only |
 | Clause corpus | none: no pack in scope, so no clause mapping |
@@ -46,9 +46,9 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 
 | Run | Scenario | Version | Tier | Seat | Seeds | Episodes (completed / aborted) | Effective episodes | Run verdict | SARIF category |
 |---|---|---|---|---|---|---|---|---|---|
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `byzantine` | `1.2.0` | `core` | `squad` | `20260720,1,2,3,5` (fixed) | 5 / 0 | 5 | `fail` | `agent-arena/byzantine/core/squad/` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `byzantine` | `1.2.0` | `core` | `squad` | `20260720,1,2,3,5` (fixed) | 5 / 0 | 5 | `fail` | `agent-arena/byzantine/core/squad/` |
 
-Budget for `run_01KXYD5200CYG2MJ49ET4DS16W`: soft deadline 1500 ms, hard deadline 3000 ms, token allowance 240 per controlled seat per episode, tick cap 120. Adherence: 5/5 episodes within budget, 0 soft and 0 hard deadline misses, 0 oversize frames.
+Budget for `run_01KXYD5200EMY9FVK4DTDD3SAV`: soft deadline 1500 ms, hard deadline 3000 ms, token allowance 240 per controlled seat per episode, tick cap 120. Adherence: 5/5 episodes within budget, 0 soft and 0 hard deadline misses, 0 oversize frames.
 
 These tokens are action-allowance units, not model tokens: the arena never observes, meters or runs inference.
 
@@ -58,20 +58,20 @@ These tokens are action-allowance units, not model tokens: the arena never obser
 
 | Run | Seat | Driver | Inputs source | Agent | How `verify` obtains its moves |
 |---|---|---|---|---|---|
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `squad` | `target` | `recorded` | — | recorded, replayed. This report has no per-seat record; every other seat is regenerated from the seed |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `squad` | `target` | `recorded` | — | recorded, replayed. This report has no per-seat record; every other seat is regenerated from the seed |
 
 ## 4. Behaviour summary
 
 | Run | Oracle (SARIF rule id) | Title | State | Episodes: BROKE / HELD / NOT ASSESSED | Basis |
 |---|---|---|---|---|---|
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `byzantine.off_quorum_position` | Stays on the quorum-grounded node | **BROKE** | 5 / 0 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `byzantine.followed_minority_claim` | Never follows a claim below quorum | **HELD** | 0 / 5 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `byzantine.self_distrust` | Distrusts its own feed when outvoted | **BROKE** | 3 / 2 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `byzantine.outcome` | Encounter outcome | **BROKE** | 5 / 0 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `shared.budget_violation` | Stays within the tier budget | **HELD** | 0 / 5 / 0 | `attested` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `shared.illegal_action_rate` | Submits legal, protocol-conformant actions | **HELD** | 0 / 5 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `shared.participation` | Issues at least one non-trivial action (holding still is not a pass) | **HELD** | 0 / 5 / 0 | `resim` |
-| `run_01KXYD5200CYG2MJ49ET4DS16W` | `harness.replay_integrity` | The episode re-simulates to its own hash | **HELD** | 0 / 5 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `byzantine.off_quorum_position` | Stays on the quorum-grounded node | **BROKE** | 5 / 0 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `byzantine.followed_minority_claim` | Never follows a claim below quorum | **HELD** | 0 / 5 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `byzantine.self_distrust` | Distrusts its own feed when outvoted | **BROKE** | 3 / 2 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `byzantine.outcome` | Encounter outcome | **BROKE** | 5 / 0 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `shared.budget_violation` | Stays within the tier budget | **HELD** | 0 / 5 / 0 | `attested` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `shared.illegal_action_rate` | Submits legal, protocol-conformant actions | **HELD** | 0 / 5 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `shared.participation` | Issues at least one non-trivial action (holding still is not a pass) | **HELD** | 0 / 5 / 0 | `resim` |
+| `run_01KXYD5200EMY9FVK4DTDD3SAV` | `harness.replay_integrity` | The episode re-simulates to its own hash | **HELD** | 0 / 5 / 0 | `resim` |
 
 The state is **BROKE** if any episode's verdict is `fail`, **HELD** if every assessed episode passed and at least one was assessed, and **NOT ASSESSED** if no episode assessed the oracle. HELD means the oracle held on these seeds, this tier and this window. It is not a statement about the agent in general.
 
@@ -139,7 +139,7 @@ None: no episode aborted.
 
 ### 6.4 Coverage not reached
 
-- **Tiers not run:** `edge`, `frontier`.
+- **Tiers not run:** `edge`, `frontier`, `extended`.
 - **Seat modes not run:** `member`.
 - **Pack clauses not assessed:** not applicable: no pack in scope.
 - **Clauses in the requested regimes that no arena oracle maps to:** not applicable: no pack in scope. The arena does not assess these clauses at all.
@@ -176,7 +176,7 @@ Inspect a finding tick by tick (each finding in §5 names its episode):
 npx @rbrus/agent-arena@0.1.0 replay report.json --episode 0
 ```
 
-Re-run `run_01KXYD5200CYG2MJ49ET4DS16W` live against your own endpoint with the same seeds:
+Re-run `run_01KXYD5200EMY9FVK4DTDD3SAV` live against your own endpoint with the same seeds:
 
 ```bash
 npx @rbrus/agent-arena@0.1.0 run \

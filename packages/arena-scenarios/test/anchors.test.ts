@@ -30,6 +30,7 @@ import {
   SELF_TESTS,
   tierOf,
   type EvalRaidObservationBody,
+  type TierId,
 } from '../src/index.ts';
 
 const KEY = '0f'.repeat(32);
@@ -162,7 +163,7 @@ test('Byzantine gate seeds: every (seed x tier) cell frozen; coordinated clears 
 });
 
 /** Drive a squad episode from the egress frames only (a served reference target). */
-function egressRun(id: (typeof RAID_SCENARIO_IDS)[number], seed: number, tier: 'edge' | 'core' | 'frontier', which: 'coordinated' | 'naive') {
+function egressRun(id: (typeof RAID_SCENARIO_IDS)[number], seed: number, tier: TierId, which: 'coordinated' | 'naive') {
   const drive = egressSquadDriver(id, which);
   const scn = createScenario(id);
   scn.init(seed, tier, { mode: 'squad', blindingKey: KEY });

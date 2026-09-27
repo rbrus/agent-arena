@@ -562,20 +562,33 @@ All mapping ids must be verified against the published OWASP/ATLAS versions in P
 
 Derived from the current engine and arena defaults. Leagues were already "budget classes, not skill tiers" (`docs/economy/params.json:21`).
 
-| Dial | **Edge** | **Core** | **Frontier** | Source |
-|---|---|---|---|---|
-| Soft deadline Ds (miss → counted as soft miss; **built:** the late action still applies, see §1.6 note) | 800 ms | 1500 ms | 3000 ms | `docs/economy/params.json:22-24` (`ds_ms`) → `ascension/packages/wot-store/src/ratings.ts:244`; Core default `ascension/services/arena/src/config.ts:20` |
-| Hard deadline Dh (miss counts toward forfeit) | 1600 ms | 3000 ms | 6000 ms | `params.json:22-24` (`dh_ms`) → `ratings.ts:245`; `config.ts:21`; applied per league `ascension/services/arena/src/arena.ts:155-169` |
-| Consecutive hard misses → forfeit | 3 | 3 | 3 | `config.ts:28` |
-| **Engine action-token allowance per controlled seat per episode** | 160 | 240 | 360 | `params.json:22-24` (`allowance`) → `ratings.ts:246` → duel `arena.ts:407-408` → `MatchConfig.allowance` (`constants.ts:65-72`); raid `RaidConfig.allowance` (`raid/constants.ts:51`) |
-| Token costs | move 1/step · attack 2 · hold 0 · (raid) revive 3 · ping 0 | same | same | `constants.ts:60-61`; `raid/constants.ts:163-167` |
-| Tick cap | 120 | 120 | 120 | `ratings.ts:233`; `constants.ts:65-72`; `raid/constants.ts:57` |
-| Unit actions per tick | duel ≤4 (one per unit); raid member 1 (one avatar) + free pings; raid squad 5 | same | same | `contracts/schemas/action.schema.json:78`; `raid_action.schema.json:74`; one unit per member `raid/state.ts` |
-| Move steps per action | ≤ unit speed (1–2) | same | same | `constants.ts:20` (ROSTER); schema `action.schema.json:40` |
-| Inbound frame cap | 8192 B | 8192 B | 8192 B | `action.schema.json:8`; `raid_action.schema.json:8` |
-| Outbound observation cap | 16384 B (duel) / 32768 B (raid) | same | same | `observation.schema.json:8`; `raid_observation.schema.json:8` |
-| LLM tokens | not metered: `not_assessed` | — | — | Pillar 4 (unverifiable); Pillar 9 |
-| Worst-case episode wall time (tickCap × Dh) | 192 s | 360 s | 720 s | derived; the runner resolves a tick as soon as every target seat has submitted (as `raidmatch.ts` `maybeResolve` does), so real runs are far shorter |
+| Dial | **Edge** | **Core** | **Frontier** | **Extended** (2.10.0) | Source |
+|---|---|---|---|---|---|
+| Soft deadline Ds (miss → counted as soft miss; **built:** the late action still applies, see §1.6 note) | 800 ms | 1500 ms | 3000 ms | 15000 ms | `docs/economy/params.json:22-24` (`ds_ms`) → `ascension/packages/wot-store/src/ratings.ts:244`; Core default `ascension/services/arena/src/config.ts:20` |
+| Hard deadline Dh (miss counts toward forfeit) | 1600 ms | 3000 ms | 6000 ms | 30000 ms | `params.json:22-24` (`dh_ms`) → `ratings.ts:245`; `config.ts:21`; applied per league `ascension/services/arena/src/arena.ts:155-169` |
+| Consecutive hard misses → forfeit | 3 | 3 | 3 | 3 | `config.ts:28` |
+| **Engine action-token allowance per controlled seat per episode** | 160 | 240 | 360 | 540 | `params.json:22-24` (`allowance`) → `ratings.ts:246` → duel `arena.ts:407-408` → `MatchConfig.allowance` (`constants.ts:65-72`); raid `RaidConfig.allowance` (`raid/constants.ts:51`) |
+| Token costs | move 1/step · attack 2 · hold 0 · (raid) revive 3 · ping 0 | same | same | same | `constants.ts:60-61`; `raid/constants.ts:163-167` |
+| Tick cap | 120 | 120 | 120 | 120 | `ratings.ts:233`; `constants.ts:65-72`; `raid/constants.ts:57` |
+| Unit actions per tick | duel ≤4 (one per unit); raid member 1 (one avatar) + free pings; raid squad 5 | same | same | same | `contracts/schemas/action.schema.json:78`; `raid_action.schema.json:74`; one unit per member `raid/state.ts` |
+| Move steps per action | ≤ unit speed (1–2) | same | same | same | `constants.ts:20` (ROSTER); schema `action.schema.json:40` |
+| Inbound frame cap | 8192 B | 8192 B | 8192 B | 8192 B | `action.schema.json:8`; `raid_action.schema.json:8` |
+| Outbound observation cap | 16384 B (duel) / 32768 B (raid) | same | same | same | `observation.schema.json:8`; `raid_observation.schema.json:8` |
+| LLM tokens | not metered: `not_assessed` | — | — | — | Pillar 4 (unverifiable); Pillar 9 |
+| Worst-case episode wall time (tickCap × Dh) | 192 s | 360 s | 720 s | 3600 s | derived; the runner resolves a tick as soon as every target seat has submitted (as `raidmatch.ts` `maybeResolve` does), so real runs are far shorter |
+
+> **Extended (contracts 2.10.0, Architect ruling 2026-09-27).** It replaces the budget tier reserved in 2.8.0
+> as `league` (the name clashed with the passport and queue field `league`). Dh 30000 ms is the ruling. The
+> other dials follow the rules above, one tier step past Frontier:
+> - Ds = Dh / 2 at every tier, so 15000 ms;
+> - the allowance is ×1.5 per step (160 → 240 → 360), so 540;
+> - Diplomacy R saturates at 3;
+> - the press quotas (×2 per step) stay at Frontier, because 24 messages per round would exceed the structural
+>   press-batch cap of 12.
+>
+> Its source is `run_spec.schema.json` and `arena-scenarios/src/tiers.ts`. It is not in `params.json`, which is the
+> dormant economy's file. No anchor is frozen at Extended (`ANCHORED_TIER_IDS`). A hosted Extended run plays one
+> episode (signing.md §3.2 A6), and the live duel/raid queue does not offer it.
 
 **Only three dials vary across tiers:** Ds, Dh and allowance. Actions per tick, frame caps and the tick cap are structural and identical in every tier. Stage B **must not** invent per-tier action counts: the engine's legality is per unit, and changing it would be an engine rule change. The only sanctioned tier-dependent behaviour is `MatchConfig.allowance` / `RaidConfig.allowance`, set through `createInitialState(seed, {config})` (`state.ts:33`) and `createInitialRaidState(seed, boss, spec, {config})` (`raid/state.ts:41-53`). Both are existing options, so no engine change is needed.
 

@@ -1,7 +1,7 @@
 {
   "scenarioId": "diplomacy_standard",
   "scenarioVersion": "1.2.0",
-  "engineCommit": "sha256:f3840fdb471465d4e5da4e729a5463d6d6b420a8591e2e1bdb76f6209aa9d774",
+  "engineCommit": "sha256:eacecd7ca6a84dafa65ee04dfb61efa59f0e80cb2d6685bfdd50219d264aaefa",
   "seed": 20261115,
   "tier": "core",
   "mode": "power",
@@ -7383,7 +7383,7 @@
       "event": "decision",
       "tick": 1,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 1282
     },
@@ -7391,7 +7391,7 @@
       "event": "decision",
       "tick": 2,
       "seat": "germany",
-      "latencyMs": 9,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 646
     },
@@ -7431,7 +7431,7 @@
       "event": "decision",
       "tick": 7,
       "seat": "germany",
-      "latencyMs": 8,
+      "latencyMs": 12,
       "miss": "none",
       "frameBytes": 532
     },
@@ -7447,7 +7447,7 @@
       "event": "decision",
       "tick": 9,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 217
     },
@@ -7479,7 +7479,7 @@
       "event": "decision",
       "tick": 13,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 647
     },
@@ -7487,7 +7487,7 @@
       "event": "decision",
       "tick": 14,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7519,7 +7519,7 @@
       "event": "decision",
       "tick": 18,
       "seat": "germany",
-      "latencyMs": 12,
+      "latencyMs": 8,
       "miss": "none",
       "frameBytes": 292
     },
@@ -7527,7 +7527,7 @@
       "event": "decision",
       "tick": 19,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7543,7 +7543,7 @@
       "event": "decision",
       "tick": 21,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 182
     },
@@ -7599,7 +7599,7 @@
       "event": "decision",
       "tick": 28,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 740
     },
@@ -7607,7 +7607,7 @@
       "event": "decision",
       "tick": 29,
       "seat": "germany",
-      "latencyMs": 7,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 628
     },
@@ -7615,7 +7615,7 @@
       "event": "decision",
       "tick": 30,
       "seat": "germany",
-      "latencyMs": 7,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7631,7 +7631,7 @@
       "event": "decision",
       "tick": 32,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 173
     },
@@ -7639,7 +7639,7 @@
       "event": "decision",
       "tick": 33,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 537
     },
@@ -7679,7 +7679,7 @@
       "event": "decision",
       "tick": 38,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 173
     },
@@ -7703,7 +7703,7 @@
       "event": "decision",
       "tick": 41,
       "seat": "germany",
-      "latencyMs": 9,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 652
     },
@@ -7711,7 +7711,7 @@
       "event": "decision",
       "tick": 42,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 290
     },
@@ -7725,7 +7725,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "aaebcb3a367d3c15f87ddc4ba845f741f896c2abd61c0c74eb05ad625ad7bd62",
+  "blindingKey": "9e7187d06d12e4befa08e6cbfe74bd542bb34cf71e7f88e919f44a892d900324",
   "perTickHashes": [
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",

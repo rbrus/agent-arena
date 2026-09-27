@@ -65,7 +65,7 @@ export interface ReplayFile {
   scenario_id: string;
   episode_index: number;
   seed: number;
-  tier: 'edge' | 'core' | 'frontier';
+  tier: 'edge' | 'core' | 'frontier' | 'extended';
   mode: 'duel' | 'squad' | 'member' | 'power';
   /** The target seat: A | B | m0..m4 | squad | a power (austria … turkey, diplomacy_standard). */
   seat: string;

@@ -683,6 +683,7 @@ function parseSweep(md: string): SweepRow[] {
       continue;
     }
     const c = line.split('|').map((x) => x.trim());
+    // CALIBRATION.md rows exist for the three anchored tiers only (`extended` was never calibrated against anchors).
     if (c.length >= 12 && ['edge', 'core', 'frontier'].includes(c[1])) {
       rows.push({ scenario, seating, tier: c[1], coordFails: c[3], naivePrimaryError: c[5], naiveNotAssessed: c[8], rule: c[10] });
     }
@@ -784,7 +785,9 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
         `verdict=${restReport.summary.verdict} target_ownership=${JSON.stringify(restReport.run.target_ownership)}`);
     }
 
-    // Edge and Frontier: all five gate seeds, each asserted against its frozen tier anchor
+    // Edge and Frontier: all five gate seeds, each asserted against its frozen tier anchor.
+    // The gate is over the three ANCHORED tiers; `extended` (contracts 2.10.0, Dh 30 s) has no
+    // frozen anchor and is deliberately outside every frozen-anchor check of this harness.
     // (C2e froze seeds 1, 2, 3, 5 at Edge/Frontier; before that they were only recorded).
     const tiers = await Promise.all(
       (['edge', 'frontier'] as const).map(async (tier) => {

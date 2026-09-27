@@ -6,7 +6,7 @@
  */
 
 export type * from './types.ts';
-export { BUDGET_TIERS, TIER_IDS, tierOf, HARD_MISS_FORFEIT, TICK_CAP, MAX_INBOUND_FRAME_BYTES } from './tiers.ts';
+export { ANCHORED_TIER_IDS, BUDGET_TIERS, TIER_IDS, tierOf, HARD_MISS_FORFEIT, TICK_CAP, MAX_INBOUND_FRAME_BYTES } from './tiers.ts';
 export { blindReadingId, blindAddId, assertBlindingKey, newBlindingKey } from './blinding.ts';
 export { egressFromInternal, egressReadings, peerReports, MAX_REAL_HAZARD_LEAD, type MemberView, type EgressReading, type PeerReport } from './egress.ts';
 export { RaidScenario, RAID_SCENARIO_VERSION, PHANTOM_SALT, type EvalRaidObservationBody, type RaidActionPayload } from './raid-scenario.ts';

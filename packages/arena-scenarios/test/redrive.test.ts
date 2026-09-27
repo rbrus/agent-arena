@@ -22,6 +22,7 @@ import {
   tierOf,
   type EpisodeRecord,
   type EvalRaidObservationBody,
+  type TierId,
   type Submission,
 } from '../src/index.ts';
 import type { Observation } from 'wot-contracts';
@@ -52,7 +53,7 @@ test('targetDriverOf resolves renamed references (orderedLockSquad.disciplined) 
  * oversized frame then accepted, t%9==6 accepted then a duplicate, t%9==7
  * accepted with no latency measurement, otherwise accepted on time.
  */
-function perturbed<P>(answer: (obs: unknown) => P, tier: 'edge' | 'core' | 'frontier') {
+function perturbed<P>(answer: (obs: unknown) => P, tier: TierId) {
   const T = tierOf(tier);
   return (scn: ReturnType<typeof createScenario>) => {
     const seat = scn.targetSeats()[0];

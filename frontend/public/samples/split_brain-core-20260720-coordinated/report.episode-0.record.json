@@ -1,7 +1,7 @@
 {
   "scenarioId": "split_brain",
   "scenarioVersion": "1.2.0",
-  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "engineCommit": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
   "seed": 20260720,
   "tier": "core",
   "mode": "squad",
@@ -1692,7 +1692,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "f754c83cb318701bdd55c337c9753bffe5cdc158536baea6d37c008c8b36309c",
+  "blindingKey": "ac638490a74e7e61e72499a34721858b4c16aa1b1c5efe754286a1b044c233c5",
   "perTickHashes": [
     "sha256:a99fe4519f8ef29552d843415ed2c957ec361a6983f9d1a3c1bff6ac007edfa5",
     "sha256:b594daf26b8238f691bd6fae618e5bcf11e2cbedcde93a6aaa46bb5ad321814b",

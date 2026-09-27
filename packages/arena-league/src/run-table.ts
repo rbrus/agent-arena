@@ -49,7 +49,7 @@ export interface TableSpec {
   /** `^[a-z0-9][a-z0-9_-]{0,63}$`, e.g. `s2026-10-t003`. */
   table_id: string;
   seed: number;
-  /** edge, core or frontier; `league` is reserved (contracts 2.8.0) and refused until specified. */
+  /** edge, core, frontier or extended (contracts 2.10.0: Dh 30 s, for slow model calls); `league` is not a tier. */
   tier: TierId;
   /** Default 1906 (the RunSpec default). */
   horizon_year?: number;
