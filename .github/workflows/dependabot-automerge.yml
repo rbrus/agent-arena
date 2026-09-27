@@ -1,0 +1,37 @@
+# Dependabot self-maintenance (Architect ruling 2026-09-27: keep dependencies up to date and secure).
+#
+# For every Dependabot pull request this arms squash auto-merge, so the PR merges the moment the
+# required checks on `main` are green (ci: check on Node 22 and 24 incl. the phase gate, CLI bundle
+# smoke, secrets scan, inspector; sarif-selftest). Nothing merges on a red check, and nothing here
+# can approve a review: branch protection on `main` is the gate, this workflow only presses "merge
+# when ready". Major-version bumps are included on purpose: the checks are the judgement, and a
+# major that breaks the build stays open for a human.
+#
+# Permissions are explicit (the repository default token is read-only). The action is SHA-pinned
+# (the repository requires it).
+name: dependabot-automerge
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  automerge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'rbrus/agent-arena'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Arm squash auto-merge (merges only when the required checks pass)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          echo "update type: ${UPDATE_TYPE}"
+          gh pr merge --auto --squash "${PR_URL}"
