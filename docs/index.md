@@ -67,7 +67,7 @@ pair with its frozen hashes, what a failure means for a deployed agent, and what
 - [Code of conduct](../CODE_OF_CONDUCT.md).
 - Licence: Apache-2.0, [LICENSE](../LICENSE), [NOTICE](../NOTICE).
 
-## Built and planned (0.1.0)
+## Built and planned (0.1.1)
 
 | | State |
 |---|---|
@@ -76,6 +76,6 @@ pair with its frozen hashes, what a failure means for a deployed agent, and what
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference`; REST, WebSocket, MCP, A2A | built |
 | Replay inspector with verified samples | built |
 | Docker sandbox | built; `verify.sh` measured 26 s with 5/5 anchors matched, not re-run for the Phase 7 gate |
-| `@rbrus/agent-arena` on npm | published (0.1.0); the source build is equivalent ([Quickstart](guides/quickstart.md#about-npx-rbrusagent-arena)) |
+| `@rbrus/agent-arena` on npm | published (0.1.1); the source build is equivalent ([Quickstart](guides/quickstart.md#about-npx-rbrusagent-arena)) |
 | SARIF upload to a real GitHub Security tab | built; this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@rbrus/agent-arena` |
 | Sixi Arena hosted service | planned; see the [FAQ](guides/faq.md#what-does-sixi-arena-add) |

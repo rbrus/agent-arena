@@ -19,7 +19,7 @@ writing to test. `--i-own-this-target` is that statement, and the report records
 | CLI `run`, `verify`, `--ci github`, `--auth env:NAME`, `--i-own-this-target`, SARIF 2.1.0 output | built; the run step below was executed locally on 2026-09-26 with `GITHUB_ACTIONS=true` against a loopback agent |
 | SARIF validates against the SARIF 2.1.0 schema and GitHub's constraints | built; Phase 7 gate criterion 4 |
 | Upload to a real Security tab | built; the public repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@rbrus/agent-arena` |
-| `npx @rbrus/agent-arena` from the npm registry | published (0.1.0). The job below still builds the CLI from source, because that is the form this repository's CI runs; the `npx` form runs the same bundle |
+| `npx @rbrus/agent-arena` from the npm registry | published (0.1.1). The job below still builds the CLI from source, because that is the form this repository's CI runs; the `npx` form runs the same bundle |
 
 ## The job
 
@@ -150,7 +150,7 @@ The action SHAs are the ones the self-test workflow pins.
   `agent-arena/split_brain`, so the uploads do not replace each other.
 - **Stricter gating.** `--fail-on warning` also fails on warning-level findings.
 - **From npm instead of a source build.** Replace the checkout and build steps with
-  `npx --yes @rbrus/agent-arena@0.1.0 run …`, pinned to an exact version. It runs the same bundle
+  `npx --yes @rbrus/agent-arena@0.1.1 run …`, pinned to an exact version. It runs the same bundle
   as the source build; this repository's CI proves the source-build form, not this one.
 
 ## What the Security tab shows

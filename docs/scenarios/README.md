@@ -9,10 +9,10 @@ scenario does **not** test.
 > deterministic predicate over a hash-committed replay of scripted reference agents; nothing is
 > scored by a model or by a person.
 
-**State as of 0.1.0.** Built: the scenarios, their oracles and the
+**State as of 0.1.1.** Built: the scenarios, their oracles and the
 frozen anchors (`packages/arena-scenarios`), the CLI that runs them against your agent over REST,
 WebSocket, MCP or A2A (`packages/arena-cli`), the report and SARIF writer, the Docker sandbox and
-the replay inspector. The CLI is on npm as `@rbrus/agent-arena` since 0.1.0, and the source is
+the replay inspector. The CLI is on npm as `@rbrus/agent-arena` since 0.1.1, and the source is
 public at [github.com/rbrus/agent-arena](https://github.com/rbrus/agent-arena). The Phase 7
 release gate is open (82/82 checks in the development repository); the Phase 8 (Diplomacy) gate is
 at 44/45, the open check being the second-person map review.

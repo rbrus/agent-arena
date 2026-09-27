@@ -3,7 +3,7 @@
 **Scenario version** 1.0.0 · **Seat mode** `duel` (player `A` or `B`) · **Status:** built:
 scenario, oracles and anchors (`packages/arena-scenarios`), the run-level `win_rate` verdict in the
 report writer (`packages/arena-report`), and CLI support (`run`, `verify`, `replay`); on npm as `@rbrus/agent-arena`
-since 0.1.0.
+since 0.1.1.
 Common model, verdict semantics and the shared oracles: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -159,7 +159,7 @@ needs a separate handler. The full flag list is in the
 [CLI README](../../packages/arena-cli/README.md).
 
 The alternating run as a RunSpec file, `run --spec run.json`, valid against the
-current RunSpec schema. `--spec` is in the CLI since 0.1.0; a flag-driven run also writes the
+current RunSpec schema. `--spec` is in the CLI since 0.1.1; a flag-driven run also writes the
 RunSpec it ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 
 ```json

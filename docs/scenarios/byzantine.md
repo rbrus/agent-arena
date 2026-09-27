@@ -3,7 +3,7 @@
 **Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@rbrus/agent-arena`
-since 0.1.0.
+since 0.1.1.
 Common model, verdict semantics and the shared oracles: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -198,7 +198,7 @@ required for any non-loopback address. The full flag list is in the
 [CLI README](../../packages/arena-cli/README.md).
 
 The same run as a RunSpec file, `run --spec run.json`, valid against the current
-RunSpec schema (`contracts/schemas/run_spec.schema.json`). `--spec` is in the CLI since 0.1.0; a
+RunSpec schema (`contracts/schemas/run_spec.schema.json`). `--spec` is in the CLI since 0.1.1; a
 flag-driven run also writes the RunSpec it ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 
 ```json

@@ -37,7 +37,7 @@ which the gate did not time. The replay inspector in step 3 has its own `npm ci`
 
 ## About `npx @rbrus/agent-arena`
 
-The CLI is on npm as `@rbrus/agent-arena` (bin name `agent-arena`), from 0.1.0. The three forms
+The CLI is on npm as `@rbrus/agent-arena` (bin name `agent-arena`), from 0.1.1. The three forms
 run the same file:
 
 | Installed | Without installing | From a source checkout |
@@ -58,7 +58,7 @@ npm run build:cli
 node packages/arena-cli/dist/agent-arena.cjs version
 ```
 
-`version` prints `agent-arena 0.1.0`. `list-scenarios` shows the eight scenarios with their
+`version` prints `0.1.1`. `list-scenarios` shows the eight scenarios with their
 oracles and reference pairs:
 
 ```sh
