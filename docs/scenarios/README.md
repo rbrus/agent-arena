@@ -9,13 +9,13 @@ scenario does **not** test.
 > deterministic predicate over a hash-committed replay of scripted reference agents; nothing is
 > scored by a model or by a person.
 
-**State as of 2026-09-26 (source tree).** Built: the scenarios, their oracles and the
+**State as of 0.1.0.** Built: the scenarios, their oracles and the
 frozen anchors (`packages/arena-scenarios`), the CLI that runs them against your agent over REST,
 WebSocket, MCP or A2A (`packages/arena-cli`), the report and SARIF writer, the Docker sandbox and
-the replay inspector. The Phase 7 release gate is open (82/82 checks); the Phase 8 (Diplomacy)
-gate is at 44/45, the open check being the second-person map review. **Pending:** the npm package
-`@rbrus/agent-arena` (0.1.0) and the public repository. Items marked **(0.1.0)** on these pages are
-in the 0.1.0 release but not in the CLI committed on 2026-09-26.
+the replay inspector. The CLI is on npm as `@rbrus/agent-arena` since 0.1.0, and the source is
+public at [github.com/rbrus/agent-arena](https://github.com/rbrus/agent-arena). The Phase 7
+release gate is open (82/82 checks in the development repository); the Phase 8 (Diplomacy) gate is
+at 44/45, the open check being the second-person map review.
 
 | Scenario | Tests | Seat modes | Scenario version | Page |
 |---|---|---|---|---|
@@ -134,8 +134,9 @@ repeats of the same class; report the distribution, not the best run.
 ## Running a scenario
 
 Every page ends with a "Run it" section. The commands use the source-checkout form, which works
-today after `npm ci && npm run build:cli`; once `@rbrus/agent-arena` 0.1.0 is on npm,
-`npx @rbrus/agent-arena` replaces `node packages/arena-cli/dist/agent-arena.cjs`. The
+after `npm ci && npm run build:cli`. With the npm package `@rbrus/agent-arena`,
+`npx @rbrus/agent-arena` (or an installed `agent-arena`) replaces
+`node packages/arena-cli/dist/agent-arena.cjs`. The
 [CLI README](../../packages/arena-cli/README.md) and `agent-arena --help` are authoritative; any
 difference between them and these pages is a bug in these pages.
 
@@ -144,7 +145,7 @@ difference between them and these pages is a bug in these pages.
 | `--scenario` | `scenario_id` | the ids above |
 | `--seat` | `seat.mode` / `seat.position` | `squad`; `member` or `m0`..`m4` (member mode, default `m1`); `duel`, `A` or `B` (Grid Tactics); a power or `auto` (Diplomacy) |
 | `--fill` | `seat.fill` (member mode: the four teammates); `diplomacy.fill` (Diplomacy) | `coordinated` (default) or `naive`; Diplomacy fills on [its page](diplomacy_standard.md#seats-and-fills) |
-| `--tier` | `budget_tier` | `edge`, `core` (default), `frontier` |
+| `--tier` | `budget_tier` | `edge`, `core` (default), `frontier`, `extended` (no frozen anchors; see [Budget tiers](#budget-tiers-evaluation-classes)) |
 | `--seeds` | `seeds` | comma-separated uint32 seeds; default the five gate seeds `20260720,1,2,3,5` |
 | `--episodes` | `episodes` | default = the number of seeds |
 | `--target` | `target.url` | your agent's endpoint, or `ref:coordinated` / `ref:naive` to run the scripted references in-process |
@@ -152,7 +153,7 @@ difference between them and these pages is a bug in these pages.
 | `--auth env:NAME` | `target.auth.ref` | a credential reference, never the value |
 | `--i-own-this-target` | `target.ownership_attested` | required for any non-loopback target |
 | `--out` | (not in the RunSpec) | output directory, default `./arena-report` |
-| `--spec run.json` **(0.1.0)** | the whole RunSpec | alternative to the flags |
+| `--spec run.json` | the whole RunSpec | alternative to the flags |
 
 Every run writes its RunSpec to `<out>/report.run-spec.json`, next to `report.json`,
 `report.sarif` and one record and replay file per episode. After a run:
@@ -162,7 +163,7 @@ node packages/arena-cli/dist/agent-arena.cjs verify arena-report/report.json    
 node packages/arena-cli/dist/agent-arena.cjs replay arena-report/report.json --episode 0   # one episode's tick log, no target needed
 ```
 
-**(0.1.0)** `replay` also accepts `--hash <sha256:…>` in place of `--episode`, and a run given by
+`replay` also accepts `--hash <sha256:…>` in place of `--episode`, and a run given by
 flags writes its RunSpec to `.agent-arena/<scenario>.run.json`, the file each SARIF result names
 as its physical location.
 

@@ -12,6 +12,15 @@ and token budgets and reports which deterministic oracles fired.
   result cannot be contaminated by one.
 - **CI-shaped output.** `report.json` and SARIF 2.1.0, for CI and a GitHub Security tab.
 
+## Why this exists
+
+Agents that work with other agents fail in ways a single-turn probe cannot reach: a peer that lies, a partition, a stale observation, an opponent that learns their habits.
+A score from a model judge inherits that model's variance and its exposure to the text it is judging, and is hard for anyone else to reproduce.
+agent-arena scripts the adversaries and scores each run with deterministic predicates over a hash-committed replay, so anyone can re-simulate a result with `agent-arena verify`.
+It reports which oracles fired on which seeds, for a CI job or a GitHub Security tab.
+It does not rank models, and a pass certifies nothing: it means these oracles did not fire on these seeds.
+The same engine runs a paid hosted service; the conflict-of-interest note below says who maintains it.
+
 Think of it as a **robustness test under adversarial peers and partial observability**, not a
 leaderboard. See [Limitations](#limitations).
 
@@ -24,13 +33,16 @@ leaderboard. See [Limitations](#limitations).
 
 ## Status
 
-Pre-release. `0.1.0` is planned for 2026-10-25. Everything marked **built** below is in this
-repository and covered by the release gate; nothing is on npm yet.
+`0.1.0`, on npm as `@rbrus/agent-arena`. Pre-1.0: contracts, oracle ids and thresholds may still
+change between minor versions (see [Limitations](#limitations)). Everything marked **built** below
+is in this repository and covered by the release gate.
 
-Release gates, 2026-09-26:
+Release gates, re-run on the contracts 2.10.0 tree (2026-09-27):
 
-- **Phase 7 (open arena): `GATE: OPEN`, 82/82 checks.** `npm run gate`; `npm test` 1,068 tests,
-  0 failing. Evidence: `docs/phase-7/GATE-EVIDENCE.md` (in the development repository).
+- **Phase 7 (open arena): `GATE: OPEN`, 82/82 checks** in the development repository. In this
+  repository's layout, `npm run gate` does not evaluate the checks that read private evidence
+  documents; this repository's CI runs it on Node 22 and Node 24 (80/80 on both at the first
+  public CI run).
 - **Phase 8 (Diplomacy): 44/45 checks.** `npm run gate:phase8 -- --full`. The 45th check is a
   second-person review of the map data, which a person has to sign and which is still pending.
 
@@ -40,8 +52,8 @@ Release gates, 2026-09-26:
 | Grid Tactics + six failure-mode scenarios behind one `Scenario` interface (`packages/arena-scenarios`) | built: `grid_tactics` 1.0.0, the six raids 1.1.0 |
 | Per-scenario oracles with severities, `not_assessed` reasons, re-derivation from the record | built |
 | Target-facing observation filter (no ground truth reaches the target; 9 leak classes tested) | built |
-| Golden pairs with frozen replay hashes in all three budget tiers | built |
-| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.7.0) |
+| Golden pairs with frozen replay hashes in the `edge`, `core` and `frontier` budget tiers (none at `extended`) | built |
+| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.10.0) |
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference` (`packages/arena-cli`) | built: the gate command runs in 1.41 s; 4.6 s from a clean clone to a report |
 | Target transports: REST, WebSocket, MCP, A2A | built: identical replay hashes, verdicts and SARIF fingerprints on all four (gate criterion 2, 15/15) |
 | Report writer (`report.json`) and SARIF 2.1.0 emitter (`packages/arena-report`) | built: every SARIF log the gate produced validates (18/18) |
@@ -50,9 +62,9 @@ Release gates, 2026-09-26:
 | Replay inspector (static web page, `frontend/`) | built: loads `report.json` + replay, inert to hostile input, Diplomacy-aware; the 15 bundled samples verify |
 | Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 44/45; announced as runnable in 0.2.0 after the map review |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
-| `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | (0.1.0) |
-| `@rbrus/agent-arena` on npm | pending (0.1.0) |
-| SARIF upload shown in a real GitHub Security tab | pending: the SARIF validates in the gate; only the first CI run of the public repository can show the upload |
+| `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
+| `@rbrus/agent-arena` on npm | published: 0.1.0 |
+| SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@rbrus/agent-arena` |
 
 ---
 
@@ -61,12 +73,15 @@ Release gates, 2026-09-26:
 Needs Node.js 22+, npm and git. No Docker, no API key and no model. In the Phase 7 gate this path
 took 4.6 s from a clean clone to a report (aarch64, Node 24, warm npm cache).
 
-**The npm package is not published yet.** Until 0.1.0 is on npm, build the CLI from the checkout
-and run the bundle. The two forms are the same file:
+The CLI is on npm as `@rbrus/agent-arena` (bin name `agent-arena`). The steps below use a source
+checkout, the form the gate timed, because the reference target script lives in the repository.
+The three forms run the same file:
 
-| Once 0.1.0 is on npm | From a source checkout (works today) |
-|---|---|
-| `npx @rbrus/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
+| Installed | Without installing | From a source checkout |
+|---|---|---|
+| `npm i -g @rbrus/agent-arena`, then `agent-arena <command> …` | `npx @rbrus/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
+
+Without a checkout, `agent-arena serve-reference --port 8080` serves the same reference target.
 
 ```sh
 git clone https://github.com/rbrus/agent-arena.git
@@ -204,15 +219,23 @@ Full flag list, exit codes and security posture: [packages/arena-cli/README.md](
 ## Budget tiers
 
 Budgets are the only fairness mechanism. The arena never asks which model you run, because it
-could not verify the answer; it enforces what the referee can measure. The three tiers are
+could not verify the answer; it enforces what the referee can measure. The four tiers are
 evaluation classes, not leagues. The values are fixed by the contracts; changing one is a major
-version change, because it changes results.
+version change, because it changes results. `extended` was added in contracts 2.10.0 for agents
+whose decisions take tens of seconds; the other three tiers did not change.
 
 | Tier | Soft deadline | Hard deadline | Action-token allowance per seat | Tick cap |
 |---|---:|---:|---:|---:|
 | `edge` | 800 ms | 1,600 ms | 160 | 120 |
 | `core` (default) | 1,500 ms | 3,000 ms | 240 | 120 |
 | `frontier` | 3,000 ms | 6,000 ms | 360 | 120 |
+| `extended` | 15,000 ms | 30,000 ms | 540 | 120 |
+
+- **`extended` has no frozen anchors.** `verify` re-simulates an `extended` report like any other,
+  but no `anchor: match` is claimed for it. A worst-case episode at `extended` is 120 × 30 s = 60 min.
+- **Hosted caps (Sixi Arena runner only).** A hosted `extended` run plays exactly one episode, and
+  a hosted Diplomacy run plays at most 50. The open CLI keeps the RunSpec limit of 1,000 episodes
+  at every tier.
 
 - An action that arrives after the soft deadline still applies and is counted as a soft miss.
 - No valid action by the hard deadline means the seat's units hold.
@@ -345,6 +368,8 @@ Read this before quoting a result.
   clean-room rule for the Diplomacy adjudicator.
 - [SECURITY.md](SECURITY.md): report vulnerabilities privately; do not open a public issue.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- This project is maintained by its author (`rbrus`) together with Sixi AI, which sells a hosted
+  service built on this engine.
 - Contact: the maintainer (`rbrus`), through issues and pull requests on this repository, or
   GitHub private vulnerability reporting for anything sensitive. There is no email contact.
 
