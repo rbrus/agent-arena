@@ -16,7 +16,10 @@
  *     asserted (1012, no invented result, 4403 afterwards, the recording re-simulates);
  *  6. key rotation mid-table as a smoke check on a full seven-seat passport-signed table.
  *
- * The two defects this suite found (D-1 schema_invalid escalation, D-2 ended-table retention)
+ * The defects this suite found (D-1 schema_invalid escalation, D-2 ended-table retention,
+ * D-3 double-scheduled step resolve: case 3's duplicate frame, when it landed in the same I/O
+ * turn as the completing frame, closed the NEXT step with no answers, so the flood tick was
+ * all hard misses; load-dependent here, deterministic in diplomacy-resolve-once.test.ts)
  * are fixed in service code; their probes are now ordinary passing tests. Seat-arrival
  * deadline and result-sink coverage: diplomacy-lifecycle.test.ts. Every scenario prints one
  * `CHAOS {...}` line with its numbers.

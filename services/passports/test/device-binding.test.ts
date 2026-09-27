@@ -41,6 +41,29 @@ after(async () => {
 
 const JWK = { kty: 'OKP', crv: 'Ed25519', x: '11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo' };
 
+/**
+ * Every property name in a JSON value, recursively. The "nothing of the binding is stored"
+ * checks look at NAMES structurally and at the binding's key material by exact value: a
+ * case-insensitive regex over the serialized record also scanned random ids, and a ULID
+ * holding "JWK" (Crockford base32 has J, W, K; about 1 registration in 700) failed the
+ * test with nothing stored (flake seen 2026-09-27; regression below).
+ */
+const keysOf = (v: unknown, out: string[] = []): string[] => {
+  if (Array.isArray(v)) for (const x of v) keysOf(x, out);
+  else if (v && typeof v === 'object')
+    for (const [k, x] of Object.entries(v)) {
+      out.push(k);
+      keysOf(x, out);
+    }
+  return out;
+};
+/** The binding's key material (the public `x`, or any 8+ char slice of it) appears nowhere. */
+const holdsBindingKey = (s: string): boolean => {
+  for (let i = 0; i + 8 <= JWK.x.length; i++) if (s.includes(JWK.x.slice(i, i + 8))) return true;
+  return false;
+};
+const BINDING_NAME = /device|jwk|cnf|jkt|dpop/i;
+
 test('registration with device_binding succeeds; the token has no cnf / DPoP claim', async () => {
   const reg = await fetch(`${base}/v1/agents`, {
     method: 'POST',
@@ -73,12 +96,30 @@ test('registration with device_binding succeeds; the token has no cnf / DPoP cla
   // it is never the ignored device_binding key.
   const { signingKey, ...rest } = rec;
   assert.ok(signingKey && signingKey.publicJwk.x !== JWK.x, 'the device_binding key is not adopted as the signing key');
-  assert.doesNotMatch(JSON.stringify(signingKey), /device|11qYAYKx/i);
-  assert.doesNotMatch(JSON.stringify(rest), /device|jwk|11qYAYKx/i);
+  assert.deepEqual(keysOf(signingKey).filter((k) => /device/i.test(k)), [], 'no device_* field in the signing key');
+  assert.ok(!holdsBindingKey(JSON.stringify(signingKey)), 'the signing key holds none of the binding key');
+  assert.deepEqual(keysOf(rest).filter((k) => BINDING_NAME.test(k)), [], 'no binding-named field in the record');
+  assert.ok(!holdsBindingKey(JSON.stringify(rest)), 'the record holds none of the binding key');
   // At most a one-line deprecation note, carrying no binding material.
   const notes = lines.filter((l) => l.includes('deprecated_field_ignored'));
   assert.equal(notes.length, 1);
-  assert.doesNotMatch(notes[0], /11qYAYKx|jwk/);
+  const note = JSON.parse(notes[0]) as Record<string, unknown>;
+  assert.equal(note.field, 'device_binding', 'the note names the ignored field');
+  assert.deepEqual(keysOf(note).filter((k) => BINDING_NAME.test(k)), [], 'no binding-named field in the note');
+  assert.ok(!holdsBindingKey(notes[0]), 'the note holds none of the binding key');
+});
+
+test('regression: the stored-record checks see binding names and key material, not random ids that spell them', () => {
+  // A record whose ids spell JWK / device / cnf (the 2026-09-27 flake) holds no binding.
+  const benign = { clientId: 'cid_01M3HBPN0FB9ASJQ8JWKEG3R6Z', agentId: 'agt_01DEVICE0CNF0JKT0JWK000000', displayName: 'jwk device' };
+  assert.deepEqual(keysOf(benign).filter((k) => BINDING_NAME.test(k)), []);
+  assert.ok(!holdsBindingKey(JSON.stringify(benign)));
+  // Each way the binding could leak is still caught.
+  assert.deepEqual(keysOf({ a: 1, deviceBinding: { enabled: true } }).filter((k) => BINDING_NAME.test(k)), ['deviceBinding']);
+  assert.deepEqual(keysOf({ a: [{ jwk: {} }] }).filter((k) => BINDING_NAME.test(k)), ['jwk']);
+  assert.deepEqual(keysOf({ cnf: { jkt: 'x' } }).filter((k) => BINDING_NAME.test(k)), ['cnf', 'jkt']);
+  assert.ok(holdsBindingKey(JSON.stringify({ k: JWK.x })));
+  assert.ok(holdsBindingKey(JSON.stringify({ k: `pre${JWK.x.slice(20, 30)}post` })), 'a slice of the key is caught');
 });
 
 test('an invalid device_binding shape is still rejected by the contract schema (400)', async () => {
