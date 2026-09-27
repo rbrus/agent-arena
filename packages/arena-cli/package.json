@@ -35,7 +35,7 @@
     "ajv": "^8.17.1",
     "arena-report": "*",
     "arena-scenarios": "*",
-    "esbuild": "0.28.1",
+    "esbuild": "0.28.2",
     "json-schema-to-typescript": "^15.0.4",
     "postject": "1.0.0-alpha.6",
     "wot-contracts": "*",
