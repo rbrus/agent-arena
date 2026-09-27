@@ -1,0 +1,49 @@
+{
+  "context_version": "1.0",
+  "run_id": "run_01JB5H0STED0TEST000000000A",
+  "scan_id": "scn_TEST00000001",
+  "org_ref": "org_TEST000000001",
+  "region": "europe-west6",
+  "issued_at": "2026-09-27T15:37:20Z",
+  "run_spec_digest": "sha256:1957b3874a6200074565a58aaee78b52214e26114d94e18ff6adc4e00b8beb29",
+  "net_policy": "hosted-v1",
+  "egress_allowlist": [
+    {
+      "origin": "https://agent.example.com",
+      "role": "target"
+    }
+  ],
+  "credential_mode": "sixi_run_token",
+  "signing_key_id": "sixi-arena-ed25519-20261101",
+  "verified_origin": {
+    "origin": "https://agent.example.com",
+    "method": "dns",
+    "verified_at": "2026-10-02T08:11:00Z",
+    "checked_at": "2026-09-27T15:37:50Z",
+    "record_id": "dom_TEST00000042"
+  },
+  "rps_cap": 50,
+  "wall_clock_deadline": "2026-09-27T16:38:20Z",
+  "image_digest": {
+    "index": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "platform_manifest": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "platform": "linux/arm64"
+  },
+  "engine_build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
+  "seed_source": "fresh",
+  "packs": [],
+  "retention": {
+    "transcripts_days": 30,
+    "replays_days": 30
+  },
+  "signing": {
+    "algorithm": "ed25519",
+    "signing_key_id": "sixi-arena-manifest-ed25519-20261101",
+    "canonicalization": "jcs-rfc8785",
+    "payload_type": "application/vnd.sixi.arena-run-manifest+json",
+    "excluded": [
+      "/signing/signature"
+    ],
+    "signature": "xtf47urjs22zViL6nsrijI0tCurG/gWNButsQU/1STP/d0tVWWF6ZvVhQgdJx9bPCdPV3wIvKVrxCTdeE4cRCw=="
+  }
+}

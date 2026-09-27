@@ -10,6 +10,72 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions are Sem
 
 _Nothing pending._
 
+## [2.13.0] — 2026-09-27
+
+**The evidence renderer's inputs, its command, and its three refusal codes.** **MINOR**: one new `$id`, three new error
+codes and normative text for a command the open CLI already ships. `versioning.md` §2 has the worked example. Source: the
+sdk-engineer's `agent-arena evidence` (`packages/arena-cli/src/commands/evidence.ts`), which defined its `--inputs`
+document in code, and the Sixi seal step (sixi-scanner PR 7c), which writes that document and runs the command.
+
+No ADR is needed. The frame protocol stays `1.0`, and every existing `$id` keeps `:1`. **No oracle id or SARIF rule id is
+added, renamed or re-levelled.** Every signing vector, digest-statement vector and signed example is byte-identical. The
+only rendered byte that moves is the evidence report's contracts version (`producer.contracts_version`, and the
+"Contracts version" row of `evidence.md`), which names the release a renderer validates against.
+
+### Added: `schemas/evidence_input.schema.json` (`wot:evidence_input:1`)
+
+- The document `agent-arena evidence --inputs <path>` reads, and the Sixi seal step writes to `render/input.json`. At most
+  8388608 bytes, `x-direction: inbound`. Promoted from the CLI's in-code schema with the same constraints; the CLI now
+  compiles this file, as it does the other hosted schemas.
+- **Members.** `input_version` `"1.0"`; `run_id` (1 to 64 characters, no C0 control character, MUST equal the sealed
+  report's `run.run_id`); `jwks_url` (at most 256, `^https://[^\s?#]+$`); `admission` {`reports_until`, `audit_until`,
+  `credential_destroyed_at`?, `requested_by`? {`actor_kind` `user` | `pipeline_token` | `system`, `actor_id`
+  `^[A-Za-z0-9][A-Za-z0-9_-]{3,63}$`}, `incident_ref`? `^[A-Za-z0-9_-]{1,64}$`}; `crosscheck_record`?; `corpus`? (at most
+  4096 entries keyed by clause id of at most 128 characters: `instrument`, `reference`, `paraphrase`, `url` https,
+  `title`?).
+- **Closed at every level.** Unknown members are refused, so none of the seal facts the signed report carries (seal time,
+  region, organisation, origin, image digest, engine build, key id) can be supplied here. `crosscheck_record` is closed by
+  `crosscheck_record.schema.json`, which the consumer applies to it (no contract schema references another file), and its
+  signature must verify with the report key set.
+- **Examples.** The Sixi PR 7c input with a cross-check record (the CLI's fixture, with the record's signature replaced by
+  an `EXAMPLE` value), the same input without a record, and one with every optional admission member and a two-entry
+  corpus.
+
+### Changed (text): HOSTED-PROFILE §2.7 step 6 and signing.md §5.3 step 4
+
+- **HOSTED-PROFILE §2.7 step 6** now specifies the evidence step as built: a keyless job from the same digest (no
+  `ARENA_HOSTED`, no network, only `render/` writable) runs `agent-arena evidence --hosted-seal <seal>/report.json --sarif
+  <out>/report.sarif --verify-result <seal>/verify.json --packs <in>/packs --inputs <render>/input.json --key pinned --out
+  <render>`. It verifies the sealed report with the pinned report keys, the SARIF as the re-rendering of the report,
+  `verify.json` stating the seal precondition, the mounted packs and the cross-check record's signature, then renders
+  `evidence.md` and, when every sealed input is present, `evidence.json`, create-only. Exit 0 both files, 1 `evidence.md`
+  only, 2 an input fails or the renderer refused (nothing written), 3 misuse. The evidence lists `report.json` and
+  `report.sarif` by digest, never `bundle-manifest.json`. Appendix A gains the three codes below.
+- **signing.md §5.3 step 4** names the open CLI's `evidence` as the renderer, `evidence_input.schema.json` as the only
+  source of the seal-side facts the signed report does not carry, and the signed report as the only source of seal time,
+  region, organisation, origin, image digest, engine build and key id. The seal order does not change.
+
+### Added: errors.md §1d `input_invalid`, `renderer_refused`, `evidence_not_written`
+
+All three are exit 2 with nothing written, and the seal step then seals the run without the evidence and records
+`not_rendered:<code>`.
+
+- `input_invalid`: an input failed its check (report, SARIF, `verify.json`, packs, `input.json` or its cross-check
+  record's schema). A signature that does not verify keeps `signature_invalid`.
+- `renderer_refused`: `renderer_refused: <code>: <reason>`, with `<code>` one of `wording`, `input`, `schema` or `output`.
+- `evidence_not_written`: an output could not be created or written in full, or `--out` changed after it was checked. A
+  file already written by the call is removed.
+
+### Implementation (same change)
+
+- `arena-cli`: `src/hosted/schemas.ts` compiles `evidence_input.schema.json` (the in-code schema is gone; its `$id` was
+  `agent-arena:evidence_input:1`). `evidence` now checks a present `crosscheck_record` against
+  `crosscheck_record.schema.json` at the input stage, so a malformed record is `input_invalid` before its signature is
+  verified; before, it failed the signature check or the renderer. `src/generated/contracts.ts` does not change: the CLI's
+  codegen covers `run_spec`, `eval_episode_end`, `hosted_context` and `pack_manifest` only.
+- The evidence goldens (`arena-cli` `test/fixtures/sixi-pr7c/golden/`, `arena-report` `test/fixtures/evidence-*.md`)
+  move their contracts version from `2.12.0` to `2.13.0`. Nothing else in them changes.
+
 ## [2.12.0] — 2026-09-27
 
 **The verifier's result file, four §5.2 reason tokens, and the evidence render order.** **MINOR**: a clarifying

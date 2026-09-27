@@ -155,6 +155,23 @@ bump implies a new path prefix (`/v2/`) served alongside `/v1/` during migration
 >   normally MAJOR; it is corrected in a MINOR only because no released tool ever emitted the 2.0.0
 >   formula (the open arena ships 2026-10-25). After the first public release this exception is closed.
 
+> **Worked example — the `2.13.0` evidence inputs are a MINOR.**
+>
+> * **New surfaces only.** A new `$id` (`wot:evidence_input:1`, the `agent-arena evidence --inputs` document), three new
+>   error codes (`input_invalid`, `renderer_refused`, `evidence_not_written`) and normative text for a new CLI command.
+>   New surfaces are MINOR under §2.
+> * **Promoting an in-code schema is not a tightening.** The CLI shipped the same constraints in code (with the
+>   non-contract `$id` `agent-arena:evidence_input:1`) before any release, and no sealed run has rendered evidence yet.
+>   The one behaviour the promotion moves is where a malformed cross-check record is refused: at the input stage
+>   (`input_invalid`) instead of at the signature check or in the renderer. It was exit 2 with nothing written before and
+>   still is.
+> * **The evidence report's contracts version moves.** `producer.contracts_version` states the release the renderer
+>   validates against, so every rendering now says `2.13.0`. That value is data, not a change to `evidence_report`.
+> * **Later changes to `evidence_input`.** Adding an optional member is MINOR. Making a member required, removing one,
+>   narrowing a bound or changing `input_version` is MAJOR for the schema (`wot:evidence_input:2`) and needs an ADR,
+>   because a seal step that writes the 1.0 document would then be refused.
+> * **Oracle ids, SARIF rule ids, the frame protocol and every existing `$id` do not change.**
+
 > **Worked example — the `2.12.0` clarifying release is a MINOR, not a PATCH.**
 >
 > * **Why not `2.11.1`.** §2 lists no change class that is PATCH-only, and every release so far was a MINOR. This

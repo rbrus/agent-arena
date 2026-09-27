@@ -15,6 +15,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
   CONFLICT_OF_INTEREST,
+  TOOL_VERSION,
   EvidenceRenderError,
   HOSTED_STATUS,
   LOCAL_STATUS,
@@ -137,7 +138,7 @@ test('golden (local, open scenarios, no packs): renders every template section, 
   assert.ok(markdown.includes('`grid_tactics` | open | `not_requested`'));
   assert.ok(markdown.includes('**Seat modes not run:** `member`.'));
   // The exact verify command of the shipped CLI.
-  assert.ok(markdown.includes('npx @rbrus/agent-arena@0.1.0 verify report.json '));
+  assert.ok(markdown.includes(`npx @rbrus/agent-arena@${TOOL_VERSION} verify report.json `));
   assert.ok(markdown.includes('Unsigned copy: a local report carries no seal.'));
 });
 
