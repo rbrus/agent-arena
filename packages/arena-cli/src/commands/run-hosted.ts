@@ -278,7 +278,7 @@ async function runVerifiedManifest(vm: VerifiedManifest, keys: readonly PinnedKe
   if (packVariant) {
     // Only a variant of a pack the SIGNED manifest lists, mounted and signed, resolves; otherwise refused before any I/O.
     if (!m.packs.length) throw packUnavailable(`${requested.slice(0, 40)} is a Sixi Arena pack scenario and the run manifest mounts no pack.`, 'the control plane must list the entitled pack in the run manifest and mount it under ARENA_PACKS_DIR.');
-    const probe = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, null);
+    const probe = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, null, Date.parse(m.issued_at));
     const variant = resolveVariant(requested, probe);
     assertHostedDiplomacyEpisodes(m, spec, variant.base === DIPLOMACY);
     checkVariantAgainstRunSpec(variant, spec as never);
@@ -289,7 +289,7 @@ async function runVerifiedManifest(vm: VerifiedManifest, keys: readonly PinnedKe
   }
   checkEngine(m, engineBuildFor(base).digest);
   assertHostedDiplomacyEpisodes(m, spec, base === DIPLOMACY);
-  const packs = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, base);
+  const packs = loadPacks(m.packs, env[PACKS_DIR_VAR], keys, (s) => engineBuildFor(s).digest, base, Date.parse(m.issued_at));
   // ── 6. Target, 7. credential, tables ──
   refuseTables(spec, secrets);
   const { url, transport, allow } = hostedTarget(m, spec);

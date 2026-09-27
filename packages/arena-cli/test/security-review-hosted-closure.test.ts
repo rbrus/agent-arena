@@ -54,6 +54,7 @@ import {
   viaReference,
   writeInputs,
   runHosted,
+  NO_PIN,
 } from './hosted-fixtures.ts';
 import { PKG, runCli, scratch, WORKSPACE } from './helpers.ts';
 import { contractsDir } from 'wot-contracts/contracts-dir';
@@ -302,16 +303,16 @@ describe('G-49 verify --hosted-seal checks the run manifest signature before the
 
   test('pre-seal passes with the kid-bound manifest key, or with a pinned set and no flag', async () => {
     const out = await hostedOut();
-    assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID) }), 0);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID) }), 0);
     assert.equal(verifyHostedSeal(out, { pinnedKeys: loadPublicKeySet(pubJwk(MANIFEST_KID), 'test') }), 0);
     assert.throws(() => verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID), pinnedKeys: loadPublicKeySet(pubJwk(MANIFEST_KID), 'test') }), /cannot replace or extend/);
-    assert.throws(() => verifyHostedSeal(out, { manifestKey: pubJwk() }), /kid-bound manifest key/);
+    assert.throws(() => verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk() }), /kid-bound manifest key/);
   });
   test('--expect-manifest-digest: the issued digest passes, another is exit 2, a malformed one is misuse', async () => {
     const out = await hostedOut();
-    assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: manifestDigest(out) }), 0);
-    assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: `sha256:${'0'.repeat(64)}` }), 2);
-    assert.throws(() => verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: 'sha256:ABC' }), /sha256:<64 lower-case hex>/);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: manifestDigest(out) }), 0);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: `sha256:${'0'.repeat(64)}` }), 2);
+    assert.throws(() => verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID), expectManifestDigest: 'sha256:ABC' }), /sha256:<64 lower-case hex>/);
   });
   test('a manifest re-signed with the right key but another engine build is exit 2 (report engine.build_hash ≠ manifest)', async () => {
     const out = await hostedOut();
@@ -326,18 +327,21 @@ describe('G-49 verify --hosted-seal checks the run manifest signature before the
     writeFileSync(rp, toFileJson(r));
     setOutputMode({ json: true });
     try {
-      const c = await captureStreams(() => verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID) }));
+      const c = await captureStreams(() => verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID) }));
       assert.equal(c.value, 2);
       assert.match(c.text, /engine\.build_hash differs from the run manifest engine_build_hash/);
     } finally {
       setOutputMode({ quiet: true });
     }
   });
-  test('the real binary: pre-seal without any manifest key exits 2 and says what to pass', async () => {
+  test('the real binary: pre-seal checks the bundled pinned keys; a manifest by an unpinned kid exits 2 and names the pinned set', async () => {
     const out = await hostedOut();
     const r = await runCli(['verify', '--hosted-seal', out]);
     assert.equal(r.code, 2, r.stdout + r.stderr);
-    assert.match(r.stdout, /needs the control-plane manifest key/);
+    assert.match(r.stdout, /signature_invalid: the run manifest is signed by key sixi-arena-manifest-ed25519-20261101, which is not a pinned control-plane manifest key \(pinned: sixi-arena-manifest-ed25519-86c88a43cdcdb910e8f4\)/);
+    const flag = await runCli(['verify', '--hosted-seal', out, '--manifest-key', pubJwk(MANIFEST_KID)]);
+    assert.equal(flag.code, 3, 'the release pins a key set, so --manifest-key is refused');
+    assert.match(flag.stderr, /cannot replace or extend it/);
     const bad = await runCli(['verify', join(out, 'report.json'), '--expect-manifest-digest', manifestDigest(out)]);
     assert.equal(bad.code, 3, 'the flag belongs to --hosted-seal');
   });
@@ -535,7 +539,7 @@ describe('contracts 2.6.0: bundle list, pack fixture and variant format, run-tok
       const key = seal(out, drop);
       setOutputMode({ json: true });
       try {
-        const c = await captureStreams(() => verifyHostedSeal(out, { key }));
+        const c = await captureStreams(() => verifyHostedSeal(out, { pinnedKeys: NO_PIN, key }));
         assert.equal(c.value, drop ? 2 : 0, c.text);
         // bundle_manifest.schema.json `contains` the three paths since 2.6.0; sealedBundleProblems checks them again by name.
         if (drop) assert.ok(c.text.includes(`${drop} is not listed in bundle-manifest.json`) || c.text.includes('fails bundle_manifest.schema.json'), c.text);

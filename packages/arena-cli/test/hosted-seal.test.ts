@@ -10,11 +10,12 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { after, before, test } from 'node:test';
 import { canonicalizeForSigning, REPORT_PAYLOAD_TYPE, signReport, toFileJson, type Report } from 'arena-report';
-import { verifyHostedSeal } from '../src/commands/verify.ts';
+import { verifyCommand, verifyHostedSeal } from '../src/commands/verify.ts';
+import type { PinnedKey } from '../src/keys.ts';
 import { BUNDLE_PAYLOAD_TYPE, renderSarif, SARIF_PAYLOAD_TYPE } from '../src/hosted/seal.ts';
 import { startReferenceServer, type ReferenceServer } from '../src/reference/serve.ts';
 import { setOutputMode } from '../src/ui.ts';
-import { dsseEnvelope, hostedEnv, MANIFEST_KID, PLATFORM, PRIV, pubJwk, REPORT_KID, runSpec, signManifest, unsignedManifest, viaReference, writeInputs, runHosted } from './hosted-fixtures.ts';
+import { NO_PIN, PUB, dsseEnvelope, hostedEnv, MANIFEST_KID, PLATFORM, PRIV, pubJwk, REPORT_KID, runSpec, signManifest, unsignedManifest, viaReference, writeInputs, runHosted } from './hosted-fixtures.ts';
 import { scratch } from './helpers.ts';
 
 let srv: ReferenceServer;
@@ -64,34 +65,58 @@ test('pre-seal and sealed bundle verification; tampering is caught', async () =>
   // Pre-seal (verifier job): no key needed; SARIF re-render is byte-equal to what the runner wrote.
   const report = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8')) as Report;
   assert.equal(renderSarif(report), readFileSync(join(out, 'report.sarif'), 'utf8'));
-  assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID) }), 0);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID) }), 0);
 
   // A SARIF edited after the run: mismatch (exit 1).
   const sarifPath = join(out, 'report.sarif');
   const sarif = readFileSync(sarifPath, 'utf8');
   writeFileSync(sarifPath, sarif.replace('"results"', '"results" '));
-  assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID) }), 1);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID) }), 1);
   writeFileSync(sarifPath, sarif);
 
   // Sealed: three envelopes and the bundle manifest.
   seal(out);
-  assert.throws(() => verifyHostedSeal(out, {}), /needs the report-signing public key/);
-  assert.equal(verifyHostedSeal(out, { key: pubJwk(REPORT_KID), manifestKey: pubJwk(MANIFEST_KID) }), 0);
-  assert.equal(verifyHostedSeal(join(out, 'report.json'), { key: JSON.stringify({ keys: [JSON.parse(pubJwk(REPORT_KID))] }) }), 0);
+  assert.throws(() => verifyHostedSeal(out, { pinnedKeys: NO_PIN }), /needs the report-signing public key/);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk(REPORT_KID), manifestKey: pubJwk(MANIFEST_KID) }), 0);
+  assert.equal(verifyHostedSeal(join(out, 'report.json'), { pinnedKeys: NO_PIN, key: JSON.stringify({ keys: [JSON.parse(pubJwk(REPORT_KID))] }) }), 0);
 
   // A record changed after sealing: the bundle digest no longer matches (exit 2).
   const rec = join(out, 'episodes', '0.record.json');
   const recText = readFileSync(rec, 'utf8');
   writeFileSync(rec, recText.replace(/\n$/, ' \n'));
-  assert.equal(verifyHostedSeal(out, { key: pubJwk(REPORT_KID) }), 2);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk(REPORT_KID) }), 2);
   writeFileSync(rec, recText);
   // A run-manifest swapped after sealing: its digest no longer matches the seal (exit 2).
   const mp = join(out, 'run-manifest.json');
   const mText = readFileSync(mp, 'utf8');
   writeFileSync(mp, mText.replace('"rps_cap": 50', '"rps_cap": 49'));
-  assert.equal(verifyHostedSeal(out, { key: pubJwk(REPORT_KID) }), 2);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk(REPORT_KID) }), 2);
   writeFileSync(mp, mText);
   // The wrong report key: exit 2.
-  assert.equal(verifyHostedSeal(out, { key: pubJwk('sixi-arena-ed25519-20990101') }), 2);
-  assert.equal(verifyHostedSeal(out, { key: pubJwk(REPORT_KID) }), 0);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk('sixi-arena-ed25519-20990101') }), 2);
+  assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk(REPORT_KID) }), 0);
+});
+
+test('--key pinned: the release\'s bundled report keys, by kid and inside their window at sealed_at', async () => {
+  const spec = runSpec({ seeds: [20260720], episodes: 1 });
+  const dir = scratch();
+  const inputs = writeInputs(join(dir, 'in'), signManifest(unsignedManifest(spec)), spec);
+  const out = join(dir, 'out');
+  // The release pins the test manifest key here (the Sixi private keys are not in any test).
+  const manifestPin: PinnedKey[] = [{ key: PUB, kid: MANIFEST_KID }];
+  assert.equal((await runHosted({ ...inputs, out }, { pinnedKeys: manifestPin, env: hostedEnv(), platform: PLATFORM, transportFactory: viaReference(srv.urls.rest, {}) })).exitCode, 0);
+  seal(out); // sealed_at 2026-11-10T14:07:00Z by REPORT_KID
+  const reportPin = (nb: string, na: string): PinnedKey[] => [{ key: PUB, kid: REPORT_KID, not_before: Date.parse(nb), not_after: Date.parse(na) }];
+  const inside = reportPin('2026-10-01T00:00:00Z', '2026-12-30T00:00:00Z');
+  const expired = reportPin('2026-08-01T00:00:00Z', '2026-10-30T00:00:00Z');
+  const rj = join(out, 'report.json');
+  // Sealed bundle and the plain hosted verify, against the pinned report key.
+  assert.equal(verifyHostedSeal(out, { key: 'pinned', pinnedKeys: manifestPin, pinnedReportKeys: inside }), 0);
+  assert.equal(verifyCommand(rj, { key: 'pinned', hosted: true, pinnedKeys: manifestPin, pinnedReportKeys: inside }), 0);
+  // Sealed after the pinned report key's not_after: signature_invalid, exit 2.
+  assert.equal(verifyHostedSeal(out, { key: 'pinned', pinnedKeys: manifestPin, pinnedReportKeys: expired }), 2);
+  assert.equal(verifyCommand(rj, { key: 'pinned', hosted: true, pinnedKeys: manifestPin, pinnedReportKeys: expired }), 2);
+  // The production default (the Sixi report key): a report sealed by another kid is exit 2.
+  assert.equal(verifyHostedSeal(out, { key: 'pinned', pinnedKeys: manifestPin }), 2);
+  assert.equal(verifyCommand(rj, { key: 'pinned', hosted: true, pinnedKeys: manifestPin }), 2);
 });

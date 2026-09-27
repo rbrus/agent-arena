@@ -1312,10 +1312,17 @@
           "format": "date-time",
           "description": "When the seal step signed, after `verify` returned verified."
         },
+        "signed_form": {
+          "enum": [
+            "raw",
+            "digest_statement"
+          ],
+          "description": "(2.11.0, signing.md §5.2) What the signature signs. Absent or `raw`: PAE(payload_type, JCS(report without /signing/signature)), allowed only while that message is at most ARENA_SIGN_MAX_MESSAGE_BYTES (65536). `digest_statement`: PAE(\"application/vnd.sixi.arena-digest-statement+json\", JCS(statement)) over the digest statement derived from this report (digest_statement.schema.json: subject = this payload type, the sha256 and byte length of the JCS body; run_id, run_manifest_digest, signing_key_id and sealed_at from this report). Allowed at any size and mandatory above the threshold. This member is inside the signed body, so the form cannot be changed after sealing."
+        },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9+/]{86}==$",
-          "description": "Standard base64 of the 64-byte Ed25519 signature over PAE(payload_type, JCS(report without /signing/signature)). It is byte-identical to `signatures[0].sig` of `report.json.dsse.json`, whose payload is those JCS bytes."
+          "description": "Standard base64 of the 64-byte Ed25519 signature over PAE(payload_type, JCS(report without /signing/signature)), or (2.11.0) over the derived digest statement when `signed_form` is `digest_statement` (signing.md §5.2). It is byte-identical to `signatures[0].sig` of `report.json.dsse.json`, whose payload is those JCS bytes (raw form) or the statement's JCS bytes (digest form)."
         }
       }
     }

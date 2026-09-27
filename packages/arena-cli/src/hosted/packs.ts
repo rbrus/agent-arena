@@ -44,7 +44,7 @@ import { oracleCatalog, pae, type ReportScenarioId } from 'arena-report';
 import { SCENARIO_IDS } from 'arena-scenarios';
 import { misconfig, type CliError } from '../errors.ts';
 import type { HostedContextContract, PackManifestContract } from '../generated/contracts.ts';
-import type { PinnedKey } from '../keys.ts';
+import { keyWindowProblem, type PinnedKey } from '../keys.ts';
 import { PACK_MANIFEST_MAX_BYTES, schemaErrors, validatePackManifest, validatePackVariant } from './schemas.ts';
 
 /** DSSE payload type of a signed pack manifest (contracts 2.6.0 signing.md §11, §2 table). */
@@ -117,29 +117,50 @@ function readCapped(path: string, cap: number, what: string): Buffer {
 const sha256 = (b: Buffer | string) => `sha256:${createHash('sha256').update(b).digest('hex')}`;
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const B64 = /^[A-Za-z0-9+/]*={0,2}$/;
+/** G-52: the one canonical spelling of standard base64 (padded, no dangling character, unused bits zero). */
+const isCanonicalB64 = (s: string): boolean => B64.test(s) && Buffer.from(s, 'base64').toString('base64') === s;
 
-/** Verify a DSSE envelope over a pack manifest with the pinned control-plane keys; returns the payload bytes. */
-export function openPackEnvelope(envelope: Buffer, keys: readonly PinnedKey[], packId: string): Buffer {
+/**
+ * Verify a DSSE envelope over a pack manifest with the pinned control-plane keys; returns the payload bytes.
+ * signing.md §11.1 / §11.3 step 5 and (2.11.0) §3.3 rule 3 "Packs": 1 to 4 signatures, and the envelope is
+ * accepted when one of them verifies with the pinned key its keyid names (or a pinned key without a kid) whose
+ * window covers `at`, the `issued_at` of the verified run manifest that lists the pack (epoch ms). A signature
+ * by a key outside its window does not count; a missing `at` is outside every window (a key without a window,
+ * a test key, has no limit).
+ */
+export function openPackEnvelope(envelope: Buffer, keys: readonly PinnedKey[], packId: string, at: number = Number.NaN): Buffer {
   let env: unknown;
   try {
     env = JSON.parse(envelope.toString('utf8'));
   } catch {
     throw packUnavailable(`pack ${packId}: ${PACK_ENVELOPE_FILE} is not JSON.`);
   }
-  if (!isObj(env) || env.payloadType !== PACK_PAYLOAD_TYPE || typeof env.payload !== 'string' || !B64.test(env.payload) || !Array.isArray(env.signatures) || env.signatures.length < 1 || env.signatures.length > 4) {
-    throw packUnavailable(`pack ${packId}: ${PACK_ENVELOPE_FILE} is not a DSSE envelope of type ${PACK_PAYLOAD_TYPE}.`);
+  if (!isObj(env) || env.payloadType !== PACK_PAYLOAD_TYPE || typeof env.payload !== 'string' || !isCanonicalB64(env.payload) || !Array.isArray(env.signatures) || env.signatures.length < 1 || env.signatures.length > 4) {
+    throw packUnavailable(`pack ${packId}: ${PACK_ENVELOPE_FILE} is not a DSSE envelope of type ${PACK_PAYLOAD_TYPE} with 1 to 4 signatures.`);
   }
   const payload = Buffer.from(env.payload, 'base64');
   const message = pae(PACK_PAYLOAD_TYPE, payload);
+  const outsideWindow: string[] = [];
   const ok = (env.signatures as unknown[]).some((s) => {
-    if (!isObj(s) || typeof s.sig !== 'string' || !B64.test(s.sig)) return false;
+    if (!isObj(s) || typeof s.sig !== 'string' || !isCanonicalB64(s.sig)) return false;
     const kid = typeof s.keyid === 'string' ? s.keyid : undefined;
     const sig = Buffer.from(s.sig, 'base64');
     if (sig.length !== 64) return false;
-    return keys.filter((k) => k.kid === undefined || k.kid === kid).some((k) => edVerify(null, message, k.key, sig));
+    const named = keys.filter((k) => k.kid === undefined || k.kid === kid);
+    const verifying = named.filter((k) => edVerify(null, message, k.key, sig));
+    if (!verifying.length) return false;
+    if (verifying.some((k) => keyWindowProblem(k, at) === null)) return true;
+    outsideWindow.push(`${String(kid).slice(0, 64)}: ${keyWindowProblem(verifying[0]!, at)}`);
+    return false;
   });
-  if (!ok) throw packUnavailable(`pack ${packId}: the pack signature does not verify against the pinned control-plane key.`, 'mount the pack bundle exactly as the pack store signed it.');
-  return payload;
+  if (ok) return payload;
+  if (outsideWindow.length) {
+    throw packUnavailable(
+      `pack ${packId}: no signature is by a pinned control-plane key whose window covers the run manifest's issued_at (${outsideWindow.slice(0, 4).join('; ')}).`,
+      'the pack store must add a signature with a key this release pins for the run\'s issued_at (a new envelope, pinned by the next manifest), signing.md §3.3 rule 3.',
+    );
+  }
+  throw packUnavailable(`pack ${packId}: the pack signature does not verify against the pinned control-plane key.`, 'mount the pack bundle exactly as the pack store signed it.');
 }
 
 /**
@@ -232,6 +253,8 @@ export function loadPacks(
   engineBuildOf: (scenario: string) => string,
   /** The open scenario the run plays (its build must be in every pack's range); null = an `sx_` run, checked per variant base. */
   runScenario: string | null,
+  /** (2.11.0, signing.md §3.3 rule 3) The verified run manifest's `issued_at`, epoch ms: each pack key's window must cover it. */
+  issuedAt: number = Number.NaN,
 ): LoadedPack[] {
   if (!entries.length) return [];
   if (!packsDir) throw packUnavailable(`the run manifest lists ${entries.length} pack(s) (${entries.map((p) => p.id).join(', ')}), but ARENA_PACKS_DIR is not set.`, 'the hosted job spec must mount the fetched packs read-only and set ARENA_PACKS_DIR.');
@@ -244,7 +267,7 @@ export function loadPacks(
     const envBytes = readCapped(join(dir, PACK_ENVELOPE_FILE), PACK_MANIFEST_MAX_BYTES * 2, `pack ${e.id}/${PACK_ENVELOPE_FILE}`);
     const digest = sha256(envBytes);
     if (digest !== e.digest) throw packUnavailable(`pack ${e.id}: the mounted bundle digests to ${digest}, the run manifest pins ${e.digest}.`, 'mount the exact pack bundle the control plane admitted.');
-    const payload = openPackEnvelope(envBytes, keys, e.id);
+    const payload = openPackEnvelope(envBytes, keys, e.id, issuedAt);
     if (payload.length > PACK_MANIFEST_MAX_BYTES) throw packUnavailable(`pack ${e.id}: the pack manifest is over ${PACK_MANIFEST_MAX_BYTES} bytes.`);
     let doc: unknown;
     try {

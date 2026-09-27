@@ -72,7 +72,6 @@ function sealedOptions(over: Partial<EvidenceRenderOptions> = {}): EvidenceRende
       files: [
         { path: 'report.json', run_id: 'run_01JB5H0STED0EXAMP1E00000R2', sha256: sha('1') },
         { path: 'report.sarif', run_id: 'run_01JB5H0STED0EXAMP1E00000R2', sha256: sha('2') },
-        { path: 'bundle-manifest.json', run_id: 'run_01JB5H0STED0EXAMP1E00000R2', sha256: sha('3') },
       ],
     },
     admission: { reports_until: '2027-11-10T14:06:42Z', audit_until: '2028-11-09T14:06:42Z', credential_destroyed_at: '2026-11-10T14:00:05Z', requested_by: { actor_kind: 'pipeline_token', actor_id: 'tok_EXAMPLE0001' } },
@@ -200,6 +199,16 @@ test('hosted (sealed, pack sx-agentic-core, LLM peer): snapshot, and evidence.js
   assert.ok(markdown.includes(`\`${json.build.crosscheck.ref}\``), 'cross-check record id in the reproducibility statement');
   assert.ok(markdown.includes('| `run_01JB5H0STED0EXAMP1E00000R2` | `sixi-arena-ed25519-20261101` | `sha256:c1da86382029d8944a901ef9d80e00ac9e4928216311231d81072eab36c08f37` |'));
   assert.ok(markdown.includes(`Hosted addendum: ${json.disclosure.hosted_addendum}`));
+});
+
+test('signing.md §5.3 (2.12.0): signature.files names report.json and report.sarif only; a deprecated bundle-manifest.json entry from an older caller is never emitted', () => {
+  const o = sealedOptions();
+  const legacy = { ...o.bundle!, files: [...o.bundle!.files, { path: 'bundle-manifest.json', run_id: 'run_01JB5H0STED0EXAMP1E00000R2', sha256: sha('3') }] } as unknown as NonNullable<EvidenceRenderOptions['bundle']>;
+  for (const opts of [o, sealedOptions({ bundle: legacy })]) {
+    const { markdown, json } = renderEvidenceReport(hostedReport(), opts);
+    assert.deepEqual(json!.signature.files.map((f) => f.path), ['report.json', 'report.sarif']);
+    assert.doesNotMatch(markdown, /^\| `bundle-manifest\.json` \|/m);
+  }
 });
 
 test('hosted without the sealed inputs: the Markdown renders and says why no evidence.json accompanies it', () => {

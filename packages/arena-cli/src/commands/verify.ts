@@ -7,7 +7,9 @@
  *
  *   --key     check the report's Ed25519 seal (contracts 2.2.0 signing.md)
  *             BEFORE anything is re-simulated; a missing or bad seal is
- *             `signature_invalid` (exit 2).
+ *             `signature_invalid` (exit 2). `--key pinned` uses the Sixi report
+ *             keys bundled in this release (hosted/pinned-keys.json), each only
+ *             inside its window (checked at `signing.sealed_at`).
  *   --hosted  a sealed hosted report (Phase 9; full hosted verification is
  *             reserved): additionally cross-checks the signing key id of the
  *             SARIF next to the report against the DSSE seal and run.hosted,
@@ -31,12 +33,14 @@ import type { HostedContextContract } from '../generated/contracts.ts';
 import { isPackScenarioId, PACK_UNAVAILABLE } from '../hosted/packs.ts';
 import { schemaErrors, validateHostedContext } from '../hosted/schemas.ts';
 import { hostedInvariantProblems, sarifEqual, sealedBundleProblems, type SealCheck } from '../hosted/seal.ts';
+import { refusalLine, REPORT_PAYLOAD_TYPE, SignatureRefusal, signedFormLine, verifyEmbeddedSignature, type VerifiedSignature } from '../hosted/digest-statement.ts';
+import { prepareResultPath, writeResultFile, type ResultTarget } from '../result-file.ts';
 import { exactOrigin } from '../net/index.ts';
 import { commitmentListDigest, episodeSecretCommitment } from '../hosted/manifest.ts';
-import { resolveManifestKeys } from '../hosted/pinned-keys.ts';
+import { PINNED_KEY_ARG, pinnedReportKeys, resolveManifestKeys } from '../hosted/pinned-keys.ts';
 import { HOSTED_MANIFEST_FILE } from './run.ts';
 import { HostileFileError, readHostileJson, resolveInside } from '../files.ts';
-import { loadPublicKey, loadPublicKeySet, type PinnedKey } from '../keys.ts';
+import { keysForKid, loadPublicKey, loadPublicKeySet, type PinnedKey } from '../keys.ts';
 import { buildReplayFile } from '../replay-file.ts';
 import { CLI_SCENARIOS, DRIVER_MISMATCH_MESSAGE, makeRerun } from '../rerun.ts';
 import { EXIT_CODES, engineBuildScopeFor, verifyReport, type ExitCode, type Report, type VerifyResult } from '../report.ts';
@@ -53,6 +57,31 @@ export interface VerifyFlags {
   expectManifestDigest?: string;
   /** Tests only: the release's pinned manifest key set (default PINNED_MANIFEST_JWKS). */
   pinnedKeys?: readonly PinnedKey[];
+  /** Tests only: the release's pinned report key set `--key pinned` selects (default: hosted/pinned-keys.json `report`). */
+  pinnedReportKeys?: readonly PinnedKey[];
+  /** `--hosted-seal` only: also write the `--json` result document to this path (create-only; result-file.ts). */
+  result?: string;
+}
+
+/**
+ * `--key pinned`: the report key of this release for the report's kid, tried only when its
+ * window covers `signing.sealed_at`. Returns the key, or the `signature_invalid` reason.
+ */
+export function pinnedReportKeyFor(report: unknown, pinned: readonly PinnedKey[]): { key?: KeyObject; error?: string } {
+  const signing = isObj(report) && isObj(report.signing) ? report.signing : undefined;
+  if (!signing) return { error: 'signature_invalid: key: --key pinned checks a sealed report; this one carries no signing block' };
+  const kid = str(signing.signing_key_id);
+  const sel = keysForKid(pinned, kid, Date.parse(str(signing.sealed_at) ?? ''));
+  if (sel.problem === 'unpinned') return { error: `signature_invalid: key: the report is sealed by key ${String(kid).slice(0, 64)}, which is not a report key this release pins (pinned: ${pinned.map((k) => k.kid ?? '?').join(', ')}); use the agent-arena release current when it was sealed, or pass that key with --key` };
+  if (sel.problem) return { error: `signature_invalid: key: the report is sealed by pinned key ${String(kid).slice(0, 64)} outside that key's window (${sel.problem})` };
+  return { key: sel.keys[0]!.key };
+}
+
+/** `--key <pem|jwk|jwks>` or `--key pinned`: the report key set to try. */
+function reportKeySet(f: VerifyFlags): PinnedKey[] | undefined {
+  if (f.key === undefined) return undefined;
+  if (f.key === PINNED_KEY_ARG) return [...(f.pinnedReportKeys ?? pinnedReportKeys())];
+  return loadPublicKeySet(f.key, '--key');
 }
 
 const DIGEST_RE = /^sha256:[0-9a-f]{64}$/;
@@ -139,9 +168,10 @@ export function hostedSealErrors(report: unknown, reportPath: string, manifestKe
   if (str(ref.signing_key_id) !== m.signing.signing_key_id) errs.push('signature_invalid: run.hosted.run_manifest.signing_key_id differs from the manifest\'s signing key id');
   if (manifestKeys) {
     const kid = m.signing.signing_key_id;
-    const cands = manifestKeys.filter((k) => k.kid === undefined || k.kid === kid);
-    const ok = cands.some((k) => verifyDocumentSignature(m, k.key, RUN_MANIFEST_PAYLOAD_TYPE).ok);
-    if (!ok) errs.push(`signature_invalid: the run manifest's signature does not verify against the control-plane manifest key (pinned or --manifest-key; kid ${kid})`);
+    const sel = keysForKid(manifestKeys, kid, Date.parse(m.issued_at));
+    if (sel.problem === 'unpinned') errs.push(`signature_invalid: the run manifest is signed by key ${kid}, which is not a pinned control-plane manifest key (pinned: ${manifestKeys.map((k) => k.kid ?? '?').join(', ')})`);
+    else if (sel.problem) errs.push(`signature_invalid: the run manifest is signed by pinned key ${kid} outside that key's window (${sel.problem})`);
+    else if (!sel.keys.some((k) => verifyDocumentSignature(m, k.key, RUN_MANIFEST_PAYLOAD_TYPE).ok)) errs.push(`signature_invalid: the run manifest's signature does not verify against the control-plane manifest key (pinned or --manifest-key; kid ${kid})`);
   }
   // signing.md §3 rule 3: run.hosted is a copy of the manifest's fields.
   const copied = ['signing_key_id', 'region', 'image_digest', 'verified_origin', 'org_ref', 'scan_id', 'credential_mode', 'seed_source', 'packs', 'retention'] as const;
@@ -201,38 +231,89 @@ export function hostedCommitmentErrors(report: unknown, m: HostedContextContract
   return errs;
 }
 
+/** G-62: the minimum shape the hosted-seal checks read (an object report with an object `run`, and `signing` an object when present). */
+function reportShapeProblem(raw: unknown): string | undefined {
+  if (!isObj(raw)) return 'report.json is not a JSON object';
+  if (!isObj(raw.run)) return 'report.json has no run object';
+  if (raw.signing !== undefined && !isObj(raw.signing)) return 'report.json signing is present but not an object';
+  if (!Array.isArray(raw.episodes)) return 'report.json has no episodes array';
+  return undefined;
+}
+
+/** The bundle directory a `--hosted-seal` argument names (the directory itself, or the report's directory). */
+function bundleDirOf(path: string): string {
+  const full = resolve(path);
+  try {
+    if (statSync(full).isDirectory()) return full;
+  } catch {
+    /* reported when the report is read */
+  }
+  return dirname(full);
+}
+
 /**
- * `verify --hosted-seal <bundle-dir | report.json> [--key <report key|JWKS>] [--manifest-key <key>]`
- * (HOSTED-PROFILE §2.7, SIXI-INTEGRATION §1.10): the whole hosted bundle, pre-seal
- * (no `signing` yet: the seal step's verifier job, no key needed) or sealed (needs
- * --key: the three DSSE envelopes and every bundle file digest). Then the full
- * re-simulation. Exit 0 only if everything holds; 2 for a seal / invariant /
- * signature problem; 1 for a mismatch (SARIF re-render, commitments, re-simulation).
+ * `verify --hosted-seal <bundle-dir | report.json> [--key <report key|JWKS> | --key pinned] [--expect-manifest-digest <d>] [--result <path>]`
+ * (HOSTED-PROFILE §2.7, SIXI-INTEGRATION §1.10, signing.md §5.1, §5.2): the whole hosted bundle, pre-seal
+ * (no `signing` yet: the seal step's verifier job, no key needed) or sealed (needs --key: the embedded
+ * signature and the three DSSE envelopes in either form of §5.2, and every bundle file digest). Then the full
+ * re-simulation. Exit 0 only if everything holds; 2 for a seal / invariant / signature problem; 1 for a
+ * mismatch (SARIF re-render, commitments, re-simulation); 3 for misuse. `--manifest-key` is refused first
+ * while the release pins a manifest key set (§3.3 rule 2), and `--result` is checked before the bundle is read.
  */
 export function verifyHostedSeal(path: string | undefined, f: VerifyFlags = {}): ExitCode {
   if (!path) {
-    out('usage: agent-arena verify --hosted-seal <bundle-dir | report.json> [--key <report key>] [--manifest-key <manifest key>] [--json]');
+    out('usage: agent-arena verify --hosted-seal <bundle-dir | report.json> [--key <report key> | --key pinned] [--expect-manifest-digest <sha256:…>] [--result <path>] [--json]');
     return EXIT_CODES.misconfig;
   }
+  // G-47, signing.md §3.3 rule 2: job arguments never replace or extend the pinned trust anchor. Before anything is read.
+  const resolved = resolveManifestKeys(f.manifestKey, { required: false, ...(f.pinnedKeys ? { pinned: f.pinnedKeys } : {}) });
+  const resultPath = f.result !== undefined ? prepareResultPath(f.result, bundleDirOf(path)) : undefined;
+  try {
+    return hostedSealBody(path, f, resolved, resultPath);
+  } catch (e) {
+    if (resultPath && e instanceof CliError && !e.message.startsWith('result_not_written')) {
+      writeResultFile(resultPath, { ok: false, status: 'misuse', exitCode: e.exitCode, errors: [e.message], signed_forms: {} });
+    } else if (resultPath && !(e instanceof CliError)) {
+      // G-62 backstop: a verifier that dies still leaves a result whose exitCode equals the process exit code
+      // (cli() maps any non-CliError to exit 2), so "bundle refused" never reads as "verifier crashed".
+      writeResultFile(resultPath, { ok: false, status: 'unverifiable', exitCode: EXIT_CODES.error, errors: ['internal error'], signed_forms: {} });
+    }
+    throw e;
+  }
+}
+
+function hostedSealBody(path: string, f: VerifyFlags, resolved: PinnedKey[], resultPath: ResultTarget | undefined): ExitCode {
   let full = resolve(path);
   try {
     if (statSync(full).isDirectory()) full = join(full, 'report.json');
   } catch {
     /* reported by the read below */
   }
+  const finish = (doc: Record<string, unknown>, exitCode: ExitCode, human: () => void): ExitCode => {
+    if (resultPath) writeResultFile(resultPath, doc);
+    if (isJson()) outJson(doc);
+    else human();
+    return exitCode;
+  };
   let raw: unknown;
   try {
     raw = readHostileJson(full, MAX_REPORT_BYTES, 'report');
   } catch (e) {
-    return unverifiable([e instanceof HostileFileError ? e.message : 'the report cannot be read']);
+    const errors = [e instanceof HostileFileError ? e.message : 'the report cannot be read'];
+    return finish({ ok: false, status: 'unverifiable', exitCode: EXIT_CODES.error, errors, signed_forms: {} }, EXIT_CODES.error, () => unverifiable(errors));
+  }
+  // G-62: the checks below read report.run and report.signing; a report without that shape is refused here, with
+  // the result written, instead of crashing the verifier.
+  const shape = reportShapeProblem(raw);
+  if (shape) {
+    const errors = [shape];
+    return finish({ ok: false, status: 'unverifiable', exitCode: EXIT_CODES.error, errors, signed_forms: {} }, EXIT_CODES.error, () => unverifiable(errors));
   }
   const report = raw as Report;
   const sealed = isObj(raw) && (raw as Record<string, unknown>).signing !== undefined;
-  if (sealed && f.key === undefined) throw misconfig('--hosted-seal: this bundle is sealed; checking it needs the report-signing public key.', 'pass --key <Sixi report key: PEM, OKP JWK or JWKS>.');
+  if (sealed && f.key === undefined) throw misconfig('--hosted-seal: this bundle is sealed; checking it needs the report-signing public key.', 'pass --key pinned (the Sixi report keys this release bundles) or --key <Sixi report key: PEM, OKP JWK or JWKS>.');
   if (f.expectManifestDigest !== undefined && !DIGEST_RE.test(f.expectManifestDigest)) throw misconfig('--expect-manifest-digest takes sha256:<64 lower-case hex> (the run_manifest_digest the control plane issued).', 'pass the digest from the run record, e.g. --expect-manifest-digest sha256:3f…');
-  const reportKeys = f.key !== undefined ? loadPublicKeySet(f.key, '--key') : undefined;
-  // G-47/G-49: the release's pinned manifest keys, or a kid-bound --manifest-key while none is pinned.
-  const resolved = resolveManifestKeys(f.manifestKey, { required: false, ...(f.pinnedKeys ? { pinned: f.pinnedKeys } : {}) });
+  const reportKeys = reportKeySet(f);
   const manifestKeys = resolved.length ? resolved : undefined;
   const check: SealCheck = { sealed, sarif_equal: false, bundle_files: 0, seal: [], mismatch: [] };
   // G-49: the verifier job (pre-seal) is the seal's only check of the manifest's origin until the signer's
@@ -266,14 +347,19 @@ export function verifyHostedSeal(path: string | undefined, f: VerifyFlags = {}):
   if (!sarif.equal) check.mismatch.push(sarif.error!);
   if (m.manifest) check.mismatch.push(...hostedCommitmentErrors(raw, m.manifest));
   let publicKey: KeyObject | undefined;
+  let forms: VerifiedSignature[] = [];
   if (sealed && reportKeys) {
-    const kid = str((raw as { signing?: { signing_key_id?: unknown } }).signing?.signing_key_id);
-    const b = sealedBundleProblems(report, full, reportKeys.filter((k) => k.kid === undefined || k.kid === kid));
-    check.seal.push(...b.errors.map((e) => `signature_invalid: ${e}`));
+    // signing.md §5.2: the embedded signature (E1-E4) and the three envelopes (D1-D9, E3), each in either form,
+    // each key chosen by kid and (a pinned key) inside its window at signing.sealed_at.
+    const b = sealedBundleProblems(report, full, reportKeys);
+    check.seal.push(...b.errors);
     check.bundle_files = b.files;
-    publicKey = reportKeys.find((k) => k.kid === kid)?.key ?? reportKeys.find((k) => k.kid === undefined)?.key;
-    if (!publicKey) check.seal.push(`signature_invalid: no --key entry for kid ${String(kid).slice(0, 64)}`);
+    forms = b.forms;
+    const kid = str((raw as { signing?: { signing_key_id?: unknown } }).signing?.signing_key_id);
+    const sel = keysForKid(reportKeys, kid, Date.parse(str((raw as { signing?: { sealed_at?: unknown } }).signing?.sealed_at) ?? ''));
+    publicKey = sel.keys.find((k) => k.kid === kid)?.key ?? sel.keys.find((k) => k.kid === undefined)?.key;
   }
+  const signed_forms = Object.fromEntries(forms.map((v) => [v.file, v.form]));
   // The re-simulation (the part a signature cannot give), with the seal checked by verifyReport when sealed.
   const rerun = makeRerun(full, (rec, result, ctx) => {
     const p = resolveInside(dirname(full), ctx.replayRef!);
@@ -284,17 +370,16 @@ export function verifyHostedSeal(path: string | undefined, f: VerifyFlags = {}):
   const r = explainRecordDifference(driverMismatchIsMismatch(verifyReport(raw, rerun, { engineBuilds: engineBuildsFor(raw), ...(publicKey ? { publicKey } : {}) })));
   const exitCode: ExitCode = check.seal.length ? EXIT_CODES.error : r.exitCode !== EXIT_CODES.ok ? r.exitCode : check.mismatch.length ? EXIT_CODES.findings : EXIT_CODES.ok;
   const status = check.seal.length ? 'unverifiable' : r.status !== 'verified' ? r.status : check.mismatch.length ? 'mismatch' : 'verified';
-  if (isJson()) {
-    outJson({ ...r, ok: exitCode === EXIT_CODES.ok, status, exitCode, hosted_seal: check });
-    return exitCode;
-  }
-  printHuman(r);
-  out(`hosted seal: ${sealed ? `sealed bundle, ${check.bundle_files} file digest(s) and 3 envelopes checked` : 'pre-seal (no signing block yet): hosted invariants, run manifest and its signature, SARIF re-render and commitments checked'}${f.expectManifestDigest ? '; manifest digest equals --expect-manifest-digest' : ''}`);
-  out(`sarif re-render: ${check.sarif_equal ? 'byte-equal' : 'DIFFERS'}`);
-  for (const e of check.seal) out(e.startsWith('signature_invalid:') ? e : `hosted_invariant: ${e}`);
-  for (const e of check.mismatch) out(`mismatch: ${e}`);
-  out(`${status}: hosted seal verification (exit ${exitCode})`);
-  return exitCode;
+  return finish({ ...r, ok: exitCode === EXIT_CODES.ok, status, exitCode, hosted_seal: check, signed_forms }, exitCode, () => {
+    printHuman(r);
+    out(`hosted seal: ${sealed ? `sealed bundle, ${check.bundle_files} file digest(s) and 3 envelopes checked` : 'pre-seal (no signing block yet): hosted invariants, run manifest and its signature, SARIF re-render and commitments checked'}${f.expectManifestDigest ? '; manifest digest equals --expect-manifest-digest' : ''}`);
+    for (const v of forms) out(signedFormLine(v));
+    out(`sarif re-render: ${check.sarif_equal ? 'byte-equal' : 'DIFFERS'}`);
+    for (const e of check.seal) out(e.startsWith('signature_invalid:') ? e : `hosted_invariant: ${e}`);
+    for (const e of check.mismatch) out(`mismatch: ${e}`);
+    if (resultPath) out(`result written: ${resultPath.path}`);
+    out(`${status}: hosted seal verification (exit ${exitCode})`);
+  });
 }
 
 function unverifiable(errors: string[]): ExitCode {
@@ -349,11 +434,13 @@ export function explainRecordDifference(r: VerifyResult): VerifyResult {
 
 export function verifyCommand(path: string | undefined, f: VerifyFlags = {}): ExitCode {
   if (!path) {
-    out('usage: agent-arena verify <report.json> [--key <public key pem|jwk>] [--hosted]');
+    out('usage: agent-arena verify <report.json> [--key <public key pem|jwk> | --key pinned] [--hosted]');
     return EXIT_CODES.misconfig;
   }
-  if (f.hosted && !f.key) throw misconfig('--hosted checks a sealed report and needs the public key it was sealed with.', 'pass --key <pem|jwk> (the Sixi report-signing public key).');
-  const publicKey: KeyObject | undefined = f.key !== undefined ? loadPublicKey(f.key) : undefined;
+  if (f.hosted && !f.key) throw misconfig('--hosted checks a sealed report and needs the public key it was sealed with.', 'pass --key pinned (the Sixi report keys this release bundles) or --key <pem|jwk> (the Sixi report-signing public key).');
+  // G-47, signing.md §3.3 rule 2: a pinning release refuses --manifest-key on verify --hosted too, before anything is read.
+  const resolvedManifestKeys = f.hosted ? resolveManifestKeys(f.manifestKey, { required: false, ...(f.pinnedKeys ? { pinned: f.pinnedKeys } : {}) }) : [];
+  let publicKey: KeyObject | undefined = f.key !== undefined && f.key !== PINNED_KEY_ARG ? loadPublicKey(f.key) : undefined;
   const full = resolve(path);
   let report: unknown;
   try {
@@ -363,6 +450,11 @@ export function verifyCommand(path: string | undefined, f: VerifyFlags = {}): Ex
     if (isJson()) outJson({ ok: false, status: 'unverifiable', exitCode: EXIT_CODES.error, errors: [msg] });
     else out(`unverifiable: ${msg}`);
     return EXIT_CODES.error;
+  }
+  if (f.key === PINNED_KEY_ARG) {
+    const p = pinnedReportKeyFor(report, f.pinnedReportKeys ?? pinnedReportKeys());
+    if (p.error) return unverifiable([p.error]);
+    publicKey = p.key;
   }
   const scenario = isObj(report) && isObj(report.scenario) ? str(report.scenario.scenario_id) : undefined;
   // HOSTED-PROFILE §5.6: a pack scenario re-simulates only with the pack's data.
@@ -376,9 +468,9 @@ export function verifyCommand(path: string | undefined, f: VerifyFlags = {}): Ex
   if (scenario && (SCENARIO_IDS as readonly string[]).includes(scenario) && !CLI_SCENARIOS.includes(scenario)) {
     throw misconfig(`${scenario} reports are not supported by this CLI version yet.`, 'verify it with the agent-arena release that adds diplomacy_standard support.');
   }
+  let hostedForm: VerifiedSignature | undefined;
   if (f.hosted) {
-    const resolvedKeys = resolveManifestKeys(f.manifestKey, { required: false, ...(f.pinnedKeys ? { pinned: f.pinnedKeys } : {}) });
-    const manifestKeys = resolvedKeys.length ? resolvedKeys : undefined;
+    const manifestKeys = resolvedManifestKeys.length ? resolvedManifestKeys : undefined;
     const seal = hostedSealErrors(report, full, manifestKeys);
     if (seal.errors.length) return unverifiable(seal.errors);
     const commit = hostedCommitmentErrors(report, seal.manifest!);
@@ -390,6 +482,14 @@ export function verifyCommand(path: string | undefined, f: VerifyFlags = {}): Ex
       }
       return EXIT_CODES.findings;
     }
+    // signing.md §5.2 E1, E2, E4: the embedded signature in either form (raw only up to the threshold), before any re-simulation.
+    try {
+      const keys: PinnedKey[] = f.key === PINNED_KEY_ARG ? [...(f.pinnedReportKeys ?? pinnedReportKeys())] : [{ key: publicKey! }];
+      hostedForm = verifyEmbeddedSignature(report, REPORT_PAYLOAD_TYPE, keys, 'report.json');
+    } catch (e) {
+      if (e instanceof SignatureRefusal) return unverifiable([refusalLine(e)]);
+      throw e;
+    }
     if (!manifestKeys && !isJson()) out('run manifest: digest and fields match the seal; its own signature was not checked (this release pins no manifest key; pass --manifest-key <kid-bound control-plane key> to check it)');
   }
   // The inspector's replay file is derived data: when present it must equal the one regenerated from the record.
@@ -400,10 +500,13 @@ export function verifyCommand(path: string | undefined, f: VerifyFlags = {}): Ex
     if (JSON.stringify(stored) !== JSON.stringify(buildReplayFile(rec, result))) throw new Error(`${ctx.replayRef} does not match the replay regenerated from the record`);
   }, { hosted: !!f.hosted });
   const r = explainRecordDifference(driverMismatchIsMismatch(verifyReport(report, rerun, { engineBuilds: engineBuildsFor(report), ...(publicKey ? { publicKey } : {}) })));
+  // signing.md §5.2 "Reporting the form": verify --hosted reports signed_forms with the single member report.json.
+  const signed_forms = hostedForm && r.signature.status === 'valid' ? { 'report.json': hostedForm.form } : {};
   if (isJson()) {
-    outJson(r);
+    outJson(f.hosted ? { ...r, signed_forms } : r);
     return r.exitCode;
   }
+  if (hostedForm && r.signature.status === 'valid') out(signedFormLine(hostedForm));
   printHuman(r);
   return r.exitCode;
 }

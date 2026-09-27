@@ -18,7 +18,7 @@ import http from 'node:http';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SignJWT, exportJWK, generateKeyPair, type KeyLike } from 'jose';
+import { SignJWT, exportJWK, generateKeyPair, type CryptoKey } from 'jose';
 
 process.env.WOT_DEV_KEYS_DIR = mkdtempSync(join(tmpdir(), 'wot-gw2-keys-'));
 delete process.env.WOT_DEV_AUTH;
@@ -35,14 +35,14 @@ const AUD = 'agent-arena:architect';
 let server: http.Server;
 let base: string;
 let stores: Awaited<ReturnType<typeof createStores>>;
-let architectKey: KeyLike;
+let architectKey: CryptoKey;
 
 /** Mint an Architect token (agent-passports §1.1). Distinct `sub`s resolve to
  * distinct stable owner_ids via stores.owners (get-or-create), so a token
  * resolves to the SAME owner on every request (register + list). */
 async function architectToken(
   sub: string,
-  o: { key?: KeyLike; alg?: string; typ?: string; iss?: string; aud?: string } = {},
+  o: { key?: CryptoKey; alg?: string; typ?: string; iss?: string; aud?: string } = {},
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   return new SignJWT({})

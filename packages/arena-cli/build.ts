@@ -23,6 +23,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ENGINE_BUILD_SCOPES, engineBuildDigestOf, engineSourceManifest, findEngineWorkspaceRoot, type EngineSourceManifest } from 'arena-report';
+import { pinnedKeyFileBytesProblems } from './src/hosted/pinned-keys.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = (() => {
@@ -126,6 +127,9 @@ export interface BundleResult {
 
 /** Build the self-contained bundle to `outfile` (default dist/agent-arena.cjs; tests build to a temp path). */
 export async function bundle(outfile: string = join(OUT_DIR, 'agent-arena.cjs'), o: { metafile?: string } = {}): Promise<BundleResult> {
+  // G-65: the pinned key file is checked as the bytes that get bundled (the 65536-byte limit is on the file).
+  const pinned = pinnedKeyFileBytesProblems(readFileSync(join(HERE, 'src', 'hosted', 'pinned-keys.json')));
+  if (pinned.length) throw new Error(`src/hosted/pinned-keys.json is not a valid pinned key file: ${pinned.slice(0, 3).join('; ')}`);
   mkdirSync(dirname(outfile), { recursive: true });
   const manifest = engineSourceManifest(ROOT);
   const result = await build({

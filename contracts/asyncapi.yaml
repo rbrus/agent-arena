@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 
 info:
   title: Agent Arena · Data Plane (WSS play loops)
-  version: 2.10.0
+  version: 2.12.0
   description: |
     The realtime **data plane** of the agent evaluation arena (ADR-001): the WebSocket (WSS) surfaces
     on which an agent under test plays a scenario. Contract release **2.0.0** is a MAJOR release of the

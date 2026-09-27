@@ -14,7 +14,7 @@ import { createHash, verify as edVerify } from 'node:crypto';
 import { canonicalizeForSigning, jcs, pae, RUN_MANIFEST_PAYLOAD_TYPE, signedBodyDigest, validateRunSpecSchema } from 'arena-report';
 import { misconfig, type CliError } from '../errors.ts';
 import type { HostedContextContract, RunSpecContract } from '../generated/contracts.ts';
-import type { PinnedKey } from '../keys.ts';
+import { keysForKid, type PinnedKey } from '../keys.ts';
 import { HOSTED_CONTEXT_MAX_BYTES, schemaErrors, validateHostedContext } from './schemas.ts';
 
 export const HOSTED_CONTEXT_INVALID = 'hosted_context_invalid';
@@ -81,7 +81,8 @@ export interface VerifiedManifest {
  * set. Kid rules: the manifest kid must differ from the report key id it names
  * (separate namespaces, signing.md §2); when a pinned key carries a `kid`, only a
  * key with the manifest's kid is tried, and a manifest kid no pinned key names is
- * refused; a key without a kid (PEM) is tried for any kid.
+ * refused; a key without a kid (PEM) is tried for any kid. A bundled key is tried
+ * only when its window [not_before, not_after) covers the manifest's `issued_at`.
  */
 export function verifyManifest(text: string, keys: readonly PinnedKey[]): VerifiedManifest {
   let doc: unknown;
@@ -104,10 +105,15 @@ export function verifyManifest(text: string, keys: readonly PinnedKey[]): Verifi
   const kid = m.signing.signing_key_id;
   if (kid === m.signing_key_id) throw invalid('/signing/signing_key_id', 'the manifest is signed with the report key id; run manifests and reports use separate keys (signing.md §2).');
   const named = keys.filter((k) => k.kid !== undefined);
-  const candidates = keys.filter((k) => k.kid === undefined || k.kid === kid);
-  if (!candidates.length) {
-    throw invalid('/signing/signing_key_id', `the manifest is signed by key ${kid}, which is not a pinned control-plane key (pinned: ${named.map((k) => k.kid).join(', ')}).`, 'pin the current control-plane manifest key (JWKS) in the image or job spec.');
+  // The pinned window is checked at the admission time the manifest was signed (issued_at); M1 bounds issued_at by "now".
+  const sel = keysForKid(keys, kid, Date.parse(m.issued_at));
+  if (sel.problem === 'unpinned') {
+    throw invalid('/signing/signing_key_id', `the manifest is signed by key ${kid}, which is not a pinned control-plane key (pinned: ${named.map((k) => k.kid).join(', ')}).`, 'run the agent-arena release that pins this manifest key (hosted/pinned-keys.json); a new manifest key ships in an open release before the control plane signs with it (SIXI-INTEGRATION OQ-3).');
   }
+  if (sel.problem) {
+    throw invalid('/signing/signing_key_id', `the manifest is signed by pinned key ${kid} outside that key's window (${sel.problem}).`, 'the control plane must sign with a pinned key whose window covers issued_at; ship the next key in an open release before the current key\'s not_after.');
+  }
+  const candidates = sel.keys;
   const message = pae(RUN_MANIFEST_PAYLOAD_TYPE, Buffer.from(body, 'utf8'));
   const sig = Buffer.from(m.signing.signature, 'base64');
   if (!candidates.some((k) => edVerify(null, message, k.key, sig))) {

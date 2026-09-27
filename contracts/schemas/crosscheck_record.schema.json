@@ -947,6 +947,13 @@
             "/signing/signature"
           ]
         },
+        "signed_form": {
+          "enum": [
+            "raw",
+            "digest_statement"
+          ],
+          "description": "(2.11.0, signing.md §5.2) What the signature signs. Absent or `raw`: PAE(payload_type, JCS(record without /signing/signature)), allowed only while that message is at most ARENA_SIGN_MAX_MESSAGE_BYTES (65536). `digest_statement`: the digest statement derived from this record (subject = this payload type, the sha256 and byte length of the JCS body; no run binding; signing_key_id from this record; sealed_at = finished_at), signed under PAE(\"application/vnd.sixi.arena-digest-statement+json\", ...). Allowed at any size and mandatory above the threshold; a record can reach 4 MiB. Inside the signed body."
+        },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9+/]{86}==$"

@@ -15,7 +15,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SignJWT, exportJWK, generateKeyPair, type JWK, type KeyLike } from 'jose';
+import { SignJWT, exportJWK, generateKeyPair, type JWK, type CryptoKey } from 'jose';
 
 process.env.WOT_DEV_KEYS_DIR = mkdtempSync(join(tmpdir(), 'wot-arch-keys-'));
 process.env.WOT_SECRET_PEPPER = 'test-pepper-architect-auth';
@@ -36,14 +36,14 @@ const {
   ArchitectVerifierConfigError,
 } = await import('../src/index.ts');
 
-let trustedKey: KeyLike;
+let trustedKey: CryptoKey;
 let trustedJwk: JWK;
 let server: http.Server;
 let base: string;
 let stores: ReturnType<typeof createStores>;
 
 interface MintOpts {
-  key?: KeyLike;
+  key?: CryptoKey;
   alg?: string;
   typ?: string | null;
   iss?: string;

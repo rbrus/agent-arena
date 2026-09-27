@@ -398,6 +398,8 @@ digest: string
  * 
  * @minItems 1
  * @maxItems 6
+ * 
+ * Items: A Sixi-operated LLM peer seat (adversarial_peer pack). The runner reaches it through `gateway_origin` exactly like a target. No provider key, prompt or persona text appears here.
  */
 peers?: [{
 seat: ("austria" | "england" | "france" | "germany" | "italy" | "russia" | "turkey")
@@ -600,6 +602,8 @@ digest: string
 /**
  * @minItems 1
  * @maxItems 6
+ * 
+ * Items: An LLM-driven adversarial peer (pack kind adversarial_peer). Runs outside the engine image, in the Sixi peer gateway (HOSTED-PROFILE §5.2, §6.1).
  */
 peers?: [{
 /**
@@ -668,6 +672,8 @@ trials: number
  * clause_map: open oracle id -> clause citations and ATLAS technique labels.
  * 
  * @maxItems 128
+ * 
+ * Items: clause_map: which clauses an open oracle bears on. The evidence builder applies it outside the engine; it never changes a verdict, a SARIF level or a rule id.
  */
 oracles?: {
 /**
@@ -677,15 +683,21 @@ oracle_id: string
 /**
  * @minItems 1
  * @maxItems 16
+ * 
+ * Items: A clause id in the `sixi-assure-rules` corpus format REGIME:DOC:REF, e.g. `OWASP:AgenticTop10:ASI01`, `OWASP:LLMTop10:LLM01`, `AIACT:2024/1689:Art15(4)`. Only the regimes this contract release knows (OWASP, AIACT) match; `OWASP-AGENTIC:…` and `ATLAS:…` are not regime ids and are rejected. Adding a regime is a contract MINOR. The pack load additionally resolves every id against the corpus snapshot `corpus.ref`; an id that does not resolve fails the load (it is never shown as "no clause found").
  */
 clauses: [string, ...(string)[]]
 /**
  * @maxItems 8
+ * 
+ * Items: A MITRE ATLAS technique id, used as a lens label only (never a clause citation, never the source of a finding).
  */
 techniques?: string[]
 }[]
 /**
  * @maxItems 256
+ * 
+ * Items: A finding rule. Findings come only from rules.
  */
 rules?: {
 /**
@@ -699,6 +711,8 @@ scope: ("verdict" | "episode" | "run")
  * 
  * @minItems 1
  * @maxItems 8
+ * 
+ * Items: An oracle id = SARIF rule id (`<open scenario>.<oracle>`, `shared.<oracle>`, `harness.<oracle>`). Pack scenarios reuse the base scenario's oracle ids; a pack never mints a rule id.
  */
 oracles: [string, ...(string)[]]
 /**
@@ -716,12 +730,16 @@ message: string
 /**
  * @minItems 1
  * @maxItems 16
+ * 
+ * Items: A clause id in the `sixi-assure-rules` corpus format REGIME:DOC:REF, e.g. `OWASP:AgenticTop10:ASI01`, `OWASP:LLMTop10:LLM01`, `AIACT:2024/1689:Art15(4)`. Only the regimes this contract release knows (OWASP, AIACT) match; `OWASP-AGENTIC:…` and `ATLAS:…` are not regime ids and are rejected. Adding a regime is a contract MINOR. The pack load additionally resolves every id against the corpus snapshot `corpus.ref`; an id that does not resolve fails the load (it is never shown as "no clause found").
  */
 clauses: [string, ...(string)[]]
 /**
  * ATLAS technique labels (lens). HOSTED-PROFILE §5.3 writes these as `lenses: {atlas: [...]}`; the contract name is `techniques[]`.
  * 
  * @maxItems 8
+ * 
+ * Items: A MITRE ATLAS technique id, used as a lens label only (never a clause citation, never the source of a finding).
  */
 techniques?: string[]
 remediation: string
@@ -750,6 +768,8 @@ coverage: {
 /**
  * @minItems 1
  * @maxItems 128
+ * 
+ * Items: A clause id in the `sixi-assure-rules` corpus format REGIME:DOC:REF, e.g. `OWASP:AgenticTop10:ASI01`, `OWASP:LLMTop10:LLM01`, `AIACT:2024/1689:Art15(4)`. Only the regimes this contract release knows (OWASP, AIACT) match; `OWASP-AGENTIC:…` and `ATLAS:…` are not regime ids and are rejected. Adding a regime is a contract MINOR. The pack load additionally resolves every id against the corpus snapshot `corpus.ref`; an id that does not resolve fails the load (it is never shown as "no clause found").
  */
 clauses: [string, ...(string)[]]
 }

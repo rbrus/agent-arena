@@ -40,7 +40,7 @@ The defaults are the gate run: the five gate seeds `20260720,1,2,3,5`, one episo
 | `run --spec <run.json> [--out dir] [--json\|--quiet] [--i-own-this-target] [--auth env:NAME\|secret:name]` | The same run from a RunSpec file (`contracts/schemas/run_spec.schema.json`), checked against the schema before anything else. No other run flag combines with it; each one is refused by name. `target.ownership_attested: true` in the file is the ownership attestation and is recorded as `source: run_spec`. `--auth` supplies a credential reference when the file has none. A RunSpec the CLI wrote (`report.run-spec.json`, `.agent-arena/<scenario>.run.json`) runs again as it was, in-process references included. `seats[]` (the table profile) runs only on the hosted runner. |
 | `list-scenarios [--json]` | Every registered scenario, its seatings, oracles and reference pair; for `diplomacy_standard` also its fills, in-process targets and served policies. |
 | `replay <report.json> --episode <n> \| --hash <sha256:…> [--json]` | Prints one episode's tick log. It is regenerated from the seed and the recorded target inputs, so no target is needed. `--json` prints the replay-inspector file. |
-| `verify <report.json> [--key <pem\|jwk>] [--hosted] [--json]` | Re-simulates every episode, regenerates the engine-controlled seats from the seed, replays the target's seats from the record (checking each `recorded_inputs` digest), recomputes every verdict and compares. It prints how each seat was obtained ("regenerated from seed" / "recorded, replayed") and any recorded seats besides the target. `--key` checks the report's Ed25519 seal first, with a public key file or the PEM/JWK text (a private key is refused); a bad or missing seal is `signature_invalid`, exit 2. `--hosted` (needs `--key`) also checks that the SARIF next to the report names the same signing key as the seal, and the run-manifest digest. |
+| `verify <report.json> [--key <pem\|jwk> \| --key pinned] [--hosted] [--json]` | Re-simulates every episode, regenerates the engine-controlled seats from the seed, replays the target's seats from the record (checking each `recorded_inputs` digest), recomputes every verdict and compares. It prints how each seat was obtained ("regenerated from seed" / "recorded, replayed") and any recorded seats besides the target. `--key` checks the report's Ed25519 seal first, with a public key file or the PEM/JWK text (a private key is refused); a bad or missing seal is `signature_invalid`, exit 2. `--key pinned` uses the Sixi report keys this release bundles (see "Pinned control-plane keys"). `--hosted` (needs `--key`) also checks that the SARIF next to the report names the same signing key as the seal, and the run-manifest digest; the seal may be raw or a signed digest statement (contracts 2.11.0), and the form is printed. |
 | `version [--json]` | The CLI version; `--json` adds this build's engine build hash per scope (`core`, `diplomacy`, `all`). |
 | `serve-reference [--scenario <id>] [--seat squad] [--policy coordinated\|naive] [--port 8080] [--host h --allow-non-loopback] [--allow-origin <origin>]…` | Serves the included reference agent over all four transports on one port. It binds `127.0.0.1`; any other `--host` also needs `--allow-non-loopback`. A request or WebSocket upgrade that carries an `Origin` header is refused (403) unless that exact origin is given with `--allow-origin` (repeatable). With `--scenario diplomacy_standard`: `--policy robust\|credulous\|injector\|house [--agent-seed n]`. |
 
@@ -106,6 +106,7 @@ Every SARIF result points at the RunSpec file, repo-relative (`contracts/sarif-m
 
 ```
 npx @rbrus/agent-arena verify arena-report/report.json --key sixi-report-signing.pub.pem   # sealed report
+npx @rbrus/agent-arena verify bundle/report.json --hosted --key pinned                    # sealed Sixi report, against the bundled report key
 npx @rbrus/agent-arena version --json                                                     # engine build hashes of this build
 ```
 
@@ -115,39 +116,74 @@ npx @rbrus/agent-arena version --json                                           
 
 ```sh
 agent-arena run --hosted --manifest /run/arena/in/manifest.json --run-spec /run/arena/in/run-spec.json --out /out
-#   [--manifest-key <jwk|jwks>]   kid-bound, and only while this release pins no manifest JWKS (src/hosted/pinned-keys.ts);
-#                                 refused once one is pinned; a PEM or a JWK without "kid" is refused (G-47)
+#   the manifest is checked against the manifest keys this release pins (below); --manifest-key is
+#   refused with hosted_context_invalid (--manifest-key), because the job arguments never replace the trust root (G-47)
 ```
 
 With `ARENA_HOSTED` in the environment (the hosted job template sets it), the binary runs only `run --hosted`, `verify --hosted-seal` and `version`; every other command exits 3 `hosted_mode_only` before anything is read, and the sandbox arena server refuses to start (G-48).
 
 | Accepted | Refused (by name, before anything is read) |
 |---|---|
-| `--manifest`, `--run-spec`, `--manifest-key`, `--out`, `--json` | every other run flag: `--scenario`, `--seat`, `--seeds`, `--target`, `--auth`, `--allow-private`, `--follow-redirects`, `--i-own-this-target`, literal secrets, positionals |
+| `--manifest`, `--run-spec`, `--out`, `--json` (`--manifest-key` is parsed, then refused while a key set is pinned) | every other run flag: `--scenario`, `--seat`, `--seeds`, `--target`, `--auth`, `--allow-private`, `--follow-redirects`, `--i-own-this-target`, literal secrets, positionals |
 
-- **Manifest:** file ≤ 8192 bytes, schema-valid, Ed25519 over `PAE(application/vnd.sixi.arena-run-manifest+json, JCS(manifest without /signing/signature))` with a pinned key. The JWK/JWKS `kid` must equal `signing.signing_key_id`, which must differ from the report key id. Refused (G-51): an expired `wall_clock_deadline`; `issued_at` more than 5 min in the future or more than 24 h old; `wall_clock_deadline − issued_at` over 48 h; `verified_origin.checked_at` more than 24 h old (or in the future). The deadline is also checked per decision (G-54): a decision in flight at the deadline is cut as a hard miss and the run aborts `deadline_exceeded` (exit 2, nothing written).
+- **Manifest:** file ≤ 8192 bytes, schema-valid, Ed25519 over `PAE(application/vnd.sixi.arena-run-manifest+json, JCS(manifest without /signing/signature))` with a pinned key. The pinned `kid` must equal `signing.signing_key_id`, which must differ from the report key id, and the key's window must cover `issued_at`; otherwise `hosted_context_invalid (/signing/signing_key_id)`, exit 3, nothing sent. Refused (G-51): an expired `wall_clock_deadline`; `issued_at` more than 5 min in the future or more than 24 h old; `wall_clock_deadline − issued_at` over 48 h; `verified_origin.checked_at` more than 24 h old (or in the future). The deadline is also checked per decision (G-54): a decision in flight at the deadline is cut as a hard miss and the run aborts `deadline_exceeded` (exit 2, nothing written).
 - **RunSpec:** file ≤ 16384 bytes; `sha256(JCS(RunSpec))` must equal `run_spec_digest`. Its target must be exactly `verified_origin.origin` (scheme, host, port), which must equal the egress allowlist's `target`; `https`/`wss` only; no userinfo, query or fragment (G-46: the signed RunSpec is recorded byte-for-byte, so a credential there would be sealed into the bundle).
 - **Logs (G-45):** stdout/stderr (Cloud Logging) never name the customer origin: while a hosted run is active every byte passes a filter that replaces the verified host, in any spelling, and every address it resolved or connected to with `<verified origin>`; `hosted-v1` refusals name fields, never values; Node's DNS/TLS error texts are reduced to their code. The report and bundle keep the origin (it is the evidence).
 - **Image:** `ARENA_IMAGE_DIGEST=<index digest>,<platform manifest digest>` must be set by the job and contain both `image_digest` values; `image_digest.platform` must be the running platform; `engine_build_hash` must be this build's.
 - **Network (`hosted-v1`):** allowlist = the verified origin; public unicast addresses only (a typed `127.0.0.1`/`localhost`, private, link-local and metadata addresses are refused before any socket, and again in the socket lookup); no redirects; A2A/MCP second hops must stay on the origin; `rate = min(rps_cap, 50)`; `User-Agent … ; sixi-hosted` and `X-Agent-Arena-Run: <manifest run_id>`.
 - **Secrets (read once, deleted from the environment first, before any check):** `ARENA_TARGET_CREDENTIAL` (only ref `env:ARENA_TARGET_CREDENTIAL`; per `credential_mode`), `ARENA_SEAT_CREDENTIAL_<POWER>` (table seats; tables are refused by this build), `ARENA_DIP_SECRET_<n>` (Diplomacy: exactly `count` 64-hex secrets that hash to `episode_secret_commitments`). Refused variables, `hosted_context_invalid (environment)` (the must-be-absent table of contracts/fixtures/hosted_env.json, asserted equal by a test): `AGENT_ARENA_SECRETS_DIR`, `ARENA_DEBUG`, non-empty `NODE_OPTIONS`, `NODE_DEBUG`, `NODE_TLS_REJECT_UNAUTHORIZED`, `NODE_EXTRA_CA_CERTS`, `SSLKEYLOGFILE`, `NODE_V8_COVERAGE`, `WOT_CONTRACTS_DIR`; `(manifest_source)`: `ARENA_HOSTED_CONTEXT`/`ARENA_RUN_SPEC`. On top (G-50 allow-list) every other `ARENA_*`, `NODE_*`, `SSL*`, `OPENSSL*` or proxy variable is refused unless it is a job-template name (`ARENA_IMAGE_DIGEST`, `ARENA_PACKS_DIR`, `ARENA_HOSTED`, empty `NODE_OPTIONS`) or set by the image (`NODE_ENV=production`, `NODE_VERSION`, `YARN_VERSION`): e.g. `NODE_USE_SYSTEM_CA`, `SSL_CERT_FILE`, `OPENSSL_CONF`, `NODE_COMPILE_CACHE`, `HTTPS_PROXY`.
-- **Packs:** an `sx_` scenario is refused (`scenario_pack_unavailable`, exit 3) unless the manifest lists a pack mounted at `$ARENA_PACKS_DIR/<id>/pack.dsse.json` (DSSE `application/vnd.sixi.arena-pack+json`, signed with the manifest key, bundle sha256 = manifest `packs[].digest`, `engine.builds` includes this build). Variants resolve to base scenario + `arena-pack-variant/1` parameters (tier, seeds, oracle thresholds); running a variant awaits pack-scenario reports. Clause-map packs feed `not_assessed`.
+- **Packs:** an `sx_` scenario is refused (`scenario_pack_unavailable`, exit 3) unless the manifest lists a pack mounted at `$ARENA_PACKS_DIR/<id>/pack.dsse.json` (DSSE `application/vnd.sixi.arena-pack+json`, 1 to 4 signatures, at least one by a pinned manifest key whose window covers the run manifest's `issued_at` (contracts 2.11.0: a pack carries no signing time, so the question is whether the key is trusted for this run), bundle sha256 = manifest `packs[].digest`, `engine.builds` includes this build). Variants resolve to base scenario + `arena-pack-variant/1` parameters (tier, seeds, oracle thresholds); running a variant awaits pack-scenario reports. Clause-map packs feed `not_assessed`.
 - **Output (`/out`):** `report.json` (`run.mode: hosted`, `run.hosted` copied from the manifest plus `run_manifest {digest, signing_key_id, path: run-manifest.json}` and `observed_connections`, `target_ownership.source: sixi_verified`, `not_assessed`), `report.sarif`, `run-manifest.json` (byte-for-byte), `episodes/<n>.record.json`, `episodes/<n>.replay.json`. Unsigned: the seal step signs.
 
 ```sh
-agent-arena verify --hosted-seal /out --manifest-key <jwk> [--expect-manifest-digest sha256:…]   # pre-seal (verifier job): invariants, manifest AND its signature (G-49; the pinned key once one ships), engine build, SARIF re-render, commitments, re-simulation
-agent-arena verify --hosted-seal ./bundle --key sixi-arena-signing-keys.json [--manifest-key <key>]   # sealed bundle: + 3 DSSE envelopes, bundle-manifest.json digests
-agent-arena verify report.json --hosted --key <report key> [--manifest-key <key>]                    # seal + run-manifest.json beside the report + Diplomacy commitments
+agent-arena verify --hosted-seal /out [--expect-manifest-digest sha256:…]   # pre-seal (verifier job): invariants, manifest AND its signature against the pinned keys (G-49), engine build, SARIF re-render, commitments, re-simulation
+agent-arena verify --hosted-seal ./bundle --key pinned                       # sealed bundle: + 3 DSSE envelopes (raw or digest statement), bundle-manifest.json digests (or --key <report key|jwks>)
+agent-arena verify report.json --hosted --key pinned                         # seal (either form) + run-manifest.json beside the report + Diplomacy commitments
 agent-arena serve-reference --hosted --verified-origin https://xcheck-ref.example.com --run-token-key runtoken-jwks.json [--require-run-token]
 ```
 
+**The verifier job and `--result`.** The Sixi seal step signs a run only after this image's own `verify --hosted-seal` of the unsealed output exited 0: the job re-simulates every episode from its record and compares the result with what the runner wrote, re-renders the SARIF, and checks the manifest, the invariants and the commitments. Its stdout goes to logs, so it also writes the result where the sealer reads it:
+
+```sh
+agent-arena verify --hosted-seal /run/arena/out --expect-manifest-digest sha256:<issued> --json --result /run/arena/seal/verify.json
+```
+
+- `--result <path>` writes exactly the document `--json` prints (same bytes), with or without `--json`. The sealer seals only on `exitCode` 0, `status: "verified"`, `hosted_seal.sarif_equal: true` and empty `hosted_seal.seal` and `hosted_seal.mismatch`.
+- It is written for every outcome: exit 0, 1 and 2, and exit 3 once the path is accepted (`status: "misuse"`, e.g. a sealed bundle without `--key`). The file's `exitCode` is the process exit code. No file means the verification did not finish; the sealer treats that as `verify_no_result`.
+- The path is checked before the bundle is read: it must not exist (create-only, no symbolic link), its directory must exist, and it must be outside the bundle (a result is not a bundle file). Otherwise exit 3 and nothing is written. A write failure is exit 2 (`result_not_written`).
+- `--result` needs `--hosted-seal` (exit 3 otherwise; redirect `--json` for any other verify).
+
+**Signed digest statements (contracts 2.11.0, signing.md §5.2).** Sixi's KMS signs at most 65536 bytes of raw data, so a large report, SARIF or bundle manifest is signed through a small statement that names its payload type, length and sha256 (and, for the seal outputs, the run id, manifest digest and `sealed_at`). `verify --hosted` and `verify --hosted-seal` accept either form per file, and refuse a raw signature whose PAE message is over `ARENA_SIGN_MAX_MESSAGE_BYTES` (65536) even when it verifies. The form is reported per file:
+
+```text
+report.json: digest statement (196608 bytes, sha256:…) verified with sixi-arena-ed25519-…
+report.sarif: raw signature (17857 bytes) verified with sixi-arena-ed25519-…
+```
+
+With `--json` the result carries `signed_forms`, e.g. `{"report.json": "digest_statement", "report.sarif": "raw", "bundle-manifest.json": "raw"}` (`verify --hosted`: `report.json` only; pre-seal: `{}`). Every refusal is `signature_invalid`, exit 2, as `signature_invalid: <reason>: <file>: <detail>`, where the reason is one of `payload_type`, `raw_over_threshold`, `payload_mismatch`, `statement_malformed`, `subject_type`, `length_mismatch`, `digest_mismatch`, `binding`, `form_mismatch`, `key` or `signature`. The CLI replays every vector of `contracts/fixtures/digest_statement_vectors.json` in its tests.
+
 `serve-reference --hosted` (cross-check reference origin) answers 421 unless `Host` names the verified origin, and verifies a presented `sixi_run_token` (EdDSA `at+jwt`, `aud` = the origin, `sub` = the run id equal to `X-Agent-Arena-Run`, `exp`/`nbf`/`iat`, lifetime at most 1 h (G-53), `jti`, optional `iss`); every refusal is `401 invalid_token`. The A2A card names the endpoint on the verified origin.
+
+### Pinned control-plane keys
+
+The runner image is the open image and Sixi never rebuilds it, so the keys it trusts ship in the release: `src/hosted/pinned-keys.json`, bundled into the CLI (SIXI-INTEGRATION OQ-3; SECURITY-REVIEW-HOSTED S-1). The file holds the `?purpose=manifest` and `?purpose=report` sets of `https://sixi.ch/.well-known/arena-jwks.json`, each key exactly as served (OKP Ed25519, `use: sig`, `kid`, `not_before`, `not_after`), plus the fetch time, the source URLs and the sha256 of each served body. The run-token key is not bundled: `serve-reference --hosted` takes `--run-token-key`. The CLI never fetches keys.
+
+| Set | Pinned kid (release of 2026-09-27) | Window | Checks |
+|---|---|---|---|
+| manifest | `sixi-arena-manifest-ed25519-86c88a43cdcdb910e8f4` | 2026-09-27T00:00:00Z to 2026-12-26T00:00:00Z | run manifests (`run --hosted`, `verify --hosted`, pre-seal `verify --hosted-seal`), scenario packs |
+| report | `sixi-arena-ed25519-c2f84888ae5d69e9f7df` | 2026-09-27T00:00:00Z to 2026-12-26T00:00:00Z | sealed reports and bundles with `--key pinned` |
+
+- **Window.** A key verifies a document only when `not_before ≤ t < not_after` (and `t < revoked_at` when set), where `t` is the manifest's `issued_at`, the report's `signing.sealed_at` (for the report and all three envelopes), or, for a scenario pack, the `issued_at` of the run manifest that lists it. A document signed outside the window is refused like one signed by an unpinned kid: `hosted_context_invalid (/signing/signing_key_id)` for a manifest, `signature_invalid: key` (exit 2) for a report, `scenario_pack_unavailable` for a pack.
+- **Checked at load.** A malformed bundled file refuses every hosted verification. Besides the schema rules, every kid must be derived from its key (`sixi-arena-manifest-ed25519-` or `sixi-arena-ed25519-`, then the first 80 bits of the RFC 7638 thumbprint in hex), each set's `keys` must reproduce its served body (`JSON.stringify({keys}) + LF` hashes to `source_sha256`), each set's `source` is the file's plus `?purpose=<set>`, and no key is in both sets.
+- **`--manifest-key`** is refused (`hosted_context_invalid (--manifest-key)`, exit 3, before anything is read) on `run --hosted`, `verify --hosted` and `verify --hosted-seal`.
+- **Rotation.** Keys have a 90-day window. The next key ships in an open release, with a green cross-check on that image, before the control plane first signs with it and before the current key's `not_after`. That is at least one open release per quarter. A key cannot be added at run time: `--manifest-key` is refused while a set is pinned.
+- **Old reports.** A report sealed under a key that a later release no longer pins verifies with the release that was current when it was sealed, or with `--key <that report key>`.
 
 **Control-plane admission checklist** (what the Sixi control plane must refuse before it signs a manifest; the runner refuses the same, later and louder):
 - a RunSpec target URL with no userinfo, query or fragment, on exactly the verified origin (scheme, host, port);
 - `issued_at` = now, `wall_clock_deadline` ≤ issued_at + the plan cap (≤ 48 h), `verified_origin.checked_at` ≤ 24 h old;
-- a manifest signed by a key in the release's pinned JWKS (the job template stops passing `--manifest-key` from that release);
-- the job template: `ARENA_HOSTED=1`, `ARENA_IMAGE_DIGEST`, `ARENA_PACKS_DIR` when packs are mounted, `NODE_OPTIONS=""`, and no other `ARENA_*`/`NODE_*`/`SSL*`/`OPENSSL*`/proxy variable; the seal step runs `verify --hosted-seal /out --expect-manifest-digest <issued digest>` with the manifest key;
+- a manifest signed by a key in the release's pinned manifest JWKS, inside that key's window (the job template passes no `--manifest-key`);
+- the job template: `ARENA_HOSTED=1`, `ARENA_IMAGE_DIGEST`, `ARENA_PACKS_DIR` when packs are mounted, `NODE_OPTIONS=""`, and no other `ARENA_*`/`NODE_*`/`SSL*`/`OPENSSL*`/proxy variable; the seal step's verifier job runs `verify --hosted-seal /out --expect-manifest-digest <issued digest> --json --result <seal dir>/verify.json` with no `--manifest-key` (the release pins the manifest keys);
 - run tokens with `exp` ≤ min(deadline + 5 min, iat + 1 h).
 
 ## Security posture

@@ -18,14 +18,14 @@ import {
   generateKeyPair,
   importJWK,
   type JWK,
-  type KeyLike,
+  type CryptoKey,
 } from 'jose';
 import { DEV_KEYS_DIR, PRIVATE_JWK_ENV, IS_PRODUCTION } from './config.ts';
 import { registerLogSecret } from './redact.ts';
 
 export interface KeyMaterial {
-  privateKey: KeyLike;
-  publicKey: KeyLike;
+  privateKey: CryptoKey;
+  publicKey: CryptoKey;
   kid: string;
   /** Public JWK, ready for /.well-known/jwks.json (kid, use, alg included). */
   publicJwk: JWK;
@@ -59,8 +59,8 @@ async function fromPrivateJwk(priv: JWK): Promise<KeyMaterial> {
   registerLogSecret(priv.d); // G-6: the private scalar never reaches a log line
   const kid = priv.kid ?? makeKid();
   const publicJwk = publicFromPrivateJwk(priv, kid);
-  const privateKey = (await importJWK({ ...priv, kid }, 'EdDSA')) as KeyLike;
-  const publicKey = (await importJWK(publicJwk, 'EdDSA')) as KeyLike;
+  const privateKey = (await importJWK({ ...priv, kid }, 'EdDSA')) as CryptoKey;
+  const publicKey = (await importJWK(publicJwk, 'EdDSA')) as CryptoKey;
   return { privateKey, publicKey, kid, publicJwk };
 }
 

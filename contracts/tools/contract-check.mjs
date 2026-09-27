@@ -57,6 +57,24 @@
 //                (signing.md §3.2 A6: an extended run plays one episode; M10: a Diplomacy-family run at most 50, with
 //                `episode_secret_commitments.count` <= 50 and equal to `episodes`), on the report conditionals and on a
 //                verifier written from the rule text; the RESERVED.md, errors.md and signing.md prose.
+//  15. V2.11.0   (2.11.0) the pinned key set (signing.md §3.3, pinned_keys.schema.json): the example and the file the CLI
+//                bundles (packages/arena-cli/src/hosted/pinned-keys.json) validate and pass the rules JSON Schema cannot say
+//                (each set's body reproduces its source_sha256, set source = file source + ?purpose=<set>, kids unique and no
+//                public key in both sets, window 0 < not_after - not_before <= 120 days, revoked_at not before not_before, kid =
+//                namespace + 80-bit RFC 7638 thumbprint hex, sixi_thumbprint = the thumbprint, x canonical); must-rejects, each
+//                re-sealed so that it breaks exactly one rule; the key window of rule 3 over boundary vectors; the prose.
+//  16. V2.11.0b  (2.11.0) signed digest statements (signing.md §5.2, digest_statement.schema.json): every vector of
+//                fixtures/digest_statement_vectors.json replayed with a verifier written from the rule text (raw and digest
+//                forms, detached and embedded, each reject for the reason it names); the large payload schema-valid and over
+//                ARENA_SIGN_MAX_MESSAGE_BYTES; the raw report vector equal to signing_vectors.json; the schema example equal to
+//                the vector statement; statement, report and cross-check must-rejects; the prose.
+//  17. V2.12.0   (2.12.0) `verify --hosted-seal --result` (signing.md §5.1.1, verify_result.schema.json): the CLI-produced
+//                examples, the status/exit pairing must-rejects, and the seal precondition of rule 6 evaluated from the text
+//                (only the verified example passes); the §5.2 clarifications (malformed envelope -> signature, non-base64
+//                payload -> payload_mismatch / statement_malformed, foreign raw keyid -> binding, unknown or disallowed
+//                signed_form -> form_mismatch) replayed by the §16 verifier on mutated vectors, the vector file unchanged; the
+//                evidence render order of §5.3 (no example lists bundle-manifest.json, two entries validate, the deprecated
+//                member still validates); the prose.
 //
 // Dependency-free beyond what ascension/ already installs (ajv, js-yaml), resolved from there.
 // Run from the repo root:  node contracts/tools/contract-check.mjs  (or `npm run contracts:check` in the workspace)
@@ -1894,10 +1912,451 @@ function admissionProblems(spec, manifest, pm) {
   if (!/2\.10\.0/.test(reservedText.slice(reservedText.indexOf('## History')))) fail('RESERVED History does not record the 2.10.0 league -> extended decision');
 }
 
+// ---------------------------------------------------------------- 15. V2.11.0
+// The pinned key set (signing.md §3.3). The file an open release bundles is the only trust anchor for run manifests and
+// scenario packs, and the set `verify --key pinned` selects report keys from.
+const PKF = readJson('pinned_keys.schema.json');
+const vPKF = strict.compile(PKF);
+const PK_WINDOW_MAX_MS = 120 * 86_400_000;
+const PK_NS = { manifest: 'sixi-arena-manifest', report: 'sixi-arena' };
+const pkThumb = (k) => createHash('sha256').update(JSON.stringify({ crv: k.crv, kty: k.kty, x: k.x })).digest();
+const pkBody = (set) => `${JSON.stringify({ keys: set.keys })}\n`;
+const pkSeal = (doc) => { for (const p of ['manifest', 'report']) if (doc[p]?.keys) doc[p].source_sha256 = `sha256:${createHash('sha256').update(pkBody(doc[p])).digest('hex')}`; return doc; };
+const pkTime = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(v) ? Date.parse(v) : NaN);
+// Returns [rule, message] pairs; empty = the file is a valid pinned key set.
+function pinnedKeySetProblems(doc, bytes) {
+  const out = [];
+  if (!vPKF(doc)) out.push(['schema', vPKF.errors.slice(0, 3).map((e) => `${e.instancePath || '/'} ${e.message}`).join('; ')]);
+  if (bytes > PKF['x-max-frame-bytes']) out.push(['size', `${bytes} bytes, over ${PKF['x-max-frame-bytes']}`]);
+  if (!doc || typeof doc !== 'object') return out;
+  const kids = [];
+  const xs = [];
+  for (const p of ['manifest', 'report']) {
+    const set = doc[p];
+    if (!set || !Array.isArray(set.keys)) continue;
+    if (set.source !== `${doc.source}?purpose=${p}`) out.push(['set_source', `${p}.source is not the file source + ?purpose=${p}`]);
+    if (`sha256:${createHash('sha256').update(pkBody(set)).digest('hex')}` !== set.source_sha256) out.push(['as_served', `${p}: JSON.stringify({keys}) + LF does not hash to source_sha256`]);
+    set.keys.forEach((k, i) => {
+      const w = `${p}.keys[${i}]`;
+      if (!k || typeof k !== 'object') return;
+      kids.push(k.kid);
+      xs.push(k.x);
+      const raw = typeof k.x === 'string' ? Buffer.from(k.x, 'base64url') : Buffer.alloc(0);
+      if (raw.length !== 32 || raw.toString('base64url') !== k.x) out.push(['x_canonical', `${w}: x is not a canonical 32-byte key`]);
+      else {
+        try { createPublicKey({ key: { kty: 'OKP', crv: 'Ed25519', x: k.x }, format: 'jwk' }); } catch { out.push(['x_canonical', `${w}: x is not an Ed25519 public key`]); }
+      }
+      const tp = pkThumb(k);
+      if (k.kid !== `${PK_NS[p]}-ed25519-${tp.subarray(0, 10).toString('hex')}`) out.push(['kid_derivation', `${w}: kid is not ${PK_NS[p]}-ed25519-<first 80 bits of the RFC 7638 thumbprint, hex>`]);
+      if (k.sixi_thumbprint !== undefined && k.sixi_thumbprint !== tp.toString('base64url')) out.push(['thumbprint', `${w}: sixi_thumbprint is not the RFC 7638 thumbprint`]);
+      const nb = pkTime(k.not_before);
+      const na = pkTime(k.not_after);
+      if (!(na > nb)) out.push(['window', `${w}: not_after is not after not_before`]);
+      else if (na - nb > PK_WINDOW_MAX_MS) out.push(['window', `${w}: window longer than 120 days`]);
+      if (k.revoked_at !== undefined && !(pkTime(k.revoked_at) >= nb)) out.push(['window', `${w}: revoked_at before not_before`]);
+    });
+  }
+  if (new Set(kids).size !== kids.length) out.push(['kid_unique', 'a kid appears twice (manifest and report kid namespaces are disjoint)']);
+  if (new Set(xs).size !== xs.length) out.push(['key_unique', 'a public key appears twice (one key per purpose)']);
+  return out;
+}
+// Rule 3: the key window. t is the document's signing time (issued_at, signing.sealed_at, or for a pack the run manifest's issued_at).
+const pkCovers = (k, t) => { const at = pkTime(t); if (Number.isNaN(at)) return false; if (at < pkTime(k.not_before) || at >= pkTime(k.not_after)) return false; return k.revoked_at === undefined || at < pkTime(k.revoked_at); };
+const V2110_NEG = [];
+{
+  const ex = PKF.examples?.[0];
+  if (!ex) fail('PINNED pinned_keys.schema.json has no example');
+  else {
+    const exBytes = Buffer.byteLength(`${JSON.stringify(ex, null, 2)}\n`);
+    for (const [r, m] of pinnedKeySetProblems(ex, exBytes)) fail(`PINNED pinned_keys examples[0]: ${r}: ${m}`);
+    // The file the CLI bundles (the implementation's trust anchor) passes the same rules.
+    const cliFile = join(WORKSPACE, 'packages', 'arena-cli', 'src', 'hosted', 'pinned-keys.json');
+    if (!existsSync(cliFile)) fail(`PINNED the CLI's bundled key file is missing (${cliFile})`);
+    else {
+      const raw = readFileSync(cliFile);
+      for (const [r, m] of pinnedKeySetProblems(JSON.parse(raw.toString('utf8')), raw.length)) fail(`PINNED packages/arena-cli/src/hosted/pinned-keys.json: ${r}: ${m}`);
+    }
+    const m0 = (d) => d.manifest.keys[0];
+    const r0 = (d) => d.report.keys[0];
+    const plus = (t, days) => new Date(pkTime(t) + days * 86_400_000).toISOString().replace('.000Z', 'Z');
+    const rekid = (k, p) => { k.kid = `${PK_NS[p]}-ed25519-${pkThumb(k).subarray(0, 10).toString('hex')}`; };
+    // Each case is re-sealed (source_sha256 recomputed) unless it tests the as-served rule, so it breaks exactly the named rule.
+    const cases = [
+      ['a manifest key holding private material d', 'schema', (d) => { m0(d).d = 'nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A'; }],
+      ['a key with an unknown member (jku)', 'schema', (d) => { r0(d).jku = 'https://keys.example.net/jwks.json'; }],
+      ['a run-token set', 'schema', (d) => { d.runtoken = { source: `${d.source}?purpose=runtoken`, source_sha256: d.report.source_sha256, keys: [clone(r0(d))] }; }],
+      ['a run-token kid in the manifest set', 'schema', (d) => { m0(d).kid = m0(d).kid.replace('sixi-arena-manifest-', 'sixi-arena-runtoken-'); }],
+      ['a report kid in the manifest set', 'schema', (d) => { m0(d).kid = m0(d).kid.replace('sixi-arena-manifest-', 'sixi-arena-'); }],
+      ['sixi_purpose report in the manifest set', 'schema', (d) => { m0(d).sixi_purpose = 'report'; }],
+      ['use enc', 'schema', (d) => { r0(d).use = 'enc'; }],
+      ['kty EC', 'schema', (d) => { r0(d).kty = 'EC'; }],
+      ['crv X25519', 'schema', (d) => { r0(d).crv = 'X25519'; }],
+      ['alg ES256', 'schema', (d) => { r0(d).alg = 'ES256'; }],
+      ['not_after with an offset instead of Z', 'schema', (d) => { r0(d).not_after = r0(d).not_after.replace('Z', '+00:00'); }],
+      ['an empty report set', 'schema', (d) => { d.report.keys = []; }],
+      ['17 manifest keys', 'schema', (d) => { d.manifest.keys = Array.from({ length: 17 }, () => clone(m0(d))); }],
+      ['format agent-arena-pinned-keys/2', 'schema', (d) => { d.format = 'agent-arena-pinned-keys/2'; }],
+      ['an http source', 'schema', (d) => { d.source = d.source.replace('https:', 'http:'); d.manifest.source = d.manifest.source.replace('https:', 'http:'); d.report.source = d.report.source.replace('https:', 'http:'); }],
+      ['a set source naming another purpose', 'schema', (d) => { d.report.source = d.report.source.replace('purpose=report', 'purpose=manifest'); }],
+      ['a set source on another host', 'set_source', (d) => { d.report.source = 'https://keys.example.net/.well-known/arena-jwks.json?purpose=report'; }],
+      ['a set not as served (source_sha256 off)', 'as_served', (d) => { d.report.source_sha256 = `sha256:${'0'.repeat(64)}`; }, false],
+      ['a set reordered after fetching', 'as_served', (d) => { const k = r0(d); d.report.keys[0] = Object.fromEntries(Object.entries(k).reverse()); }, false],
+      ['a kid not derived from the key', 'kid_derivation', (d) => { r0(d).kid = 'sixi-arena-ed25519-00000000000000000000'; }],
+      ['a date-style kid (examples only, never pinned)', 'schema', (d) => { r0(d).kid = 'sixi-arena-ed25519-20261101'; }],
+      ['sixi_thumbprint of another key', 'thumbprint', (d) => { r0(d).sixi_thumbprint = m0(d).sixi_thumbprint; }],
+      ['a non-canonical x (spare bits set)', 'x_canonical', (d) => { const k = r0(d); const last = k.x.at(-1); k.x = k.x.slice(0, -1) + (last === 'A' ? 'B' : String.fromCharCode(last.charCodeAt(0) + 1)); delete k.sixi_thumbprint; rekid(k, 'report'); }],
+      ['a window of 121 days', 'window', (d) => { r0(d).not_after = plus(r0(d).not_before, 121); }],
+      ['not_after equal to not_before', 'window', (d) => { r0(d).not_after = r0(d).not_before; }],
+      ['revoked_at before not_before', 'window', (d) => { r0(d).revoked_at = plus(r0(d).not_before, -1); }],
+      ['the same key twice in one set', 'kid_unique', (d) => { d.report.keys.push(clone(r0(d))); }],
+      ['the manifest key also in the report set (one key per purpose)', 'key_unique', (d) => { const k = clone(m0(d)); k.sixi_purpose = 'report'; rekid(k, 'report'); d.report.keys.push(k); }],
+      ['a file over 65536 bytes', 'size', (d) => { d.note = 'x'.repeat(1000); }, true, 70000],
+    ];
+    for (const [label, rule, f, reseal = true, bytes] of cases) {
+      const d = clone(ex);
+      f(d);
+      if (reseal) pkSeal(d);
+      const got = pinnedKeySetProblems(d, bytes ?? Buffer.byteLength(`${JSON.stringify(d, null, 2)}\n`));
+      if (!got.some(([r]) => r === rule)) fail(`NEGATIVE pinned key set accepted, or refused for another reason, but must be refused by ${rule}: ${label} (${got.map(([r]) => r).join(', ') || 'accepted'})`);
+      V2110_NEG.push([label]);
+    }
+    // Positive controls: an exact 120-day window, a revocation inside the window, a second report key, no optional members.
+    for (const [label, f] of [
+      ['a 120-day window', (d) => { r0(d).not_after = plus(r0(d).not_before, 120); }],
+      ['revoked_at inside the window', (d) => { r0(d).revoked_at = plus(r0(d).not_before, 10); }],
+      ['no alg, status, sixi_purpose or sixi_thumbprint', (d) => { for (const k of [m0(d), r0(d)]) { delete k.alg; delete k.status; delete k.sixi_purpose; delete k.sixi_thumbprint; } }],
+      ['no source_etag, source_sha256 or note at the top', (d) => { delete d.source_etag; delete d.source_sha256; delete d.note; }],
+    ]) {
+      const d = pkSeal(mut(ex, f));
+      const got = pinnedKeySetProblems(d, Buffer.byteLength(JSON.stringify(d)));
+      if (got.length) fail(`POSITIVE pinned key set must be accepted: ${label}: ${got.map(([r, m]) => `${r}: ${m}`).join('; ')}`);
+    }
+    // Rule 3 boundary vectors over the example's report key: [not_before, not_after), cut short by revoked_at.
+    const k = r0(ex);
+    const kr = { ...k, revoked_at: plus(k.not_before, 30) };
+    for (const [label, key, t, want] of [
+      ['t = not_before', k, k.not_before, true],
+      ['t one second before not_before', k, plus(k.not_before, -1 / 86400), false],
+      ['t one second before not_after', k, plus(k.not_after, -1 / 86400), true],
+      ['t = not_after (exclusive)', k, k.not_after, false],
+      ['t one second before revoked_at', kr, plus(kr.revoked_at, -1 / 86400), true],
+      ['t = revoked_at', kr, kr.revoked_at, false],
+      ['t missing', k, undefined, false],
+      ['t not RFC 3339 UTC', k, k.not_before.replace('Z', '+00:00'), false],
+    ]) if (pkCovers(key, t) !== want) fail(`PINNED key window (signing.md §3.3 rule 3): ${label} must be ${want ? 'inside' : 'outside'} the window`);
+  }
+}
+// 15b. prose.
+{
+  const signingText = readFileSync(join(CONTRACTS, 'signing.md'), 'utf8');
+  const errorsText = readFileSync(join(CONTRACTS, 'errors.md'), 'utf8');
+  const i33 = signingText.indexOf('### 3.3 The pinned key set');
+  const s33 = i33 < 0 ? '' : signingText.slice(i33, signingText.indexOf('\n## 4.', i33));
+  if (!s33) fail('SIGNING §3.3 (the pinned key set) is missing');
+  for (const w of ['pinned_keys.schema.json', '?purpose=manifest', '?purpose=report', 'run-token key is not bundled', '`not_before ≤ t < not_after`', '`t < revoked_at`', '`issued_at`', '`signing.sealed_at`', '`/signing/signing_key_id`', '`signature_invalid`', '`scenario_pack_unavailable`', '24 h', '120 days', '90 days', '30 days', '--key pinned', '`--manifest-key`', 'never fetches', 'Packs', 'RFC 7638', '80 bits', 'https://sixi.ch/.well-known/arena-jwks.json']) if (!s33.includes(w)) fail(`SIGNING §3.3 does not state ${w}`);
+  const m3 = signingText.split('\n').find((l) => l.startsWith('| M3 |')) ?? '';
+  if (!m3.includes('§3.3')) fail('SIGNING §3.2 M3 does not point to §3.3');
+  const m6 = signingText.split('\n').find((l) => l.startsWith('| M6 |')) ?? '';
+  if (!m6.includes('`--manifest-key`') || !m6.includes('§3.3')) fail('SIGNING §3.2 M6 does not name the --manifest-key refusal and §3.3');
+  const hci = errorsText.split('\n').find((l) => l.startsWith('| `hosted_context_invalid` |')) ?? '';
+  if (!hci.includes('`--manifest-key`') || !hci.includes('2.11.0')) fail('ERRORS hosted_context_invalid does not name the 2.11.0 detail field --manifest-key and the key window');
+  const si = errorsText.split('\n').find((l) => l.startsWith('| `signature_invalid` | — |')) ?? '';
+  if (!si.includes('`--key pinned`')) fail('ERRORS signature_invalid (client side) does not name --key pinned');
+  const hp = join(CONTRACTS, '..', 'docs', 'phase-9', 'HOSTED-PROFILE.md');
+  if (existsSync(hp) && /sixi\.ai\/\.well-known\/sixi-arena-signing-keys\.json/.test(readFileSync(hp, 'utf8'))) fail('DOCS HOSTED-PROFILE.md still names the placeholder JWKS URL (the live URL is https://sixi.ch/.well-known/arena-jwks.json)');
+}
+
+// ---------------------------------------------------------------- 16. V2.11.0b
+// Signed digest statements (signing.md §5.2): what a Sixi key signs when the PAE message of a payload would be over the
+// Cloud KMS raw-data limit. The verifier below is written from §5.2 steps D1-D9 and E1-E4, not from the generator.
+const DSV = JSON.parse(readFileSync(join(CONTRACTS, 'fixtures', 'digest_statement_vectors.json'), 'utf8'));
+const DSS = readJson('digest_statement.schema.json');
+const vDS = strict.compile(DSS);
+const ARENA_SIGN_MAX_MESSAGE_BYTES = 65536;
+const DS_TYPE = 'application/vnd.sixi.arena-digest-statement+json';
+const DS_FILE_TYPE = { 'report.json': 'application/vnd.sixi.arena-report+json', 'report.sarif': 'application/vnd.sixi.arena-sarif+json', 'bundle-manifest.json': 'application/vnd.sixi.arena-bundle+json', crosscheck: 'application/vnd.sixi.arena-crosscheck+json' };
+const dsPae = (type, body) => Buffer.concat([Buffer.from(`DSSEv1 ${Buffer.byteLength(type)} ${type} ${body.length} `), body]);
+const dsSha = (b) => `sha256:${createHash('sha256').update(b).digest('hex')}`;
+const V2110B_NEG = [];
+const V2120_NEG = [];
+{
+  if (DSV.constants?.ARENA_SIGN_MAX_MESSAGE_BYTES !== ARENA_SIGN_MAX_MESSAGE_BYTES || DSV.constants?.statement_payload_type !== DS_TYPE) fail('DIGEST fixtures/digest_statement_vectors.json constants differ from signing.md §5.2');
+  const dsKey = createPublicKey({ key: DSV.key.jwk, format: 'jwk' });
+  const keyFor = (kid) => (kid === DSV.key.jwk.kid ? dsKey : null);
+  const edOk = (msg, sigB64, key) => { const sig = Buffer.from(sigB64 ?? '', 'base64'); return sig.length === 64 && edVerify(null, msg, key, sig); };
+  const served = (v) => {
+    let b = readFileSync(join(CONTRACTS, v.served.ref));
+    const m = v.served.mutation;
+    if (m?.xor_byte) { b = Buffer.from(b); b[m.xor_byte.offset] ^= m.xor_byte.mask; }
+    if (m?.append_hex) b = Buffer.concat([b, Buffer.from(m.append_hex, 'hex')]);
+    return b;
+  };
+  // D1-D9: a detached envelope (report.sarif, bundle-manifest.json; also report.json.dsse.json).
+  // D1 (2.12.0 clarified): not an object, not exactly one signature, or a sig that is not base64 of 64 bytes -> signature.
+  const B64 = /^[A-Za-z0-9+/]*={0,2}$/;
+  const envOk = (env) => !!env && typeof env === 'object' && !Array.isArray(env) && Array.isArray(env.signatures) && env.signatures.length === 1 && !!env.signatures[0] && typeof env.signatures[0].sig === 'string' && B64.test(env.signatures[0].sig) && Buffer.from(env.signatures[0].sig, 'base64').length === 64;
+  const b64Payload = (env) => (typeof env.payload === 'string' && B64.test(env.payload) ? Buffer.from(env.payload, 'base64') : null);
+  const verifyDetached = (T, bytes, env, bind) => {
+    if (!envOk(env)) return { reason: 'signature' };
+    const { keyid, sig } = env.signatures[0];
+    const payload = b64Payload(env);
+    if (env.payloadType === T) {
+      if (payload === null) return { reason: 'payload_mismatch' };
+      if (dsPae(T, payload).length > ARENA_SIGN_MAX_MESSAGE_BYTES) return { reason: 'raw_over_threshold' };
+      if (!payload.equals(bytes)) return { reason: 'payload_mismatch' };
+      if (keyid !== bind.signing_key_id) return { reason: 'binding' };
+      const key = keyFor(keyid);
+      if (!key) return { reason: 'key' };
+      return edOk(dsPae(T, payload), sig, key) ? { form: 'raw' } : { reason: 'signature' };
+    }
+    if (env.payloadType !== DS_TYPE) return { reason: 'payload_type' };
+    if (payload === null) return { reason: 'statement_malformed' };
+    let st;
+    try { st = JSON.parse(payload.toString('utf8')); } catch { return { reason: 'statement_malformed' }; }
+    if (jcs(st) !== payload.toString('utf8')) return { reason: 'statement_malformed' };
+    const full = clone(st);
+    if (full?.signing && typeof full.signing === 'object') full.signing.signature = sig;
+    if (!vDS(full) || 'signature' in (st.signing ?? {})) return { reason: 'statement_malformed' };
+    if (st.subject.payload_type !== T) return { reason: 'subject_type' };
+    if (st.subject.bytes !== bytes.length) return { reason: 'length_mismatch' };
+    if (st.subject.sha256 !== dsSha(bytes)) return { reason: 'digest_mismatch' };
+    if (st.signing.signing_key_id !== keyid || keyid !== bind.signing_key_id || st.signing.sealed_at !== bind.sealed_at) return { reason: 'binding' };
+    if ('run_id' in bind && (st.run_id !== bind.run_id || st.run_manifest_digest !== bind.run_manifest_digest)) return { reason: 'binding' };
+    const key = keyFor(keyid);
+    if (!key) return { reason: 'key' };
+    return edOk(dsPae(DS_TYPE, payload), sig, key) ? { form: 'digest_statement' } : { reason: 'signature' };
+  };
+  // E1-E4: an embedded signature (report, cross-check record), with its envelope when one is given.
+  const deriveStatement = (doc, isReport) => {
+    const u = clone(doc); delete u.signing.signature;
+    const body = Buffer.from(jcs(u), 'utf8');
+    return {
+      body,
+      st: {
+        statement_version: '1.0',
+        subject: { payload_type: doc.signing.payload_type, sha256: dsSha(body), bytes: body.length },
+        ...(isReport ? { run_id: doc.run.run_id, run_manifest_digest: doc.signing.run_manifest_digest } : {}),
+        signing: { algorithm: 'ed25519', signing_key_id: doc.signing.signing_key_id, canonicalization: 'jcs-rfc8785', payload_type: DS_TYPE, excluded: ['/signing/signature'], sealed_at: isReport ? doc.signing.sealed_at : doc.finished_at },
+      },
+    };
+  };
+  const ALWAYS_RAW = new Set(['application/vnd.sixi.arena-run-manifest+json', 'application/vnd.sixi.arena-deletion+json']);
+  const verifyEmbedded = (doc, env, isReport) => {
+    const form = doc.signing.signed_form ?? 'raw';
+    // E1 (2.12.0 clarified): an unknown form, or the statement form on an always-raw type -> form_mismatch.
+    if (form !== 'raw' && form !== 'digest_statement') return { reason: 'form_mismatch' };
+    if (form === 'digest_statement' && ALWAYS_RAW.has(doc.signing.payload_type)) return { reason: 'form_mismatch' };
+    const key = keyFor(doc.signing.signing_key_id);
+    const { body, st } = deriveStatement(doc, isReport);
+    const T = doc.signing.payload_type;
+    let msgType; let msgBody;
+    if (form === 'raw') {
+      if (dsPae(T, body).length > ARENA_SIGN_MAX_MESSAGE_BYTES) return { reason: 'raw_over_threshold' };
+      msgType = T; msgBody = body;
+    } else {
+      msgType = DS_TYPE; msgBody = Buffer.from(jcs(st), 'utf8');
+    }
+    if (env) {
+      if (!envOk(env)) return { reason: 'signature' };
+      if (env.payloadType !== msgType) return { reason: 'form_mismatch' };
+      const p = b64Payload(env);
+      if (p === null || !p.equals(msgBody)) return { reason: 'payload_mismatch' };
+      if (env.signatures?.length !== 1 || env.signatures[0].sig !== doc.signing.signature || env.signatures[0].keyid !== doc.signing.signing_key_id) return { reason: 'binding' };
+    }
+    if (!key) return { reason: 'key' };
+    return edOk(dsPae(msgType, msgBody), doc.signing.signature, key) ? { form } : { reason: 'signature' };
+  };
+  const refDoc = (ref) => { const [f, ptr] = ref.split('#'); return clone(at(JSON.parse(readFileSync(join(CONTRACTS, f), 'utf8')), ptr.split('/').filter(Boolean))); };
+  const seen = new Set();
+  for (const v of DSV.vectors) {
+    if (seen.has(v.id)) fail(`DIGEST vector id ${v.id} appears twice`);
+    seen.add(v.id);
+    if (v.expect.result === 'reject' && !DSV.reasons.includes(v.expect.reason)) fail(`DIGEST ${v.id}: reason ${v.expect.reason} is not a §5.2 reason`);
+    let got;
+    if (v.kind === 'detached') got = verifyDetached(DS_FILE_TYPE[v.file], served(v), v.envelope, DSV.context);
+    else {
+      const doc = refDoc(v.document.ref);
+      if (v.document.signed_form) doc.signing.signed_form = v.document.signed_form; else delete doc.signing.signed_form;
+      doc.signing.signature = v.document.signature;
+      got = verifyEmbedded(doc, v.envelope, v.file === 'report.json');
+      if (v.file === 'report.json' && !vRep(doc)) fail(`DIGEST ${v.id}: the document is not a valid report`);
+      if (v.file === 'crosscheck' && !vXC(doc)) fail(`DIGEST ${v.id}: the document is not a valid cross-check record`);
+    }
+    const want = v.expect.result === 'accept' ? `accept ${v.expect.form}` : `reject ${v.expect.reason}`;
+    const have = got.reason ? `reject ${got.reason}` : `accept ${got.form}`;
+    if (want !== have) fail(`DIGEST ${v.id}: ${have}, signing.md §5.2 requires ${want}`);
+    if (v.expect.result === 'reject') V2110B_NEG.push([v.id]);
+  }
+  for (const id of ['accept-raw-sarif', 'accept-digest-sarif', 'accept-digest-large-bundle-manifest', 'reject-raw-over-threshold', 'reject-digest-mismatch', 'reject-length-mismatch', 'reject-subject-type', 'accept-embedded-report-raw', 'accept-embedded-report-digest', 'accept-embedded-crosscheck-digest']) if (!seen.has(id)) fail(`DIGEST vector ${id} is missing`);
+  // The large payload is a schema-valid bundle manifest over the threshold; the small one is under it.
+  const large = readFileSync(join(CONTRACTS, DSV.payloads.large.ref));
+  if (!ajv.compile(readJson('bundle_manifest.schema.json'))(JSON.parse(large.toString('utf8')))) fail('DIGEST the large payload is not a valid bundle manifest');
+  if (dsPae(DS_FILE_TYPE['bundle-manifest.json'], large).length <= ARENA_SIGN_MAX_MESSAGE_BYTES) fail('DIGEST the large payload is not over ARENA_SIGN_MAX_MESSAGE_BYTES');
+  if (dsSha(large) !== DSV.payloads.large.sha256 || large.length !== DSV.payloads.large.bytes) fail('DIGEST the large payload differs from its recorded digest');
+  if (dsPae(DS_FILE_TYPE['report.sarif'], readFileSync(join(CONTRACTS, DSV.payloads.sarif.ref))).length > ARENA_SIGN_MAX_MESSAGE_BYTES) fail('DIGEST the small payload must be under the threshold');
+  // The raw report vector is the 2.2.0 vector: the raw form is unchanged.
+  if (DSV.vectors.find((v) => v.id === 'accept-embedded-report-raw')?.document.signature !== vectors.vectors[0].signature) fail('DIGEST accept-embedded-report-raw differs from signing_vectors.json vectors[0] (the raw form must not change)');
+  // The schema example is the statement of the large vector, and it verifies.
+  const lv = DSV.vectors.find((v) => v.id === 'accept-digest-large-bundle-manifest');
+  const ex = DSS.examples?.[0];
+  if (!ex || !lv) fail('DIGEST digest_statement examples[0] or the large vector is missing');
+  else {
+    const exBody = clone(ex); delete exBody.signing.signature;
+    if (Buffer.from(lv.envelope.payload, 'base64').toString('utf8') !== jcs(exBody)) fail('DIGEST digest_statement examples[0] is not the statement of accept-digest-large-bundle-manifest (the signed body; the example signature is a placeholder)');
+  }
+  // Schema must-rejects.
+  const cross = { ...clone(ex), subject: { ...ex.subject, payload_type: DS_FILE_TYPE.crosscheck } };
+  delete cross.run_id; delete cross.run_manifest_digest;
+  if (!vDS(cross)) fail('POSITIVE digest_statement: a cross-check statement without run binding must be valid');
+  const repS = readJson('report.schema.json');
+  const repSigned = clone(repS.examples[2]);
+  for (const [label, validate, doc] of [
+    ['digest_statement: seal output without run_id', vDS, mut(ex, (s) => { delete s.run_id; })],
+    ['digest_statement: seal output without run_manifest_digest', vDS, mut(ex, (s) => { delete s.run_manifest_digest; })],
+    ['digest_statement: cross-check statement with run_id', vDS, { ...cross, run_id: ex.run_id }],
+    ['digest_statement: subject of the run-manifest type (always raw)', vDS, mut(ex, (s) => { s.subject.payload_type = 'application/vnd.sixi.arena-run-manifest+json'; })],
+    ['digest_statement: subject of the pack type (raw in 2.11.0)', vDS, mut(ex, (s) => { s.subject.payload_type = 'application/vnd.sixi.arena-pack+json'; })],
+    ['digest_statement: signing.payload_type of the report', vDS, mut(ex, (s) => { s.signing.payload_type = DS_FILE_TYPE['report.json']; })],
+    ['digest_statement: bytes 0', vDS, mut(ex, (s) => { s.subject.bytes = 0; })],
+    ['digest_statement: sealed_at with an offset', vDS, mut(ex, (s) => { s.signing.sealed_at = s.signing.sealed_at.replace('Z', '+00:00'); })],
+    ['digest_statement: excluded []', vDS, mut(ex, (s) => { s.signing.excluded = []; })],
+    ['digest_statement: an extra member', vDS, mut(ex, (s) => { s.note = 'x'; })],
+    ['report: signing.signed_form detached', vRep, mut(repSigned, (r) => { r.signing.signed_form = 'detached'; })],
+    ['crosscheck_record: signing.signed_form sha256', vXC, mut(XC.examples[0], (x) => { x.signing.signed_form = 'sha256'; })],
+  ]) { if (validate(doc)) fail(`NEGATIVE accepted but must be rejected: ${label}`); V2110B_NEG.push([label]); }
+  for (const f of ['raw', 'digest_statement']) if (!vRep(mut(repSigned, (r) => { r.signing.signed_form = f; }))) fail(`POSITIVE report signing.signed_form ${f} must be valid`);
+
+  // 17a. (2.12.0) The §5.2 clarifications, replayed on mutations of the existing vectors (the vector file is unchanged).
+  const vec = (id) => { const v = DSV.vectors.find((x) => x.id === id); if (!v) fail(`DIGEST vector ${id} is missing`); return v; };
+  const rawS = vec('accept-raw-sarif');
+  const dgS = vec('accept-digest-sarif');
+  const embR = vec('accept-embedded-report-raw');
+  const embD = vec('accept-embedded-report-digest');
+  const sigOf = (v) => v.envelope.signatures[0];
+  const detachedCase = (v, f) => verifyDetached(DS_FILE_TYPE[v.file], served(v), mut(v.envelope, f), DSV.context);
+  const embeddedDoc = (v, f = () => {}) => { const d = refDoc(v.document.ref); if (v.document.signed_form) d.signing.signed_form = v.document.signed_form; else delete d.signing.signed_form; d.signing.signature = v.document.signature; f(d); return d; };
+  const cases = [
+    ['D1: two signatures', 'signature', () => detachedCase(rawS, (e) => { e.signatures.push(clone(sigOf(rawS))); })],
+    ['D1: no signature', 'signature', () => detachedCase(dgS, (e) => { e.signatures = []; })],
+    ['D1: a 63-byte sig', 'signature', () => detachedCase(rawS, (e) => { e.signatures[0].sig = Buffer.alloc(63, 1).toString('base64'); })],
+    ['D1: a sig that is not base64', 'signature', () => detachedCase(rawS, (e) => { e.signatures[0].sig = `${e.signatures[0].sig.slice(0, -3)}-_=`; })],
+    ['D1: the envelope is an array', 'signature', () => verifyDetached(DS_FILE_TYPE['report.sarif'], served(rawS), [rawS.envelope], DSV.context)],
+    ['D2: a raw payload that is not base64', 'payload_mismatch', () => detachedCase(rawS, (e) => { e.payload = `*${e.payload}`; })],
+    ['D3: a statement payload that is not base64', 'statement_malformed', () => detachedCase(dgS, (e) => { e.payload = `*${e.payload}`; })],
+    ['D2: a raw envelope keyid other than the report kid', 'binding', () => detachedCase(rawS, (e) => { e.signatures[0].keyid = 'sixi-arena-ed25519-00000000000000000000'; })],
+    ['E1: signed_form detached', 'form_mismatch', () => verifyEmbedded(embeddedDoc(embR, (d) => { d.signing.signed_form = 'detached'; }), embR.envelope, true)],
+    ['E1: digest_statement on the run-manifest type', 'form_mismatch', () => verifyEmbedded(embeddedDoc(embD, (d) => { d.signing.payload_type = 'application/vnd.sixi.arena-run-manifest+json'; }), undefined, true)],
+    ['E1: digest_statement on the deletion-receipt type', 'form_mismatch', () => verifyEmbedded(embeddedDoc(embD, (d) => { d.signing.payload_type = 'application/vnd.sixi.arena-deletion+json'; }), undefined, true)],
+    ['E3: report envelope with two signatures', 'signature', () => verifyEmbedded(embeddedDoc(embD), mut(embD.envelope, (e) => { e.signatures.push(clone(e.signatures[0])); }), true)],
+    ['E3: report envelope payload not base64', 'payload_mismatch', () => verifyEmbedded(embeddedDoc(embD), mut(embD.envelope, (e) => { e.payload = `*${e.payload}`; }), true)],
+  ];
+  for (const [label, want, run] of cases) {
+    const got = run();
+    if (got.reason !== want) fail(`DIGEST 2.12.0 ${label}: ${got.reason ? `reject ${got.reason}` : `accept ${got.form}`}, signing.md §5.2 requires reject ${want}`);
+    V2120_NEG.push([label]);
+  }
+  // The unmutated vectors still verify with the clarified verifier.
+  for (const v of [rawS, dgS]) if (verifyDetached(DS_FILE_TYPE[v.file], served(v), v.envelope, DSV.context).reason) fail(`DIGEST 2.12.0 ${v.id} no longer verifies`);
+  for (const v of [embR, embD]) if (verifyEmbedded(embeddedDoc(v), v.envelope, true).reason) fail(`DIGEST 2.12.0 ${v.id} no longer verifies`);
+}
+// 16b. prose.
+{
+  const signingText = readFileSync(join(CONTRACTS, 'signing.md'), 'utf8');
+  const errorsText = readFileSync(join(CONTRACTS, 'errors.md'), 'utf8');
+  const i52 = signingText.indexOf('### 5.2 Signed digest statements');
+  const s52 = i52 < 0 ? '' : signingText.slice(i52, signingText.indexOf('\n## 6.', i52));
+  if (!s52) fail('SIGNING §5.2 (signed digest statements) is missing');
+  for (const w of ['`ARENA_SIGN_MAX_MESSAGE_BYTES`', '65536', '`SIXI_ARENA_KMS_SIGN_MAX_BYTES`', 'application/vnd.sixi.arena-digest-statement+json', 'digest_statement.schema.json', '`signed_form`', 'raw_over_threshold', 'length_mismatch', 'digest_mismatch', 'subject_type', 'binding', 'form_mismatch', 'statement_malformed', '§3.3', '`signature_invalid`', '`signed_forms`', 'digest_statement_vectors.json', 'Packs']) if (!s52.includes(w)) fail(`SIGNING §5.2 does not state ${w}`);
+  const si = errorsText.split('\n').find((l) => l.startsWith('| `signature_invalid` | — |')) ?? '';
+  if (!si.includes('§5.2') || !si.includes('raw_over_threshold')) fail('ERRORS signature_invalid (client side) does not name the §5.2 reasons');
+}
+
+// ---------------------------------------------------------------- 17. V2.12.0
+// 17b. `verify --hosted-seal --result` (signing.md §5.1.1): the result file the Sixi seal step reads.
+const VR = readJson('verify_result.schema.json');
+const vVR = strict.compile(VR);
+{
+  if (VR['x-max-frame-bytes'] !== 8388608 || VR['x-direction'] !== 'inbound') fail('VERIFY_RESULT cap or direction differs from signing.md §5.1.1 (8388608 bytes, read by the seal step)');
+  const want = ['verified', 'mismatch', 'unverifiable', 'misuse', 'unverifiable'];
+  if (JSON.stringify((VR.examples ?? []).map((e) => e.status)) !== JSON.stringify(want)) fail(`VERIFY_RESULT examples must be, in order: ${want.join(', ')}`);
+  // Rule 6, written from the text: exitCode 0, status verified, sarif_equal true, seal and mismatch empty.
+  const precondition = (d) => d.exitCode === 0 && d.status === 'verified' && d.hosted_seal?.sarif_equal === true && Array.isArray(d.hosted_seal?.seal) && d.hosted_seal.seal.length === 0 && Array.isArray(d.hosted_seal?.mismatch) && d.hosted_seal.mismatch.length === 0;
+  VR.examples.forEach((e, i) => { if (precondition(e) !== (i === 0)) fail(`VERIFY_RESULT example[${i}] (${e.status}): the seal precondition must hold for the verified example only`); });
+  const exitOf = { verified: 0, mismatch: 1, unverifiable: 2, unsupported_engine: 3, misuse: 3 };
+  VR.examples.forEach((e, i) => { if (exitOf[e.status] !== e.exitCode || (e.ok === true) !== (e.status === 'verified')) fail(`VERIFY_RESULT example[${i}]: status, ok and exitCode disagree`); });
+  const [ok, mm, , misuse] = VR.examples;
+  for (const [label, doc] of [
+    ['verify_result: verified with exit 1', mut(ok, (d) => { d.exitCode = 1; })],
+    ['verify_result: verified with ok false', mut(ok, (d) => { d.ok = false; })],
+    ['verify_result: verified without hosted_seal', mut(ok, (d) => { delete d.hosted_seal; })],
+    ['verify_result: verified with a seal problem', mut(ok, (d) => { d.hosted_seal.seal = ['signature_invalid: EXAMPLE']; })],
+    ['verify_result: verified with a mismatch', mut(ok, (d) => { d.hosted_seal.mismatch = ['EXAMPLE']; })],
+    ['verify_result: verified with sarif_equal false', mut(ok, (d) => { d.hosted_seal.sarif_equal = false; })],
+    ['verify_result: mismatch with ok true', mut(mm, (d) => { d.ok = true; })],
+    ['verify_result: mismatch with exit 2', mut(mm, (d) => { d.exitCode = 2; })],
+    ['verify_result: unverifiable with exit 1', mut(VR.examples[2], (d) => { d.exitCode = 1; })],
+    ['verify_result: misuse with exit 2', mut(misuse, (d) => { d.exitCode = 2; })],
+    ['verify_result: misuse with hosted_seal', mut(misuse, (d) => { d.hosted_seal = clone(ok.hosted_seal); })],
+    ['verify_result: misuse with two errors', mut(misuse, (d) => { d.errors.push('EXAMPLE'); })],
+    ['verify_result: misuse with signed forms', mut(misuse, (d) => { d.signed_forms['report.json'] = 'raw'; })],
+    ['verify_result: exit 4', mut(misuse, (d) => { d.exitCode = 4; })],
+    ['verify_result: signed_forms names a file outside the three signed files', mut(ok, (d) => { d.signed_forms['evidence.json'] = 'raw'; })],
+    ['verify_result: a signed form other than raw or digest_statement', mut(ok, (d) => { d.signed_forms['report.sarif'] = 'detached'; })],
+    ['verify_result: an unknown member', mut(ok, (d) => { d.note = 'EXAMPLE'; })],
+    ['verify_result: status signature_invalid (a reason, not a status)', mut(VR.examples[2], (d) => { d.status = 'signature_invalid'; })],
+    ['verify_result: no signed_forms', mut(ok, (d) => { delete d.signed_forms; })],
+  ]) { if (vVR(doc)) fail(`NEGATIVE accepted but must be rejected: ${label}`); V2120_NEG.push([label]); }
+  if (!vVR(mut(ok, (d) => { d.status = 'unsupported_engine'; d.ok = false; d.exitCode = 3; }))) fail('POSITIVE verify_result: unsupported_engine (exit 3) is written as a full result');
+  walk(VR, (k, v) => { if (typeof v === 'string' && R1.test(v)) fail(`LINT verify_result.schema.json: "${v.match(R1)[0]}" breaks the wording rule R1 (key ${k})`); });
+}
+// 17c. The evidence render order (signing.md §5.3).
+{
+  const files = ER.properties.signature.properties.files;
+  if (files.minItems !== 2) fail('EVIDENCE signature.files minItems must be 2 (signing.md §5.3: report.json and report.sarif)');
+  ER.examples.forEach((e, i) => { if (e.signature.files.some((f) => f.path === 'bundle-manifest.json')) fail(`EVIDENCE example[${i}] lists bundle-manifest.json (signing.md §5.3: never)`); });
+  const ev0 = ER.examples[0];
+  if (!same(ev0.signature.files.map((f) => f.path).sort(), ['report.json', 'report.sarif'])) fail('EVIDENCE example[0] signature.files must be report.json and report.sarif');
+  if (!vER(ev0)) fail('POSITIVE evidence_report: two signature entries validate');
+  if (!vER(mut(ev0, (e) => { e.signature.files.push({ path: 'bundle-manifest.json', run_id: e.signature.files[0].run_id, sha256: `sha256:${'3'.repeat(64)}`, envelope: 'bundle-manifest.json.dsse.json' }); }))) fail('POSITIVE evidence_report: the deprecated bundle-manifest.json entry must still validate until 3.0.0');
+  if (vER(mut(ev0, (e) => { e.signature.files = e.signature.files.slice(0, 1); }))) fail('NEGATIVE accepted but must be rejected: evidence_report: one signature entry');
+  V2120_NEG.push(['evidence_report: one signature entry']);
+  if (!/deprecated/.test(files.items.properties.path.description ?? '')) fail('EVIDENCE signature.files[].path does not mark bundle-manifest.json deprecated');
+}
+// 17d. prose.
+{
+  const signingText = readFileSync(join(CONTRACTS, 'signing.md'), 'utf8');
+  const errorsText = readFileSync(join(CONTRACTS, 'errors.md'), 'utf8');
+  const sec = (h, end) => { const i = signingText.indexOf(h); return i < 0 ? '' : signingText.slice(i, signingText.indexOf(end, i + h.length)); };
+  const s511 = sec('#### 5.1.1 `--result <path>`', '\n### 5.2');
+  if (!s511) fail('SIGNING §5.1.1 (--result) is missing');
+  for (const w of ['verify_result.schema.json', 'byte-identical', '`--json`', '"status":"misuse"', '`exitCode` always equals the process exit code', 'symbolic link', 'outside the bundle', '`result_not_written`', 'partly written file is removed', '`--hosted-seal`', '`verify_no_result`', '`hosted_seal.sarif_equal`', '8388608', '`--manifest-key`']) if (!s511.includes(w)) fail(`SIGNING §5.1.1 does not state ${w}`);
+  const s53 = sec('### 5.3 Seal order and the evidence report', '\n## 6.');
+  if (!s53) fail('SIGNING §5.3 (seal order and the evidence report) is missing');
+  for (const w of ['`bundle-manifest.json`', 'MUST NOT emit', '`3.0.0`', 'envelope of its own', 'unsigned copy', '`producer.sealed_at`']) if (!s53.includes(w)) fail(`SIGNING §5.3 does not state ${w}`);
+  const s52 = sec('### 5.2 Signed digest statements', '\n### 5.3');
+  for (const w of ['64 bytes', 'checked before D8', 'always-raw type']) if (!s52.includes(w)) fail(`SIGNING §5.2 does not state the 2.12.0 clarification "${w}"`);
+  const rule2 = signingText.split('\n2. The seal step signs')[1]?.split('\n3. ')[0] ?? '';
+  if (!rule2.includes('`--result` file')) fail('SIGNING §3 rule 2 does not read the precondition from the --result file');
+  const rnw = errorsText.split('\n').find((l) => l.startsWith('| `result_not_written` | — | 2 |')) ?? '';
+  if (!rnw.includes('§5.1.1')) fail('ERRORS result_not_written (exit 2) is missing or does not cite signing.md §5.1.1');
+  const sf = errorsText.split('\n').find((l) => l.startsWith('| `seal_failed` | — | 2 |')) ?? '';
+  if (!sf.includes('`verify_no_result`')) fail('ERRORS seal_failed does not name the reason verify_no_result');
+  const hp = join(CONTRACTS, '..', 'docs', 'phase-9', 'HOSTED-PROFILE.md');
+  if (existsSync(hp)) {
+    const h = readFileSync(hp, 'utf8');
+    const i = h.indexOf('### 2.7 Seal: verify before sign');
+    const s27 = i < 0 ? '' : h.slice(i, h.indexOf('### 2.8', i));
+    for (const w of ['--result', '`verify_no_result`', '`result_not_written`', '`hosted_seal.sarif_equal`', 'symbolic link']) if (!s27.includes(w)) fail(`DOCS HOSTED-PROFILE §2.7 does not state ${w}`);
+    if (s27.includes('agent-arena verify /out/report.json')) fail('DOCS HOSTED-PROFILE §2.7 still names the pre-2.6.0 verifier command');
+  }
+  const tpl = join(CONTRACTS, '..', 'docs', 'phase-9', 'EVIDENCE-REPORT-TEMPLATE.md');
+  if (existsSync(tpl) && /\| `bundle-manifest\.json` \| `\{\{sha\}\}` \|/.test(readFileSync(tpl, 'utf8'))) fail('DOCS EVIDENCE-REPORT-TEMPLATE §11 still lists bundle-manifest.json (signing.md §5.3)');
+}
+
 // ---------------------------------------------------------------- report
 if (failures.length) {
   console.error('Contract checks: FAIL');
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10).`);
+console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order).`);

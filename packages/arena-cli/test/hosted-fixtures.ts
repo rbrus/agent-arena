@@ -11,6 +11,7 @@ import { jcs, pae, RUN_MANIFEST_PAYLOAD_TYPE, signDocument, toPrivateKey, toPubl
 import { engineBuildFor } from '../src/build-info.ts';
 import { runHostedCommand, type HostedOptions } from '../src/commands/run-hosted.ts';
 import type { HostedLogFilter } from '../src/hosted/log-filter.ts';
+import type { PinnedKey } from '../src/keys.ts';
 import type { HostedContextContract, PackManifestContract, RunSpecContract } from '../src/generated/contracts.ts';
 import { commitmentListDigest, episodeSecretCommitment, runningPlatform } from '../src/hosted/manifest.ts';
 import { PACK_ENVELOPE_FILE, PACK_PAYLOAD_TYPE } from '../src/hosted/packs.ts';
@@ -201,14 +202,22 @@ export function writePack(packsDir: string, pm: PackManifestContract, o: { key?:
 export const sha256Of = (s: string | Buffer) => `sha256:${createHash('sha256').update(s).digest('hex')}`;
 
 /**
- * `runHostedCommand` for tests that are not about the filter's lifetime. G-58: a hosted run keeps
+ * The pinned manifest key set of a build that pins none (the pre-S-1 build). The release pins
+ * the Sixi JWKS (hosted/pinned-keys.json), whose private keys no test holds; tests that sign
+ * manifests with the RFC 8032 key therefore run as that build and pass the key with
+ * --manifest-key, or pin the test key explicitly (`pinnedKeys`). Programmatic only.
+ */
+export const NO_PIN: readonly PinnedKey[] = Object.freeze([]);
+
+/**
+ * `runHostedCommand` for tests that are not about the filter's lifetime. Defaults to NO_PIN. G-58: a hosted run keeps
  * its log filter until process exit; a test file runs many hosted runs in one process, so this
  * wrapper uninstalls it through the explicit handle once the run settles (the pre-G-58 lifetime).
  */
 export async function runHosted(f: Parameters<typeof runHostedCommand>[0], o: HostedOptions = {}): ReturnType<typeof runHostedCommand> {
   const held: HostedLogFilter[] = [];
   try {
-    return await runHostedCommand(f, { ...o, onLogFilter: (h) => (held.push(h), o.onLogFilter?.(h)) });
+    return await runHostedCommand(f, { pinnedKeys: NO_PIN, ...o, onLogFilter: (h) => (held.push(h), o.onLogFilter?.(h)) });
   } finally {
     for (const h of held.reverse()) h.uninstall();
   }

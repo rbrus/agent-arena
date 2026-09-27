@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:pinned_keys:1",
+  "title": "Pinned control-plane key set (agent-arena-pinned-keys/1)",
+  "description": "(2.11.0) The public keys an open release trusts for hosted documents, bundled into the release (the CLI ships it as packages/arena-cli/src/hosted/pinned-keys.json). Normative text: signing.md §3.3 (what is pinned, use, the key window, rotation, `verify --key pinned`). Two sets, each exactly the body the control plane serves at `<source>?purpose=manifest` and `?purpose=report`: the manifest set is the only trust anchor for run manifests and scenario packs; the report set is what `verify --key pinned` selects from. Public keys only. The run-token key is never bundled (a run-token verifier takes it as configuration, signing.md §10), so the file has no third set. The runner never fetches keys and never takes a key from a manifest, a pack, the environment or (while a set is pinned) a flag. Rules beyond JSON Schema, checked by contracts/tools/contract-check.mjs §15 on the example and on the file the CLI bundles: each set's body reproduces its source_sha256; each set's source is the file's source plus ?purpose=<set>; kids unique across the file and no public key in both sets; every window 0 < not_after - not_before <= 120 days and revoked_at not before not_before; every kid equals its derivation from the RFC 7638 thumbprint, and sixi_thumbprint (when present) equals that thumbprint; x is a canonical 32-byte key.",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 65536,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "source",
+    "fetched_at",
+    "manifest",
+    "report"
+  ],
+  "properties": {
+    "format": {
+      "const": "agent-arena-pinned-keys/1"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^https://[^\\s?#]+$",
+      "description": "The published JWKS URL, without query. Since 2026-09-27: https://sixi.ch/.well-known/arena-jwks.json."
+    },
+    "fetched_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "description": "When the release process fetched both sets."
+    },
+    "source_etag": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Informative: the ETag of the unfiltered JWKS response."
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Informative: sha256 of the unfiltered JWKS body, which also lists the run-token key and so cannot be reproduced from this file."
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 1024,
+      "description": "Informative text for readers of the file. Never read by a verifier."
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "source_sha256",
+        "keys"
+      ],
+      "description": "The ?purpose=manifest JWKS body, stored as served: UTF-8(JSON.stringify({\"keys\": keys}) + LF) hashes to source_sha256.",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^https://[^\\s?#]+\\?purpose=manifest$",
+          "description": "The file's source URL plus ?purpose=manifest."
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "sha256 of the exact served body."
+        },
+        "keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "1..16 keys. Kids unique across the file, and no public key (x) in both sets.",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/jwk"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kid": {
+                    "type": "string",
+                    "pattern": "^sixi-arena-manifest-ed25519-[0-9a-f]{20}$"
+                  },
+                  "sixi_purpose": {
+                    "const": "manifest"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "source_sha256",
+        "keys"
+      ],
+      "description": "The ?purpose=report JWKS body, stored as served: UTF-8(JSON.stringify({\"keys\": keys}) + LF) hashes to source_sha256.",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^https://[^\\s?#]+\\?purpose=report$",
+          "description": "The file's source URL plus ?purpose=report."
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "sha256 of the exact served body."
+        },
+        "keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "description": "1..16 keys. Kids unique across the file, and no public key (x) in both sets.",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/jwk"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kid": {
+                    "type": "string",
+                    "pattern": "^sixi-arena-ed25519-[0-9a-f]{20}$"
+                  },
+                  "sixi_purpose": {
+                    "const": "report"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "jwk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kty",
+        "crv",
+        "x",
+        "kid",
+        "use",
+        "not_before",
+        "not_after"
+      ],
+      "description": "One public key as the JWKS serves it (signing.md §3.3 rule 1). Only the members below; a private member such as `d` makes the file invalid (additionalProperties). The window [not_before, not_after), cut short by revoked_at, is the only time a key verifies (rule 3).",
+      "properties": {
+        "kty": {
+          "const": "OKP"
+        },
+        "crv": {
+          "const": "Ed25519"
+        },
+        "x": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "The 32-byte Ed25519 public key, canonical unpadded base64url (43 characters, decoding to 32 bytes and re-encoding to the same string)."
+        },
+        "kid": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+          "description": "The key id: `<namespace>-ed25519-` + the first 80 bits of the RFC 7638 thumbprint in lower-case hex (signing.md §3.3 rule 1). The set narrows the namespace."
+        },
+        "alg": {
+          "const": "EdDSA"
+        },
+        "use": {
+          "const": "sig"
+        },
+        "sixi_purpose": {
+          "enum": [
+            "manifest",
+            "report"
+          ],
+          "description": "When present, equal to the set that holds the key."
+        },
+        "status": {
+          "enum": [
+            "next",
+            "current",
+            "valid",
+            "retired"
+          ],
+          "description": "The control plane's rotation state when fetched. Informational: it never widens or narrows the window."
+        },
+        "not_before": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "description": "Inclusive start of the window, RFC 3339 UTC with seconds and `Z`."
+        },
+        "not_after": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "description": "Exclusive end of the window. not_after - not_before is at most 120 days (90 days of use + 30 days of overlap); contract-check §15."
+        },
+        "revoked_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "description": "When present, the window ends here (exclusive) if that is before not_after."
+        },
+        "sixi_thumbprint": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "When present, the full RFC 7638 SHA-256 thumbprint of {crv, kty, x}, base64url. The kid is derived from it."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "format": "agent-arena-pinned-keys/1",
+      "source": "https://sixi.ch/.well-known/arena-jwks.json",
+      "fetched_at": "2026-09-27T16:00:31Z",
+      "source_etag": "\"b96c9b3434d7d44359bf41927062622a\"",
+      "source_sha256": "sha256:b96c9b3434d7d44359bf41927062622a41664feac9a49fb3bc6d7073289784fe",
+      "note": "Public keys only. manifest = ?purpose=manifest, report = ?purpose=report, each kept exactly as served (JSON.stringify(set) + LF reproduces the served body, whose sha256 is recorded). The run-token key is not bundled: the CLI never verifies a run token with a pinned key (serve-reference --hosted takes --run-token-key). Rotation: a new key ships in an open release before the control plane first signs with it; keys have a 90-day window, so at least one open release per quarter.",
+      "manifest": {
+        "source": "https://sixi.ch/.well-known/arena-jwks.json?purpose=manifest",
+        "source_sha256": "sha256:2c31dd0c88e513febddf2b8d44e523c2ef682cb5f80a19e3d70d61599d311a88",
+        "keys": [
+          {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "kRhdxwyUXuJOwPwo8Gx0dXQXvhRweSkJxvvuVo68fyg",
+            "kid": "sixi-arena-manifest-ed25519-86c88a43cdcdb910e8f4",
+            "alg": "EdDSA",
+            "use": "sig",
+            "sixi_purpose": "manifest",
+            "status": "current",
+            "not_before": "2026-09-27T00:00:00Z",
+            "not_after": "2026-12-26T00:00:00Z",
+            "sixi_thumbprint": "hsiKQ83NuRDo9BXwNu0nlNZ57d6CdqTxd8ADQ2XnMxY"
+          }
+        ]
+      },
+      "report": {
+        "source": "https://sixi.ch/.well-known/arena-jwks.json?purpose=report",
+        "source_sha256": "sha256:1011f15a1308f68990dcb365e145b07a794c7ab7921265fbe97a3dfeef38865e",
+        "keys": [
+          {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "JUtusRmM32aPz9FiVlgVeDaDhFGbV1zHA7hwpxbISTo",
+            "kid": "sixi-arena-ed25519-c2f84888ae5d69e9f7df",
+            "alg": "EdDSA",
+            "use": "sig",
+            "sixi_purpose": "report",
+            "status": "current",
+            "not_before": "2026-09-27T00:00:00Z",
+            "not_after": "2026-12-26T00:00:00Z",
+            "sixi_thumbprint": "wvhIiK5daen3340TXvc0szlwr89tqjq-a0dgJo2wuzU"
+          }
+        ]
+      }
+    }
+  ]
+}

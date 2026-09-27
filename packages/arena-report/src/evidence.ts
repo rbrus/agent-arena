@@ -167,10 +167,22 @@ export interface CrosscheckRecordInput {
   [k: string]: unknown;
 }
 
-/** The sealed bundle's file digests and the published key set (template §11). */
+/**
+ * The sealed files' digests and the published key set (template §11). Contracts 2.12.0 (signing.md §5.3): the
+ * evidence is rendered after `report.json` and `report.sarif` are signed and before `bundle-manifest.json` is
+ * written, so it names only those two files; the bundle manifest covers the evidence, never the reverse.
+ */
 export interface EvidenceBundle {
   jwks_url: string;
-  files: { path: 'report.json' | 'report.sarif' | 'bundle-manifest.json'; sha256: string; run_id?: string }[];
+  files: { path: 'report.json' | 'report.sarif'; sha256: string; run_id?: string }[];
+}
+
+/**
+ * signing.md §5.3: the deprecated `bundle-manifest.json` entry is never emitted (a 2.12.0 renderer MUST NOT; a
+ * reader ignores it), even when an older caller still passes one.
+ */
+function signedFiles(b: EvidenceBundle): EvidenceBundle['files'] {
+  return b.files.filter((f) => (f.path as string) !== 'bundle-manifest.json');
 }
 
 /** From the admission record (template Appendix B: Sixi's statement). */
@@ -1005,7 +1017,7 @@ export function renderEvidenceReport(reportOrReports: Report | readonly Report[]
         algorithm: 'ed25519',
         signing_key_id: h.signing_key_id,
         jwks_url: opts.bundle.jwks_url,
-        files: opts.bundle.files.map((f) => ({ path: f.path, ...(f.run_id ? { run_id: f.run_id } : {}), sha256: f.sha256, envelope: `${f.path}.dsse.json` })),
+        files: signedFiles(opts.bundle).map((f) => ({ path: f.path, ...(f.run_id ? { run_id: f.run_id } : {}), sha256: f.sha256, envelope: `${f.path}.dsse.json` })),
       },
     };
     if (completedTotal === 0) {
@@ -1482,7 +1494,7 @@ function renderMarkdown(x: MdInput): string {
     table(['Run', 'Key id', 'Run manifest digest', 'Sealed'], reports.map((r) => [code(r.run.run_id), code(r.signing!.signing_key_id), code(r.signing!.run_manifest_digest), code(r.signing!.sealed_at)]));
     blank();
     if (opts.bundle) {
-      table(['File', 'sha256', 'Envelope'], opts.bundle.files.map((f) => [code(f.path), code(f.sha256), code(`${f.path}.dsse.json`)]));
+      table(['File', 'sha256', 'Envelope'], signedFiles(opts.bundle).map((f) => [code(f.path), code(f.sha256), code(`${f.path}.dsse.json`)]));
       blank();
       L.push(`Key set published at ${code(opts.bundle.jwks_url)}.`, '');
     } else L.push('Bundle file digests: not supplied to the renderer.', '');

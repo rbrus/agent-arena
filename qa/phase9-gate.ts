@@ -55,7 +55,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFile
 import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   canonicalizeForSigning,
   EvidenceRenderError,
@@ -221,8 +221,33 @@ export interface GateResult {
 const sh = (cmd: string, args: string[], o: { cwd?: string; timeoutMs?: number; env?: Record<string, string | undefined> } = {}): Promise<Proc> =>
   runProc(cmd, args, { cwd: o.cwd ?? ASC, timeoutMs: o.timeoutMs ?? 300_000, env: Object.fromEntries(Object.entries(o.env ?? {}).filter(([, v]) => v !== undefined)) as Record<string, string> });
 const BASE_ENV = (): Record<string, string> => ({ PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' });
-/** The public CLI from source (the entry the published bundle wraps). */
-const cli = (args: string[], env: Record<string, string | undefined> = {}, timeoutMs = 300_000) => sh(process.execPath, ['--import', 'tsx', BIN, ...args], { env, timeoutMs });
+/**
+ * S-1: the release pins the Sixi manifest JWKS (hosted/pinned-keys.json), whose private key no gate
+ * holds. Hosted invocations (--hosted, --hosted-seal) therefore run as a build that pins no manifest
+ * key, through `cli(argv, { pinnedManifestKeys: [] })` (a programmatic seam, unreachable from argv or
+ * env), and pass the RFC 8032 test key with --manifest-key as before. The pinned default itself is
+ * covered by packages/arena-cli/test/pinned-keys.test.ts.
+ */
+let noPinEntry: string | undefined;
+const noPinBin = (): string => {
+  if (!noPinEntry) {
+    noPinEntry = join(mkdtempSync(join(tmpdir(), 'phase9-nopin-')), 'agent-arena-nopin.mts');
+    writeFileSync(noPinEntry, `import { cli } from ${JSON.stringify(pathToFileURL(join(ASC, 'packages', 'arena-cli', 'src', 'main.ts')).href)};\nawait cli(process.argv.slice(2), { pinnedManifestKeys: [] });\n`);
+  }
+  return noPinEntry;
+};
+/** The same no-pin entry as an executable, for `qa/crosscheck.ts --npm-bin` (its leg V runs `verify --hosted` on the gate's test-sealed bundles). */
+let noPinExe: string | undefined;
+const noPinShBin = (): string => {
+  if (!noPinExe) {
+    noPinExe = join(dirname(noPinBin()), 'agent-arena-nopin');
+    writeFileSync(noPinExe, `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} --import tsx ${JSON.stringify(noPinBin())} "$@"\n`, { mode: 0o755 });
+  }
+  return noPinExe;
+};
+/** The public CLI from source (the entry the published bundle wraps); hosted invocations as a no-pin build (above). */
+const cli = (args: string[], env: Record<string, string | undefined> = {}, timeoutMs = 300_000) =>
+  sh(process.execPath, ['--import', 'tsx', args.some((a) => a === '--hosted' || a === '--hosted-seal') ? noPinBin() : BIN, ...args], { env, timeoutMs });
 
 interface RefServer {
   urls: Record<'rest' | 'ws' | 'mcp' | 'a2a' | 'healthz', string>;
@@ -579,7 +604,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       const env = hostedEnv({ ARENA_TARGET_CREDENTIAL: token, ...(withPack ? { ARENA_PACKS_DIR: PACKS } : {}) });
       const run: HostedRun = { g, spec, manifest, out, open, token, env, seen: {} };
       try {
-        const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey: manifestKey, out }, { env, platform: PLATFORM, transportFactory: viaHostedReference(hostedRefFor(g).urls.rest, run.seen) }));
+        const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey: manifestKey, out }, { pinnedKeys: [], env, platform: PLATFORM, transportFactory: viaHostedReference(hostedRefFor(g).urls.rest, run.seen) }));
         run.exit = r.exitCode;
         run.report = readJson<Report>(join(out, 'report.json'));
       } catch (e) {
@@ -692,7 +717,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
     }
 
     // The cross-check runner itself, legs npm + hosted, scope hosted, signed; twice → --compare.
-    const xcArgs = (out: string) => ['--import', 'tsx', join(ASC, 'qa', 'crosscheck.ts'), '--legs', 'npm,hosted', '--digest', IMAGE_INDEX, '--platform', PLATFORM, '--platform-manifest', IMAGE_PLATFORM, '--blocks', 'X1', '--scenarios', 'byzantine', '--tiers', 'core', '--hosted-dir', HOSTED_DIR, '--hosted-key', reportKey, '--sign', xcPriv, '--kid', XC_KID, '--out', out, '--stable', '--json'];
+    const xcArgs = (out: string) => ['--import', 'tsx', join(ASC, 'qa', 'crosscheck.ts'), '--legs', 'npm,hosted', '--digest', IMAGE_INDEX, '--platform', PLATFORM, '--platform-manifest', IMAGE_PLATFORM, '--blocks', 'X1', '--scenarios', 'byzantine', '--tiers', 'core', '--hosted-dir', HOSTED_DIR, '--hosted-key', reportKey, '--npm-bin', noPinShBin(), '--sign', xcPriv, '--kid', XC_KID, '--out', out, '--stable', '--json'];
     const tXc = performance.now();
     const xcA = join(OUT, 'xc-hosted-a');
     const xcB = join(OUT, 'xc-hosted-b');
@@ -739,7 +764,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
         crosscheckRecord: xcRecord,
         crosscheckKey: JSON.parse(pubJwk()) as { kty: 'OKP'; crv: 'Ed25519'; x: string },
         verifyResult: { status: vr.status as 'verified', unverified: vr.unverified ?? [] },
-        bundle: { jwks_url: 'https://keys.example.net/.well-known/sixi-arena-signing-keys.json', files: [file('report.json'), file('report.sarif'), { path: 'bundle-manifest.json', run_id: rep.run.run_id, sha256: sha256(readFileSync(join(x.out, 'bundle-manifest.json'))) }] },
+        bundle: { jwks_url: 'https://keys.example.net/.well-known/sixi-arena-signing-keys.json', files: [file('report.json'), file('report.sarif')] },
         admission: { reports_until: '2027-11-10T14:06:42Z', audit_until: '2028-11-09T14:06:42Z', credential_destroyed_at: '2026-11-10T14:00:05Z', requested_by: { actor_kind: 'pipeline_token', actor_id: 'tok_PHASE9GATE01' } },
       };
     };
@@ -793,7 +818,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       const out = join(OUT, 'hostile', 'out');
       const inputs = writeInputs(join(OUT, 'hostile', 'in'), manifest, spec);
       const logFrom = cliLog.length;
-      const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey, out }, { env: hostedEnv({ ARENA_TARGET_CREDENTIAL: mintRunToken(runId), ARENA_PACKS_DIR: PACKS }), platform: PLATFORM, transportFactory: viaHostedReference(refHostedCoord.urls.rest, {}, hostile) }));
+      const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey, out }, { pinnedKeys: [], env: hostedEnv({ ARENA_TARGET_CREDENTIAL: mintRunToken(runId), ARENA_PACKS_DIR: PACKS }), platform: PLATFORM, transportFactory: viaHostedReference(refHostedCoord.urls.rest, {}, hostile) }));
       // Hosted logs (SECURITY-REVIEW-HOSTED G-57 row: target-authored text on `  target> ` lines is accepted design).
       const lines = cliLog.slice(logFrom).join('').split('\n');
       const withTarget = lines.filter((l) => l.includes(HOSTILE_MARK));
@@ -928,7 +953,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       const inp = writeInputs(join(OUT, 'scrub', 'in'), { ...signManifest(unsignedManifest(spec, { run_id: run26('S') } as Partial<HostedContextContract>)), rps_cap: 1 }, spec);
       let refusedScrub = false;
       try {
-        await capturingStderr(() => runHostedCommand({ ...inp, manifestKey, out: join(OUT, 'scrub', 'out') }, { env, platform: PLATFORM }));
+        await capturingStderr(() => runHostedCommand({ ...inp, manifestKey, out: join(OUT, 'scrub', 'out') }, { pinnedKeys: [], env, platform: PLATFORM }));
       } catch {
         refusedScrub = env.ARENA_TARGET_CREDENTIAL === undefined && env.ARENA_SEAT_CREDENTIAL_FRANCE === undefined && env.ARENA_DIP_SECRET_0 === undefined;
       }
@@ -942,7 +967,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       const out = join(OUT, 'dip', 'out');
       const inputs = writeInputs(join(OUT, 'dip', 'in'), manifest, spec);
       const env = hostedEnv({ ARENA_TARGET_CREDENTIAL: mintRunToken(runId), ARENA_DIP_SECRET_0: secret });
-      const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey, out }, { env, platform: PLATFORM, transportFactory: viaHostedReference(refHostedDip.urls.rest, {}) }));
+      const r = await capturingStderr(() => runHostedCommand({ ...inputs, manifestKey, out }, { pinnedKeys: [], env, platform: PLATFORM, transportFactory: viaHostedReference(refHostedDip.urls.rest, {}) }));
       const rep = readJson<Report>(join(out, 'report.json'));
       const d = rep.episodes[0]?.diplomacy as { episode_secret?: string; episode_secret_commitment?: string } | undefined;
       const disclosed = d?.episode_secret === secret && d?.episode_secret_commitment === episodeSecretCommitment(secret) && env.ARENA_DIP_SECRET_0 === undefined;
@@ -1013,7 +1038,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       const pemAccepted = /ARENA_IMAGE_DIGEST is not set/.test(p.stderr);
       const refusedForKey = p.code === 3 && /kid-bound manifest key/.test(p.stderr);
       C.ok('S', 'S-G47-PEM-REFUSED', 'G-47: in hosted mode a kid-less PEM manifest key is refused (a kid-bound JWK/JWKS is required)', refusedForKey, pemAccepted ? 'PEM accepted (G-47 open)' : refusedForKey ? 'exit 3, kid-bound key required' : `exit ${p.code}, refused for another reason`);
-      notes.push('G-47 part 1 (ship the Sixi manifest JWKS in pinned-keys.ts, refuse --manifest-key when the pinned set is non-empty) needs the published Sixi key: a release item, not probed here.');
+      notes.push('G-47 part 1 / S-1: the release pins the Sixi manifest JWKS (hosted/pinned-keys.json) and refuses --manifest-key; hosted probes here run as a no-pin build. The pinned default is tested in packages/arena-cli/test/pinned-keys.test.ts.');
     });
     await C.guard('S', 'S-G48-HOSTED-ONLY', 'G-48', async () => {
       const run = await cli(['run', '--scenario', 'byzantine', '--seat', 'squad', '--target', 'http://127.0.0.1:9/', '--i-own-this-target', '--episodes', '1', '--seeds', '1'], { ARENA_HOSTED: '1' }, 60_000);

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "wot:evidence_report:1",
   "title": "Sixi Arena evidence report (evidence.json)",
-  "description": "(2.2.0, K8) The machine-readable evidence document (EVIDENCE-REPORT-TEMPLATE.md Part 1 and Appendix A), aligned with the scanner's `sixi.scanner.evidence/v1` importer rules: all or nothing, gaps only, clause ids from the corpus. Built outside the engine from sealed Reports, the pack manifests, the corpus snapshot and the cross-check record; listed in `bundle-manifest.json`, so the bundle signature covers it. Wording rule (template R1): the report assesses, evidences and reproduces; no enum, example, description or rendered string of this document uses the forbidden conformity words (checked by contract-check). Ids and counts only (R3): no target text, press text, prompts, payloads, URL query values or credentials; labels are untrusted data. A run set with no completed episode yields `assessed: false` and no records (R2).",
+  "description": "(2.2.0, K8) The machine-readable evidence document (EVIDENCE-REPORT-TEMPLATE.md Part 1 and Appendix A), aligned with the scanner's `sixi.scanner.evidence/v1` importer rules: all or nothing, gaps only, clause ids from the corpus. Built outside the engine from sealed Reports, the pack manifests, the corpus snapshot and the cross-check record; listed in `bundle-manifest.json`, so the bundle signature covers it (2.12.0: rendered after `report.json` and `report.sarif` are signed and before `bundle-manifest.json` is written, and never listing `bundle-manifest.json`; signing.md §5.3). Wording rule (template R1): the report assesses, evidences and reproduces; no enum, example, description or rendered string of this document uses the forbidden conformity words (checked by contract-check). Ids and counts only (R3): no target text, press text, prompts, payloads, URL query values or credentials; labels are untrusted data. A run set with no completed episode yields `assessed: false` and no records (R2).",
   "x-direction": "outbound",
   "x-max-frame-bytes": 8388608,
   "type": "object",
@@ -1773,7 +1773,7 @@
         "jwks_url",
         "files"
       ],
-      "description": "EVIDENCE-REPORT-TEMPLATE §11. This document is covered by the bundle-manifest signature (R7).",
+      "description": "EVIDENCE-REPORT-TEMPLATE §11. This document is covered by the bundle-manifest signature (R7). (2.12.0, signing.md §5.3) The seal step renders it after signing `report.json` and `report.sarif` and before writing `bundle-manifest.json`, which lists it; so `files` names the sealed report and SARIF of every run in scope and never `bundle-manifest.json` (a file that lists this document cannot also be listed by it).",
       "properties": {
         "algorithm": {
           "const": "ed25519"
@@ -1789,7 +1789,7 @@
         },
         "files": {
           "type": "array",
-          "minItems": 3,
+          "minItems": 2,
           "maxItems": 192,
           "items": {
             "type": "object",
@@ -1805,7 +1805,8 @@
                   "report.json",
                   "report.sarif",
                   "bundle-manifest.json"
-                ]
+                ],
+                "description": "`report.json` or `report.sarif`. (2.12.0) `bundle-manifest.json` is deprecated: its digest cannot be known when this document is rendered (signing.md §5.3). A 2.12.0 renderer MUST NOT emit it and a reader MUST ignore such an entry; the member is removed at 3.0.0 (versioning.md §5)."
               },
               "run_id": {
                 "type": "string",
@@ -1817,10 +1818,19 @@
               },
               "envelope": {
                 "type": "string",
-                "pattern": "^(report\\.json|report\\.sarif|bundle-manifest\\.json)\\.dsse\\.json$"
+                "pattern": "^(report\\.json|report\\.sarif|bundle-manifest\\.json)\\.dsse\\.json$",
+                "description": "The envelope file of `path`: `<path>.dsse.json`. (2.12.0) `bundle-manifest.json.dsse.json` is deprecated with its path."
+              },
+              "signed_form": {
+                "enum": [
+                  "raw",
+                  "digest_statement"
+                ],
+                "description": "(2.11.0, optional, signing.md §5.2) The form of this file's envelope: `raw` (the envelope payload is the file, or the report's JCS body) or `digest_statement` (the envelope payload is a signed digest statement naming the file's sha256 and length). Absent = not stated; the envelope's payloadType is authoritative."
               }
             }
-          }
+          },
+          "description": "(2.12.0) The sealed `report.json` and `report.sarif` of every run in scope, each with its sha256 and envelope (signing.md §5.3). At least 2 entries (was 3 before 2.12.0: a relaxation)."
         }
       }
     }
@@ -2264,12 +2274,6 @@
             "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
             "sha256": "sha256:cb1c6db2dbe7207e203646f2335f01016024f751724dd48369b3b74c34f4a558",
             "envelope": "report.sarif.dsse.json"
-          },
-          {
-            "path": "bundle-manifest.json",
-            "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
-            "sha256": "sha256:45111677876eeb89d5ad958cb8a6f8a810a43caf5ace9231889093c4a9dc1030",
-            "envelope": "bundle-manifest.json.dsse.json"
           }
         ]
       }
@@ -2678,12 +2682,6 @@
             "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
             "sha256": "sha256:cb1c6db2dbe7207e203646f2335f01016024f751724dd48369b3b74c34f4a558",
             "envelope": "report.sarif.dsse.json"
-          },
-          {
-            "path": "bundle-manifest.json",
-            "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
-            "sha256": "sha256:45111677876eeb89d5ad958cb8a6f8a810a43caf5ace9231889093c4a9dc1030",
-            "envelope": "bundle-manifest.json.dsse.json"
           }
         ]
       }

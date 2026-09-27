@@ -155,6 +155,42 @@ bump implies a new path prefix (`/v2/`) served alongside `/v1/` during migration
 >   normally MAJOR; it is corrected in a MINOR only because no released tool ever emitted the 2.0.0
 >   formula (the open arena ships 2026-10-25). After the first public release this exception is closed.
 
+> **Worked example — the `2.12.0` clarifying release is a MINOR, not a PATCH.**
+>
+> * **Why not `2.11.1`.** §2 lists no change class that is PATCH-only, and every release so far was a MINOR. This
+>   release also adds surfaces: a new `$id` (`wot:verify_result:1`, the `verify --hosted-seal --result` file), a new
+>   error code (`result_not_written`) and a new CLI flag. New surfaces are MINOR under §2. A PATCH stays reserved for
+>   pure text corrections that add nothing.
+> * **Specifying what the CLI chose.** The `--result` rules (signing.md §5.1.1) and the §5.2 reason tokens for the cases
+>   §5.2 did not name (a malformed envelope → `signature`; a non-base64 payload → `payload_mismatch` or
+>   `statement_malformed`; a raw envelope with a foreign `keyid` → `binding`; an unknown or disallowed `signed_form` →
+>   `form_mismatch`) change no outcome. Every one of those envelopes was already `signature_invalid`, exit 2. Only the
+>   reason token is now fixed. Every vector and every signed example is byte-identical.
+> * **One relaxation and one deprecation (signing.md §5.3).** The evidence report used to be able to list the digest of
+>   the bundle manifest that lists it. No document can make both digests true, so no true one exists. `evidence_report`
+>   `signature.files` now needs at least 2 entries instead of 3, which is a relaxation. The `path` member
+>   `bundle-manifest.json` is deprecated: a renderer MUST NOT emit it, and a reader ignores it. The member is removed at
+>   `3.0.0`, because removing it now would reject documents that 2.11.0 accepted (§5).
+> * **Oracle ids, SARIF rule ids, the frame protocol and every existing `$id` do not change.**
+
+> **Worked example — the `2.11.0` pinned key set and signed digest statements are a MINOR.**
+>
+> * **Specifying what was named, not changing it.** signing.md §3.2 M3, M6 and §11 already required "the pinned
+>   control-plane key set" and did not define it. §3.3 defines it, together with the key window, rotation and `verify --key
+>   pinned`. The CLI shipped that behaviour first, and the contract now states it. The new detail field
+>   `hosted_context_invalid` (`--manifest-key`) is a new value of an open field.
+> * **New surfaces:** two new `$id`s (`wot:pinned_keys:1`, `wot:digest_statement:1`), the optional member
+>   `signing.signed_form` on the report and on the cross-check record (absent = `raw`, the 2.2.0 meaning), optional
+>   `signed_form` on the evidence `signature.files[]`, and a new payload type. Every existing signed document, example and
+>   vector is byte-identical. The raw report vector is replayed inside the new vector set as proof.
+> * **Two verifier tightenings, both on documents nobody has produced.** First, the key window: before 2.11.0 no open
+>   release pinned a key, and the live keys' windows begin on 2026-09-27, so no sealed document falls outside them.
+>   Second, a raw signature over a PAE message longer than 65536 bytes is refused. No Sixi key can make one, because
+>   Cloud KMS refuses the message, and no hosted report has been sealed. Like 2.9.0 and 2.10.0, each holds only because
+>   no document on the refused side exists. After the first sealed hosted report, lowering the threshold would be MAJOR.
+> * **Pack windows** are a new load rule for the runner (§11.3 step 5). No pack has been signed with a live key.
+> * **Oracle ids, SARIF rule ids and the frame protocol do not change.**
+
 > **Worked example — the `2.10.0` `extended` tier and hosted caps are a MINOR with one hosted-only tightening.**
 >
 > * **New enum member, not a change to a measurement standard:** `extended` joins every tier enum. The limits of
