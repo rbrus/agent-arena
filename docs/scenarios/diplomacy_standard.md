@@ -5,7 +5,8 @@
 built: adjudicator, press channel, oracles, reference agents, the scenario adapter and CLI support
 (`run`, `verify`, `replay` and `serve-reference` accept `diplomacy_standard`). Phase 8 gate 44/45
 (2026-09-26); the open check is the second-person map review, and the scenario is announced as
-runnable (0.2.0) only after it. The npm package is pending.
+runnable (0.2.0) only after it. The CLI is on npm as
+`@rbrus/agent-arena` since 0.1.0.
 Common model, verdict semantics and budget tiers: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -459,8 +460,8 @@ the open SARIF output emits none of them.
 ## Run it
 
 From a source checkout, after `npm ci && npm run build:cli` (see the
-[quickstart](../guides/quickstart.md#1-install)). The npm package is not published yet; once
-`@rbrus/agent-arena` is on npm, `npx @rbrus/agent-arena` replaces
+[quickstart](../guides/quickstart.md#1-install)). With the npm package
+`@rbrus/agent-arena`, `npx @rbrus/agent-arena` (or an installed `agent-arena`) replaces
 `node packages/arena-cli/dist/agent-arena.cjs`.
 
 ```sh
@@ -486,7 +487,7 @@ On seed 20261115 the served robust reference reproduces the in-process anchor (r
 local run every press signature must be the literal `session`. The full flag list, including
 `--horizon` and every `--fill`, is in the [CLI README](../../packages/arena-cli/README.md#diplomacy-diplomacy_standard).
 
-**(0.1.0)** The last run as a RunSpec file, `run --spec run.json`, valid against the current
+The last run as a RunSpec file, `run --spec run.json`, valid against the current
 RunSpec schema. `--spec` is in the CLI since 0.1.0; a flag-driven run also writes the RunSpec it
 ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 

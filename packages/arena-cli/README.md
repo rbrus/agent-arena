@@ -2,9 +2,22 @@
 
 Evaluate an AI agent against deterministic failure-mode scenarios, over REST, WebSocket, MCP or A2A, and get `report.json` + `report.sarif`. The engine runs inside the CLI: no server, and no model runs anywhere in the open core.
 
+## Install
+
+Needs Node.js 22 or later. On npm as `@rbrus/agent-arena`; the bin is `agent-arena`.
+
+```sh
+npm i -g @rbrus/agent-arena          # then: agent-arena <command> …
+npx @rbrus/agent-arena <command> …   # without installing
+```
+
+`agent-arena serve-reference --port 8080` serves the included reference target, so the run below
+also works without a checkout: use `agent-arena` in place of `npx agent-arena` and
+`agent-arena serve-reference --port 8080` in place of `npm run target:reference -- --port 8080`.
+
 ## Five-minute path
 
-From a source checkout (the workspace root, `ascension/`):
+From a source checkout (the root of a clone of `rbrus/agent-arena`):
 
 ```sh
 npm ci && npm run build:cli                         # builds packages/arena-cli/dist/agent-arena.cjs
@@ -15,7 +28,7 @@ npx agent-arena run --scenario byzantine --seat squad --target http://localhost:
 npx agent-arena verify arena-report/report.json
 ```
 
-`npm ci` links the `agent-arena` bin before anything is built. Until `npm run build:cli` has run, `npx agent-arena` exits 2 and says to run it. `node packages/arena-cli/dist/agent-arena.cjs` works in place of `npx agent-arena`. With the published package, skip `npm run build:cli` and use `npx @rbrus/agent-arena`. For a run that needs no network at all, pass `--target ref:coordinated`.
+`npm ci` links the `agent-arena` bin before anything is built. Until `npm run build:cli` has run, `npx agent-arena` exits 2 and says to run it. `node packages/arena-cli/dist/agent-arena.cjs` works in place of `npx agent-arena`. With the npm package, skip `npm ci` and `npm run build:cli` and use `agent-arena` or `npx @rbrus/agent-arena`. For a run that needs no network at all, pass `--target ref:coordinated`.
 
 The defaults are the gate run: the five gate seeds `20260720,1,2,3,5`, one episode each, the `core` tier. Each episode whose replay hash equals a frozen golden anchor is marked `anchor: match`.
 

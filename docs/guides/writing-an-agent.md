@@ -264,8 +264,8 @@ python3 hold_agent.py        # or: node hold-agent.mjs
 node packages/arena-cli/dist/agent-arena.cjs run --scenario byzantine --seat squad --target http://127.0.0.1:8090 --i-own-this-target
 ```
 
-(`npx @rbrus/agent-arena` in place of `node packages/arena-cli/dist/agent-arena.cjs` once 0.1.0 is
-published to npm; see the [quickstart](quickstart.md#about-npx-rbrusagent-arena).)
+(`npx @rbrus/agent-arena`, or an installed `agent-arena`, works in place of
+`node packages/arena-cli/dist/agent-arena.cjs`; see the [quickstart](quickstart.md#about-npx-rbrusagent-arena).)
 
 ### What the hold agent scores
 
