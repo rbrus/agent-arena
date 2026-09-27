@@ -1,0 +1,1 @@
+/nodejs/bin/node /app/agent-arena.cjs evidence --hosted-seal /run/arena/seal/report.json --sarif /run/arena/out/report.sarif --verify-result /run/arena/seal/verify.json --packs /run/arena/in/packs --inputs /run/arena/render/input.json --key pinned --out /run/arena/render

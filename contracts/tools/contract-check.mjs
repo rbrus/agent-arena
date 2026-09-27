@@ -75,6 +75,11 @@
 //                signed_form -> form_mismatch) replayed by the §16 verifier on mutated vectors, the vector file unchanged; the
 //                evidence render order of §5.3 (no example lists bundle-manifest.json, two entries validate, the deprecated
 //                member still validates); the prose.
+//  18. V2.13.0   (2.13.0) `agent-arena evidence --inputs` (evidence_input.schema.json, HOSTED-PROFILE §2.7 step 6,
+//                signing.md §5.3 step 4): cap, direction, $id; the examples (example[0] = the CLI's fixture but for the
+//                EXAMPLE signature; each crosscheck_record valid against its own schema); must-rejects for every bound and
+//                pattern, an unknown member at every level, each report-only seal fact offered as a member, and a record
+//                that fails its own schema; the CLI compiles the contract file (no schema in code); the prose.
 //
 // Dependency-free beyond what ascension/ already installs (ajv, js-yaml), resolved from there.
 // Run from the repo root:  node contracts/tools/contract-check.mjs  (or `npm run contracts:check` in the workspace)
@@ -2353,10 +2358,130 @@ const vVR = strict.compile(VR);
   if (existsSync(tpl) && /\| `bundle-manifest\.json` \| `\{\{sha\}\}` \|/.test(readFileSync(tpl, 'utf8'))) fail('DOCS EVIDENCE-REPORT-TEMPLATE §11 still lists bundle-manifest.json (signing.md §5.3)');
 }
 
+// ---------------------------------------------------------------- 18. V2.13.0
+// `agent-arena evidence --inputs` (evidence_input.schema.json): the seal step's facts the signed report does not carry.
+const EI = readJson('evidence_input.schema.json');
+const vEI = strict.compile(EI);
+const vCR13 = vXC;
+// The document as consumed: this schema, plus the record's own schema on a present crosscheck_record (no cross-file $ref).
+const evidenceInputValid = (d) => vEI(d) && (d.crosscheck_record === undefined || vCR13(d.crosscheck_record));
+const V2130_NEG = [];
+{
+  if (EI.$id !== 'wot:evidence_input:1' || EI['x-max-frame-bytes'] !== 8388608 || EI['x-direction'] !== 'inbound') fail('EVIDENCE_INPUT $id, cap or direction differs from 2.13.0 (wot:evidence_input:1, 8388608 bytes, inbound)');
+  const exs = EI.examples ?? [];
+  if (exs.length < 3) fail('EVIDENCE_INPUT needs its three examples (with a record, without one, every optional member)');
+  exs.forEach((e, i) => { if (!evidenceInputValid(e)) fail(`EVIDENCE_INPUT example[${i}] is refused (with crosscheck_record.schema.json on its record)`); });
+  if (!exs.some((e) => e.crosscheck_record) || !exs.some((e) => !e.crosscheck_record) || !exs.some((e) => e.corpus && e.admission?.requested_by && e.admission?.incident_ref && e.admission?.credential_destroyed_at)) fail('EVIDENCE_INPUT examples must cover a record, no record, and every optional admission member with a corpus');
+  // The CLI's fixture is the Sixi seal step's own render/input.json: example[0] is it, but for the EXAMPLE signature.
+  const fx = join(WORKSPACE, 'packages', 'arena-cli', 'test', 'fixtures', 'sixi-pr7c', 'render', 'input.json');
+  if (existsSync(fx)) {
+    const f = JSON.parse(readFileSync(fx, 'utf8'));
+    if (!f.crosscheck_record?.signing || !evidenceInputValid(f)) fail('EVIDENCE_INPUT the CLI fixture render/input.json is refused');
+    else { f.crosscheck_record.signing.signature = exs[0]?.crosscheck_record?.signing?.signature; if (!same(f, exs[0])) fail('EVIDENCE_INPUT example[0] differs from the CLI fixture render/input.json beyond the EXAMPLE signature'); }
+  }
+  // The CLI loads the contract file and defines no schema of its own.
+  const cliSchemas = join(WORKSPACE, 'packages', 'arena-cli', 'src', 'hosted', 'schemas.ts');
+  if (existsSync(cliSchemas)) {
+    const t = readFileSync(cliSchemas, 'utf8');
+    if (!t.includes("load('evidence_input.schema.json')") || /evidenceInputSchema\s*=\s*\{/.test(t) || t.includes('agent-arena:evidence_input')) fail('EVIDENCE_INPUT arena-cli src/hosted/schemas.ts must compile contracts/schemas/evidence_input.schema.json and define no schema in code');
+  }
+  const [rec, , full] = exs;
+  const long = (n) => 'a'.repeat(n);
+  const entry = () => clone(full.corpus[Object.keys(full.corpus)[0]]);
+  for (const [label, doc] of [
+    ['evidence_input: input_version 2.0', mut(full, (d) => { d.input_version = '2.0'; })],
+    ['evidence_input: input_version as a number', mut(full, (d) => { d.input_version = 1; })],
+    ['evidence_input: no input_version', mut(full, (d) => { delete d.input_version; })],
+    ['evidence_input: no run_id', mut(full, (d) => { delete d.run_id; })],
+    ['evidence_input: empty run_id', mut(full, (d) => { d.run_id = ''; })],
+    ['evidence_input: run_id of 65 characters', mut(full, (d) => { d.run_id = long(65); })],
+    ['evidence_input: run_id with a control character', mut(full, (d) => { d.run_id = 'run_01\u001b[31m'; })],
+    ['evidence_input: run_id with a newline', mut(full, (d) => { d.run_id = 'run_01\nx'; })],
+    ['evidence_input: no jwks_url', mut(full, (d) => { delete d.jwks_url; })],
+    ['evidence_input: jwks_url over http', mut(full, (d) => { d.jwks_url = 'http://sixi.example/.well-known/arena-jwks.json'; })],
+    ['evidence_input: jwks_url with a query', mut(full, (d) => { d.jwks_url = 'https://sixi.example/.well-known/arena-jwks.json?purpose=report'; })],
+    ['evidence_input: jwks_url with a fragment', mut(full, (d) => { d.jwks_url = 'https://sixi.example/.well-known/arena-jwks.json#k'; })],
+    ['evidence_input: jwks_url with a space', mut(full, (d) => { d.jwks_url = 'https://sixi.example/arena jwks.json'; })],
+    ['evidence_input: jwks_url of 257 characters', mut(full, (d) => { d.jwks_url = `https://sixi.example/${long(236)}`; })],
+    ['evidence_input: no admission', mut(full, (d) => { delete d.admission; })],
+    ['evidence_input: admission without reports_until', mut(full, (d) => { delete d.admission.reports_until; })],
+    ['evidence_input: admission without audit_until', mut(full, (d) => { delete d.admission.audit_until; })],
+    ['evidence_input: reports_until not a date-time', mut(full, (d) => { d.admission.reports_until = 'next year'; })],
+    ['evidence_input: credential_destroyed_at over 64 characters', mut(full, (d) => { d.admission.credential_destroyed_at = `2026-11-10T13:58:41.${'1'.repeat(50)}Z`; })],
+    ['evidence_input: an unknown admission member', mut(full, (d) => { d.admission.sealed_at = '2026-11-10T14:05:00Z'; })],
+    ['evidence_input: requested_by without actor_id', mut(full, (d) => { delete d.admission.requested_by.actor_id; })],
+    ['evidence_input: requested_by actor_kind admin', mut(full, (d) => { d.admission.requested_by.actor_kind = 'admin'; })],
+    ['evidence_input: actor_id of 3 characters', mut(full, (d) => { d.admission.requested_by.actor_id = 'tok'; })],
+    ['evidence_input: actor_id of 65 characters', mut(full, (d) => { d.admission.requested_by.actor_id = long(65); })],
+    ['evidence_input: actor_id starting with an underscore', mut(full, (d) => { d.admission.requested_by.actor_id = '_tok_ci_main'; })],
+    ['evidence_input: actor_id holding an at sign', mut(full, (d) => { d.admission.requested_by.actor_id = 'ci@EXAMPLE'; })],
+    ['evidence_input: an unknown requested_by member', mut(full, (d) => { d.admission.requested_by.display_name = 'EXAMPLE'; })],
+    ['evidence_input: incident_ref with a space', mut(full, (d) => { d.admission.incident_ref = 'INC 42'; })],
+    ['evidence_input: empty incident_ref', mut(full, (d) => { d.admission.incident_ref = ''; })],
+    ['evidence_input: incident_ref of 65 characters', mut(full, (d) => { d.admission.incident_ref = long(65); })],
+    ['evidence_input: crosscheck_record not an object', mut(rec, (d) => { d.crosscheck_record = 'EXAMPLE'; })],
+    ['evidence_input: crosscheck_record with an unknown member (its own schema)', mut(rec, (d) => { d.crosscheck_record.note = 'EXAMPLE'; })],
+    ['evidence_input: crosscheck_record without signing (its own schema)', mut(rec, (d) => { delete d.crosscheck_record.signing; })],
+    ['evidence_input: crosscheck_record without job_verdict (its own schema)', mut(rec, (d) => { delete d.crosscheck_record.job_verdict; })],
+    ['evidence_input: corpus not an object', mut(full, (d) => { d.corpus = []; })],
+    ['evidence_input: corpus of 4097 entries', mut(full, (d) => { d.corpus = Object.fromEntries(Array.from({ length: 4097 }, (_, i) => [`X:Y:${i}`, entry()])); })],
+    ['evidence_input: corpus key of 129 characters', mut(full, (d) => { d.corpus[long(129)] = entry(); })],
+    ['evidence_input: corpus entry without url', mut(full, (d) => { delete Object.values(d.corpus)[0].url; })],
+    ['evidence_input: corpus entry without paraphrase', mut(full, (d) => { delete Object.values(d.corpus)[0].paraphrase; })],
+    ['evidence_input: corpus entry with an empty instrument', mut(full, (d) => { Object.values(d.corpus)[0].instrument = ''; })],
+    ['evidence_input: corpus url over http', mut(full, (d) => { Object.values(d.corpus)[0].url = 'http://eur-lex.europa.eu/eli/reg/2024/1689/oj'; })],
+    ['evidence_input: corpus paraphrase of 2001 characters', mut(full, (d) => { Object.values(d.corpus)[0].paraphrase = long(2001); })],
+    ['evidence_input: an unknown corpus entry member', mut(full, (d) => { Object.values(d.corpus)[0].source_text = 'EXAMPLE'; })],
+    ['evidence_input: an unknown top-level member', mut(full, (d) => { d.note = 'EXAMPLE'; })],
+    // Report-only facts (signing.md §5.3 step 4): none of them is an input member.
+    ...['sealed_at', 'region', 'organisation', 'origin', 'image_digest', 'engine_build_hash', 'signing_key_id', 'packs', 'bundle'].map((k) => [`evidence_input: the report-only fact ${k} offered as an input`, mut(full, (d) => { d[k] = 'EXAMPLE'; })]),
+  ]) { if (evidenceInputValid(doc)) fail(`NEGATIVE accepted but must be rejected: ${label}`); V2130_NEG.push([label]); }
+  // Positives at the bounds.
+  for (const [label, doc] of [
+    ['run_id of 64 characters', mut(full, (d) => { d.run_id = long(64); })],
+    ['jwks_url of 256 characters', mut(full, (d) => { d.jwks_url = `https://sixi.example/${long(235)}`; })],
+    ['actor_id of 4 and of 64 characters', mut(full, (d) => { d.admission.requested_by.actor_id = 'tok1'; })],
+    ['actor_kind system', mut(full, (d) => { d.admission.requested_by = { actor_kind: 'system', actor_id: long(64) }; })],
+    ['corpus of 4096 entries', mut(full, (d) => { d.corpus = Object.fromEntries(Array.from({ length: 4096 }, (_, i) => [`X:Y:${i}`, entry()])); })],
+    ['corpus key of 128 characters', mut(full, (d) => { d.corpus[long(128)] = entry(); })],
+    ['empty corpus', mut(full, (d) => { d.corpus = {}; })],
+  ]) if (!evidenceInputValid(doc)) fail(`POSITIVE evidence_input: ${label} must validate`);
+  walk(EI, (k, v) => { if (typeof v === 'string' && R1.test(v)) fail(`LINT evidence_input.schema.json: "${v.match(R1)[0]}" breaks the wording rule R1 (key ${k})`); });
+}
+// 18b. prose.
+{
+  const signingText = readFileSync(join(CONTRACTS, 'signing.md'), 'utf8');
+  const errorsText = readFileSync(join(CONTRACTS, 'errors.md'), 'utf8');
+  const i53 = signingText.indexOf('### 5.3 Seal order and the evidence report');
+  const s53 = i53 < 0 ? '' : signingText.slice(i53, signingText.indexOf('\n## 6.', i53));
+  const step4 = s53.split('\n4. **Render the evidence report**')[1]?.split('\n5. **Write the bundle manifest.**')[0] ?? '';
+  for (const w of ['`agent-arena evidence`', '`evidence_input.schema.json`', 'Seal time, region, organisation, origin, image\n   digest, engine build and key id are read from the signed report only', 'refuses unknown members', '`input_invalid`', '`renderer_refused`', '`evidence_not_written`']) if (!step4.includes(w)) fail(`SIGNING §5.3 step 4 does not state ${w.replace(/\n\s*/g, ' ')}`);
+  const row = (code) => errorsText.split('\n').find((l) => l.startsWith(`| \`${code}\` | — | 2 |`)) ?? '';
+  for (const code of ['input_invalid', 'renderer_refused', 'evidence_not_written']) {
+    const r = row(code);
+    if (!r) fail(`ERRORS §1d ${code} (exit 2) is missing`);
+    else if (!r.includes('`not_rendered:<code>`') || !r.includes('(2.13.0)')) fail(`ERRORS §1d ${code} does not give the next step (seal without evidence, not_rendered:<code>)`);
+  }
+  if (!['`wording`', '`input`', '`schema`', '`output`'].every((w) => row('renderer_refused').includes(w))) fail('ERRORS renderer_refused does not name the codes wording, input, schema and output');
+  if (!row('input_invalid').includes('`evidence_input.schema.json`') || !row('input_invalid').includes('`signature_invalid`')) fail('ERRORS input_invalid does not name evidence_input.schema.json and keep signature_invalid for signatures');
+  const hp = join(CONTRACTS, '..', 'docs', 'phase-9', 'HOSTED-PROFILE.md');
+  if (existsSync(hp)) {
+    const h = readFileSync(hp, 'utf8');
+    const i = h.indexOf('### 2.7 Seal: verify before sign');
+    const s27 = i < 0 ? '' : h.slice(i, h.indexOf('### 2.8', i));
+    const step6 = s27.split('\n6. **Evidence**')[1]?.split('\n7. ')[0] ?? '';
+    const cmd = step6.replace(/\\\n\s*/g, '');
+    if (!cmd.includes('agent-arena evidence --hosted-seal <seal>/report.json --sarif <out>/report.sarif --verify-result <seal>/verify.json --packs <in>/packs --inputs <render>/input.json --key pinned --out <render>')) fail('DOCS HOSTED-PROFILE §2.7 step 6 does not give the evidence command');
+    for (const w of ['keyless', '`ARENA_HOSTED`', 'no network', '`render/`', 'create-only', '`evidence_input.schema.json`', '`crosscheck_record.schema.json`', '`not_rendered:<code>`', 'never `bundle-manifest.json`', '| 0 |', '| 1 |', '| 2 |', '| 3 |']) if (!step6.includes(w)) fail(`DOCS HOSTED-PROFILE §2.7 step 6 does not state ${w}`);
+    const appA = h.slice(h.indexOf('## Appendix A.'));
+    for (const code of ['input_invalid', 'renderer_refused', 'evidence_not_written']) if (!appA.includes(`| \`${code}\` (2.13.0, evidence job) | — | 2 |`)) fail(`DOCS HOSTED-PROFILE Appendix A does not list ${code}`);
+  }
+}
+
 // ---------------------------------------------------------------- report
 if (failures.length) {
   console.error('Contract checks: FAIL');
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order).`);
+console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length + V2130_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order; 2.13.0: evidence_input (${EI.examples.length} examples, ${V2130_NEG.length} must-rejects), evidence step prose).`);

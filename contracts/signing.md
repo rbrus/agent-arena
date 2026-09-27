@@ -675,6 +675,18 @@ envelope of its own.
 
    `producer.sealed_at` is the report's `signing.sealed_at`. `signature.files` lists `report.json` and `report.sarif` for
    every run in scope, each with its sha256 and its envelope. It never lists `bundle-manifest.json`.
+
+   (2.13.0) **The renderer is the open CLI's `agent-arena evidence`**, run in a keyless job from the run's own image
+   digest (HOSTED-PROFILE §2.7 step 6 gives the command, the mounts and the exit codes). The seal-side facts that the
+   signed report does not carry (the report key set's `jwks_url`, the admission record's dates, actor and incident
+   reference, the cross-check record and the corpus snapshot) come from one document, `evidence_input.schema.json`
+   (`wot:evidence_input:1`), whose `run_id` MUST equal the report's. Seal time, region, organisation, origin, image
+   digest, engine build and key id are read from the signed report only; the input schema has no member for any of them
+   and refuses unknown members. The renderer verifies every input before it writes: the report's signature with the
+   report key set (§3.3, §5.2 E1-E4), the SARIF as the byte-equal re-rendering of the report, `verify.json` stating the
+   seal precondition (§5.1.1 rule 6), the mounted packs (§11.3), and the cross-check record's schema and signature
+   (§5.2 E4, at its `finished_at`). Its refusals are `input_invalid`, `signature_invalid`, `renderer_refused` and
+   `evidence_not_written` (errors.md §1d), each exit 2 with nothing written.
 5. **Write the bundle manifest.** It lists every bundle file (§5.1 rule 9), with `evidence.json` and `evidence.html`
    when they were rendered.
 6. **Sign the bundle manifest.** Write `bundle-manifest.json.dsse.json`, last.

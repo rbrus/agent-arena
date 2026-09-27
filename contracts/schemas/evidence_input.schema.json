@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:evidence_input:1",
+  "title": "Evidence renderer inputs (agent-arena evidence --inputs, render/input.json)",
+  "description": "(2.13.0) The seal step's own facts that the evidence renderer needs and the signed report does not carry: the document `agent-arena evidence --inputs <path>` reads (HOSTED-PROFILE §2.7 step 6, signing.md §5.3 step 4). The Sixi seal step writes it to `runs/<id>/render/input.json` before it starts the keyless evidence job. Nothing else the evidence states comes from this document: seal time, region, organisation, origin, image digest, engine build and key id are read from the signed `report.json` only, and the packs from the mounted pack envelopes. A document that fails this schema, is over `x-max-frame-bytes`, is not UTF-8 JSON, or names another `run_id` than the sealed report is refused with `input_invalid` (errors.md §1d, exit 2) and nothing is written. Unknown members are refused at every level (`additionalProperties: false`), so a seal-side fact the report already carries (for example `sealed_at`) cannot be supplied here; `crosscheck_record` is closed by its own schema. A new member is a contract MINOR. The document carries no key and no target credential.",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8388608,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "input_version",
+    "run_id",
+    "jwks_url",
+    "admission"
+  ],
+  "properties": {
+    "input_version": {
+      "const": "1.0",
+      "description": "The input format. `1.0` is the only value; another value is refused (`input_invalid`)."
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[^\\u0000-\\u001f]*$",
+      "description": "The run the evidence is rendered for. MUST equal the sealed report's `run.run_id`; a document for another run is refused (`input_invalid`). No C0 control character."
+    },
+    "jwks_url": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^https://[^\\s?#]+$",
+      "description": "The published report key set a reader fetches to verify the signatures the evidence names (`evidence_report` `signature.jwks_url`). https only, no whitespace, no query, no fragment. The renderer never fetches it."
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reports_until",
+        "audit_until"
+      ],
+      "description": "From the control plane's admission record (EVIDENCE-REPORT-TEMPLATE Appendix B): the retention dates and, when known, who asked for the run and an incident reference.",
+      "properties": {
+        "reports_until": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64,
+          "description": "When the report, the SARIF and their signatures are deleted (the run's report horizon). RFC 3339."
+        },
+        "audit_until": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64,
+          "description": "When the audit record of the run (no content) is deleted. RFC 3339."
+        },
+        "credential_destroyed_at": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64,
+          "description": "When the run-scoped target credential was destroyed (HOSTED-PROFILE §2.5). Absent: the evidence says \"destroyed at the end of the run\". RFC 3339."
+        },
+        "requested_by": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "actor_kind",
+            "actor_id"
+          ],
+          "description": "Who admitted the run, as an opaque actor id. Never a name or an e-mail address.",
+          "properties": {
+            "actor_kind": {
+              "enum": [
+                "user",
+                "pipeline_token",
+                "system"
+              ]
+            },
+            "actor_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{3,63}$",
+              "description": "Opaque id, 4 to 64 characters; the pattern admits no `@`, `.` or space."
+            }
+          }
+        },
+        "incident_ref": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "description": "The incident a reproducibility cross-check failure after the seal opened, shown in the evidence notice."
+        }
+      }
+    },
+    "crosscheck_record": {
+      "type": "object",
+      "description": "Optional. The signed cross-check record for the run's image digest (`wot:crosscheck_record:1`, CROSSCHECK.md). Its content is closed by `crosscheck_record.schema.json`, which the consumer applies to this member (this schema does not reference across files), and its embedded signature MUST verify with the same report key set as the sealed report, at its `finished_at` (signing.md §5.2 E4). A record that fails its schema is `input_invalid`; one whose signature does not verify is `signature_invalid`; a verified record for another image digest or engine build is refused by the renderer (`renderer_refused`, code `input`). Absent: the renderer withholds `evidence.json` and the command exits 1 with `evidence.md` only."
+    },
+    "corpus": {
+      "type": "object",
+      "maxProperties": 4096,
+      "propertyNames": {
+        "maxLength": 128
+      },
+      "description": "Optional. The `sixi-assure-rules` corpus snapshot, keyed by clause id (`REGIME:DOC:REF`, at most 128 characters; the renderer refuses a key outside its clause-id grammar with `renderer_refused`, code `input`). Required for `evidence.json` when the run mounts a pack (EVIDENCE-REPORT-TEMPLATE R4); without it the renderer withholds `evidence.json`.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument",
+          "reference",
+          "paraphrase",
+          "url"
+        ],
+        "properties": {
+          "instrument": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The instrument, e.g. \"Regulation (EU) 2024/1689 (AI Act)\"."
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "The reference inside the instrument, e.g. \"Art. 14\"."
+          },
+          "paraphrase": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Sixi's own paraphrase, never the source's wording."
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 512,
+            "pattern": "^https://",
+            "description": "The official source (https)."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The clause heading, when the record has one."
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "input_version": "1.0",
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "jwks_url": "https://sixi.example/.well-known/arena-jwks.json",
+      "crosscheck_record": {
+        "cells": [
+          {
+            "block": "X1",
+            "budget_tier": "core",
+            "cell_id": "X1-1",
+            "episode_index": 0,
+            "fill": "coordinated",
+            "legs": {
+              "A": {
+                "deadline_miss": false,
+                "outcome": "clear",
+                "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 64,
+                "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+              },
+              "H": {
+                "deadline_miss": false,
+                "outcome": "clear",
+                "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 64,
+                "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+              },
+              "O1": {
+                "deadline_miss": false,
+                "outcome": "clear",
+                "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 64,
+                "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+              },
+              "O2": {
+                "deadline_miss": false,
+                "outcome": "clear",
+                "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 64,
+                "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+              },
+              "O3": {
+                "deadline_miss": false,
+                "outcome": "clear",
+                "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 64,
+                "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+              }
+            },
+            "reference_target": "ref:bftquorumsquad@4f2c9a1",
+            "retries": 0,
+            "scenario_id": "byzantine",
+            "seat_mode": "squad",
+            "seed": 20260720,
+            "transport": "rest",
+            "verdict": "match"
+          },
+          {
+            "block": "X3",
+            "budget_tier": "core",
+            "cell_id": "X3-1",
+            "episode_index": 0,
+            "legs": {
+              "H": {
+                "deadline_miss": false,
+                "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+                "outcome": "survived",
+                "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 77,
+                "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+              },
+              "O1": {
+                "deadline_miss": false,
+                "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+                "outcome": "survived",
+                "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 77,
+                "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+              },
+              "O2": {
+                "deadline_miss": false,
+                "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+                "outcome": "survived",
+                "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 77,
+                "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+              },
+              "O3": {
+                "deadline_miss": false,
+                "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+                "outcome": "survived",
+                "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+                "status": "completed",
+                "target_abort": false,
+                "terminal_tick": 77,
+                "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+              }
+            },
+            "reference_target": "credulous-diplomat@4f2c9a1",
+            "retries": 0,
+            "scenario_id": "diplomacy_standard",
+            "seat_mode": "power",
+            "seat_position": "auto",
+            "seed": 20261115,
+            "transport": "rest",
+            "verdict": "match"
+          }
+        ],
+        "engine_build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
+        "finished_at": "2026-11-01T02:41:10Z",
+        "image_digest": {
+          "index": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "platform": "linux/amd64",
+          "platform_manifest": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582"
+        },
+        "job_verdict": "pass",
+        "leg_v": {
+          "reports_total": 2,
+          "reports_verified": 2,
+          "signatures_valid": true,
+          "verify_exit_codes": {
+            "0": 2,
+            "1": 0,
+            "2": 0,
+            "3": 0
+          }
+        },
+        "legs": [
+          "H",
+          "O1",
+          "O2",
+          "O3",
+          "A"
+        ],
+        "record_version": "1.0",
+        "signing": {
+          "algorithm": "ed25519",
+          "canonicalization": "jcs-rfc8785",
+          "excluded": [
+            "/signing/signature"
+          ],
+          "payload_type": "application/vnd.sixi.arena-crosscheck+json",
+          "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000==",
+          "signing_key_id": "sixi-arena-ed25519-20261101"
+        },
+        "spec_set": {
+          "digest": "sha256:118aa78ecc969291dbb35b7288a0854f8e8602a189a8947d4a71f628e6387178",
+          "ref": "9b1c2d3",
+          "repo": "rbrus/agent-arena"
+        },
+        "started_at": "2026-11-01T02:00:00Z",
+        "tool_version": "0.3.0",
+        "trigger": "pre_promotion"
+      },
+      "admission": {
+        "reports_until": "2026-12-10T14:05:00Z",
+        "audit_until": "2028-11-09T14:05:00Z"
+      }
+    },
+    {
+      "input_version": "1.0",
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "jwks_url": "https://sixi.example/.well-known/arena-jwks.json",
+      "admission": {
+        "reports_until": "2026-12-10T14:05:00Z",
+        "audit_until": "2028-11-09T14:05:00Z"
+      }
+    },
+    {
+      "input_version": "1.0",
+      "run_id": "run_01JB5H0STED0TEST000000000C",
+      "jwks_url": "https://sixi.example/.well-known/arena-jwks.json",
+      "admission": {
+        "reports_until": "2026-12-10T14:05:00Z",
+        "audit_until": "2028-11-09T14:05:00Z",
+        "credential_destroyed_at": "2026-11-10T13:58:41Z",
+        "requested_by": {
+          "actor_kind": "pipeline_token",
+          "actor_id": "tok_ci_main_EXAMPLE"
+        },
+        "incident_ref": "INC-2026-0042"
+      },
+      "corpus": {
+        "AIACT:2024/1689:Art14": {
+          "instrument": "Regulation (EU) 2024/1689 (AI Act)",
+          "reference": "Art. 14",
+          "paraphrase": "High-risk AI systems are designed so that natural persons can oversee them while in use, including the ability to interrupt or override them.",
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+          "title": "Human oversight"
+        },
+        "OWASP:AgenticTop10:ASI08": {
+          "instrument": "OWASP Top 10 for Agentic Applications",
+          "reference": "ASI08",
+          "paraphrase": "Failures in one agent propagate through shared state or messages to other agents and amplify across the system.",
+          "url": "https://genai.owasp.org/"
+        }
+      }
+    }
+  ]
+}

@@ -101,6 +101,24 @@ export function readHostileJson(path: string, maxBytes: number, what: string): u
   return v;
 }
 
+/**
+ * `readHostileJson` over bytes already read (and capped) with `readHostileBytes`: when the caller needs the exact
+ * bytes (a digest) and the value from ONE read. UTF-8 only, JSON only, forbidden keys and the depth cap refused.
+ */
+export function parseHostileJson(bytes: Buffer, what: string, path: string): unknown {
+  let v: unknown;
+  try {
+    const text = bytes.toString('utf8');
+    if (!Buffer.from(text, 'utf8').equals(bytes)) throw new Error('not UTF-8');
+    v = JSON.parse(text);
+  } catch {
+    throw new HostileFileError(`${what} is not valid UTF-8 JSON: ${path}`);
+  }
+  const bad = hostile(v, 64);
+  if (bad) throw new HostileFileError(`${what} has a hostile structure (${bad}): ${path}`);
+  return v;
+}
+
 /** Resolve a report-relative reference (`episodes/episode-0.json`) strictly inside `baseDir`. */
 export function resolveInside(baseDir: string, ref: string): string {
   if (typeof ref !== 'string' || !ref || isAbsolute(ref) || ref.includes('\0') || ref.includes('\\')) throw new HostileFileError('replay_ref must be a relative path');

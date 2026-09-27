@@ -6,6 +6,8 @@
  *   agent-arena list-scenarios
  *   agent-arena replay arena-report/report.json --episode 0
  *   agent-arena verify arena-report/report.json
+ *   agent-arena evidence --hosted-seal seal/report.json --sarif out/report.sarif --verify-result seal/verify.json \
+ *       --packs in/packs --inputs render/input.json --key pinned --out render
  *   agent-arena serve-reference --scenario byzantine --seat squad --port 8080
  */
 
@@ -19,6 +21,7 @@ import { runHostedCommand } from './commands/run-hosted.ts';
 import { readRunSpecDocument, runSpecFlags, specFileLocation, SPEC_COMPATIBLE_FLAGS } from './commands/run-spec-file.ts';
 import { serveReferenceCommand } from './commands/serve-reference.ts';
 import { verifyCommand, verifyHostedSeal } from './commands/verify.ts';
+import { evidenceCommand } from './commands/evidence.ts';
 import { CliError, formatError } from './errors.ts';
 import type { PinnedKey } from './keys.ts';
 import { assertNoDiagnostics } from './hardening.ts';
@@ -48,6 +51,12 @@ Usage:
                                manifest, commitments, then re-simulation. Pre-seal checks the run manifest's signature
                                against the release's pinned keys. --result also writes the --json document to <path>,
                                create-only, outside the bundle, for every exit 0-2 (and 3 after the path is accepted))
+  agent-arena evidence --hosted-seal <report.json> --sarif <report.sarif> --verify-result <verify.json>
+                              --packs <dir> --inputs <input.json> --key pinned|<report key> --out <dir> [--json]
+                              (the Sixi Arena evidence report of a sealed hosted run: evidence.md, and evidence.json
+                               when every sealed input is present; create-only in --out; no network.
+                               Exit 0 both files · 1 evidence.md only · 2 an input fails verification, nothing
+                               written · 3 misuse)
   agent-arena version [--json]      (--json adds this build's engine build hashes per scope)
   agent-arena serve-reference [--scenario <id>] [--seat squad] [--policy coordinated|naive] [--port 8080]
                               [--host 127.0.0.1] [--allow-non-loopback]   (any other --host needs the flag)
@@ -218,7 +227,7 @@ function parse(argv: string[], options: ParseArgsConfig['options']): { values: V
 }
 
 /** The commands a process started with ARENA_HOSTED may run (G-48). */
-const KNOWN_COMMANDS = ['run', 'list-scenarios', 'replay', 'verify', 'serve-reference', 'target', 'version', '--version', '-v', 'help', '--help', '-h'];
+const KNOWN_COMMANDS = ['run', 'list-scenarios', 'replay', 'verify', 'evidence', 'serve-reference', 'target', 'version', '--version', '-v', 'help', '--help', '-h'];
 
 /**
  * G-48 (threat-model-hosted §2.2, the in-process twin of the job template's command pin):
@@ -248,6 +257,8 @@ export function assertHostedModeCommand(argv: readonly string[], env: NodeJS.Pro
 export interface CliOptions {
   /** Replaces the release's pinned manifest key set (hosted/pinned-keys.json); `[]` = a build that pins none. */
   pinnedManifestKeys?: readonly PinnedKey[];
+  /** Replaces the release's pinned report key set (`--key pinned` of `evidence`). */
+  pinnedReportKeys?: readonly PinnedKey[];
 }
 
 export async function main(argv: string[], o: CliOptions = {}): Promise<number> {
@@ -330,6 +341,33 @@ export async function main(argv: string[], o: CliOptions = {}): Promise<number> 
       if (v['expect-manifest-digest'] !== undefined) throw new CliError('--expect-manifest-digest checks the run manifest of a hosted bundle and needs --hosted-seal.', EXIT_CODES.misconfig, 'agent-arena verify --hosted-seal <bundle dir> --expect-manifest-digest <sha256:…>');
       if (v['manifest-key'] !== undefined && !v.hosted) throw new CliError('--manifest-key checks the run manifest of a hosted report and needs --hosted or --hosted-seal.', EXIT_CODES.misconfig, 'add --hosted --key <report key>.');
       return verifyCommand(positionals[0], { key: v.key as string | undefined, hosted: !!v.hosted, manifestKey: v['manifest-key'] as string | undefined, ...pinned });
+    }
+    case 'evidence': {
+      const { values: v, positionals } = parse(rest, {
+        json: { type: 'boolean' },
+        'hosted-seal': { type: 'string' },
+        sarif: { type: 'string' },
+        'verify-result': { type: 'string' },
+        packs: { type: 'string' },
+        inputs: { type: 'string' },
+        key: { type: 'string' },
+        out: { type: 'string' },
+      });
+      setOutputMode({ json: !!v.json });
+      return evidenceCommand(
+        {
+          hostedSeal: v['hosted-seal'] as string | undefined,
+          sarif: v.sarif as string | undefined,
+          verifyResult: v['verify-result'] as string | undefined,
+          packs: v.packs as string | undefined,
+          inputs: v.inputs as string | undefined,
+          key: v.key as string | undefined,
+          out: v.out as string | undefined,
+          ...(o.pinnedReportKeys ? { pinnedReportKeys: o.pinnedReportKeys } : {}),
+          ...(o.pinnedManifestKeys ? { pinnedManifestKeys: o.pinnedManifestKeys } : {}),
+        },
+        positionals,
+      );
     }
     case 'serve-reference':
     case 'target': {

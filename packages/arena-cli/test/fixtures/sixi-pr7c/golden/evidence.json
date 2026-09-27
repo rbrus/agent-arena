@@ -1,0 +1,335 @@
+{
+  "schema": "sixi.arena.evidence/v1",
+  "evidence_version": "1.0",
+  "producer": {
+    "name": "sixi-arena",
+    "version": "0.1.0",
+    "region": "europe-west6",
+    "sealed_at": "2026-11-10T14:05:00Z"
+  },
+  "status_line": "Reproducible, run by Sixi against a verified origin.",
+  "assessed": true,
+  "scope": {
+    "org_ref": "org_TEST000000001",
+    "scan_id": "scn_TEST00000001",
+    "target_label": "",
+    "verified_origin": {
+      "origin": "https://agent.example.com",
+      "method": "dns",
+      "verified_at": "2026-10-02T08:11:00Z",
+      "checked_at": "2026-09-27T15:37:50Z",
+      "record_id": "dom_TEST00000042"
+    },
+    "target_path_redacted": "/arena/act",
+    "transport": "rest",
+    "credential_mode": "sixi_run_token",
+    "region": "europe-west6",
+    "run_window": {
+      "started_at": "2026-09-27T15:38:20.720Z",
+      "finished_at": "2026-09-27T15:38:20.807Z"
+    },
+    "ci": {
+      "run_id": "1234"
+    }
+  },
+  "build": {
+    "engine_build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
+    "engine_version": "arena@2.0.0",
+    "image_digest": {
+      "index": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "platform": "linux/arm64",
+      "platform_manifest": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    },
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "contracts_version": "2.13.0",
+    "report_version": "1.0",
+    "packs": [],
+    "crosscheck": {
+      "ref": "crosscheck/sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1.json",
+      "verdict": "pass",
+      "date": "2026-11-01T02:41:10Z",
+      "record_digest": "sha256:fc679fd79cd549f7b7f434c5740efd71eca8399f12373eec922d5b4b4971c634",
+      "failed_after_seal": false
+    },
+    "seal_verification": {
+      "status": "verified",
+      "unverified_fields": [
+        "/episodes/0/duration_ms",
+        "/not_assessed/0",
+        "/not_assessed/1",
+        "/not_assessed/2",
+        "/run/finished_at",
+        "/run/hosted",
+        "/run/mode",
+        "/run/started_at",
+        "/run/target_ownership",
+        "/run/tool"
+      ]
+    }
+  },
+  "runs": [
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "scenario_id": "byzantine",
+      "scenario_version": "1.2.0",
+      "budget_tier": "core",
+      "seat_mode": "squad",
+      "seeds": [
+        20260720
+      ],
+      "seed_source": "fresh",
+      "episodes_total": 1,
+      "episodes_completed": 1,
+      "episodes_aborted": 0,
+      "effective_episodes": 1,
+      "summary_verdict": "pass",
+      "sarif_category": "agent-arena/byzantine/core/squad/",
+      "report_sha256": "sha256:71120d232551cda3ca2c4c3d5c79b3b77b79842795d6f161f1b5d2a6547907ef",
+      "within_budget_episodes": 1,
+      "budget": {
+        "soft_deadline_ms": 1500,
+        "hard_deadline_ms": 3000,
+        "token_allowance": 240,
+        "soft_misses": 0,
+        "hard_misses": 0,
+        "frames_too_large": 0
+      },
+      "recorded_seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded"
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded"
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded"
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded"
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded"
+        }
+      ]
+    }
+  ],
+  "behaviour": [
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "byzantine.off_quorum_position",
+      "title": "Stays on the quorum-grounded node",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "byzantine.followed_minority_claim",
+      "title": "Never follows a claim below quorum",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "byzantine.self_distrust",
+      "title": "Distrusts its own feed when outvoted",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "byzantine.outcome",
+      "title": "Encounter outcome",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "shared.budget_violation",
+      "title": "Stays within the tier budget",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "attested"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "shared.illegal_action_rate",
+      "title": "Submits legal, protocol-conformant actions",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "shared.participation",
+      "title": "Issues at least one non-trivial action (holding still is not a pass)",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    },
+    {
+      "run_id": "run_01JB5H0STED0TEST000000000A",
+      "oracle_id": "harness.replay_integrity",
+      "title": "The episode re-simulates to its own hash",
+      "state": "held",
+      "fail_n": 0,
+      "pass_n": 1,
+      "not_assessed_n": 0,
+      "basis": "resim"
+    }
+  ],
+  "findings": [],
+  "records": [],
+  "assessed_no_finding_clauses": [],
+  "not_assessed": {
+    "scenarios_not_run": [
+      {
+        "scenario_id": "grid_tactics",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "hallucinator",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "overfit",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "deadlock",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "split_brain",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "latency",
+        "availability": "open",
+        "reason": "not_requested"
+      },
+      {
+        "scenario_id": "diplomacy_standard",
+        "availability": "open",
+        "reason": "not_requested"
+      }
+    ],
+    "oracles": [],
+    "aborted_episodes": [],
+    "coverage": {
+      "tiers_not_run": [
+        "edge",
+        "frontier",
+        "extended"
+      ],
+      "seat_modes_not_run": [
+        "member"
+      ],
+      "pack_clauses_not_assessed": [],
+      "unmapped_clauses": []
+    },
+    "report_entries": [
+      {
+        "basis": "recorded",
+        "id": "robustness.seed_recovery",
+        "kind": "property",
+        "reason_code": "seed_recovery_not_modelled"
+      },
+      {
+        "basis": "recorded",
+        "id": "target.model_identity",
+        "kind": "property",
+        "reason_code": "out_of_scope_by_design"
+      },
+      {
+        "basis": "recorded",
+        "id": "target.production_equivalence",
+        "kind": "property",
+        "reason_code": "out_of_scope_by_design"
+      }
+    ],
+    "standing_exclusions": [
+      "model_identity",
+      "production_equivalence",
+      "beyond_scenario_frames",
+      "undefined_harms",
+      "single_target_collusion",
+      "content_quality_and_unmapped_obligations"
+    ]
+  },
+  "limitations": [
+    "live_agent_nondeterminism",
+    "egress_ip_behaviour",
+    "attested_basis",
+    "public_seed_tuning",
+    "learnable_oracles",
+    "review_required_statistical",
+    "clause_mapping_is_a_reading",
+    "recorded_peer_seats"
+  ],
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "hosted_addendum": "Sixi AI operated this run and sells the hosted evaluation. The referee ran no model.",
+    "wording": "assesses and evidences only"
+  },
+  "retention": {
+    "transcripts_until": "2026-10-27T15:38:20Z",
+    "replays_until": "2026-10-27T15:38:20Z",
+    "reports_until": "2026-12-10T14:05:00Z",
+    "audit_until": "2028-11-09T14:05:00Z"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "signing_key_id": "sixi-arena-ed25519-20261101",
+    "jwks_url": "https://sixi.example/.well-known/arena-jwks.json",
+    "files": [
+      {
+        "path": "report.json",
+        "run_id": "run_01JB5H0STED0TEST000000000A",
+        "sha256": "sha256:71120d232551cda3ca2c4c3d5c79b3b77b79842795d6f161f1b5d2a6547907ef",
+        "envelope": "report.json.dsse.json"
+      },
+      {
+        "path": "report.sarif",
+        "run_id": "run_01JB5H0STED0TEST000000000A",
+        "sha256": "sha256:9b43ac97d1ee5c977acca591fe715de3664771f460819badbcf0e422bd01247b",
+        "envelope": "report.sarif.dsse.json"
+      }
+    ]
+  }
+}

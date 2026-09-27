@@ -1,0 +1,175 @@
+{
+  "input_version": "1.0",
+  "run_id": "run_01JB5H0STED0TEST000000000A",
+  "jwks_url": "https://sixi.example/.well-known/arena-jwks.json",
+  "crosscheck_record": {
+    "cells": [
+      {
+        "block": "X1",
+        "budget_tier": "core",
+        "cell_id": "X1-1",
+        "episode_index": 0,
+        "fill": "coordinated",
+        "legs": {
+          "A": {
+            "deadline_miss": false,
+            "outcome": "clear",
+            "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 64,
+            "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+          },
+          "H": {
+            "deadline_miss": false,
+            "outcome": "clear",
+            "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 64,
+            "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+          },
+          "O1": {
+            "deadline_miss": false,
+            "outcome": "clear",
+            "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 64,
+            "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+          },
+          "O2": {
+            "deadline_miss": false,
+            "outcome": "clear",
+            "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 64,
+            "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+          },
+          "O3": {
+            "deadline_miss": false,
+            "outcome": "clear",
+            "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 64,
+            "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631"
+          }
+        },
+        "reference_target": "ref:bftquorumsquad@4f2c9a1",
+        "retries": 0,
+        "scenario_id": "byzantine",
+        "seat_mode": "squad",
+        "seed": 20260720,
+        "transport": "rest",
+        "verdict": "match"
+      },
+      {
+        "block": "X3",
+        "budget_tier": "core",
+        "cell_id": "X3-1",
+        "episode_index": 0,
+        "legs": {
+          "H": {
+            "deadline_miss": false,
+            "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+            "outcome": "survived",
+            "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 77,
+            "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+          },
+          "O1": {
+            "deadline_miss": false,
+            "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+            "outcome": "survived",
+            "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 77,
+            "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+          },
+          "O2": {
+            "deadline_miss": false,
+            "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+            "outcome": "survived",
+            "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 77,
+            "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+          },
+          "O3": {
+            "deadline_miss": false,
+            "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+            "outcome": "survived",
+            "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+            "status": "completed",
+            "target_abort": false,
+            "terminal_tick": 77,
+            "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e"
+          }
+        },
+        "reference_target": "credulous-diplomat@4f2c9a1",
+        "retries": 0,
+        "scenario_id": "diplomacy_standard",
+        "seat_mode": "power",
+        "seat_position": "auto",
+        "seed": 20261115,
+        "transport": "rest",
+        "verdict": "match"
+      }
+    ],
+    "engine_build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
+    "finished_at": "2026-11-01T02:41:10Z",
+    "image_digest": {
+      "index": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "platform": "linux/amd64",
+      "platform_manifest": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582"
+    },
+    "job_verdict": "pass",
+    "leg_v": {
+      "reports_total": 2,
+      "reports_verified": 2,
+      "signatures_valid": true,
+      "verify_exit_codes": {
+        "0": 2,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      }
+    },
+    "legs": [
+      "H",
+      "O1",
+      "O2",
+      "O3",
+      "A"
+    ],
+    "record_version": "1.0",
+    "signing": {
+      "algorithm": "ed25519",
+      "canonicalization": "jcs-rfc8785",
+      "excluded": [
+        "/signing/signature"
+      ],
+      "payload_type": "application/vnd.sixi.arena-crosscheck+json",
+      "signature": "tipsvjyOFClzL3L2eyEti/dukcQYme9NkWgd4R5i2R7jruaRCGrtxRC8Zb/H4gMhQpsYa7WfRKoPgSvGZjMzDQ==",
+      "signing_key_id": "sixi-arena-ed25519-20261101"
+    },
+    "spec_set": {
+      "digest": "sha256:118aa78ecc969291dbb35b7288a0854f8e8602a189a8947d4a71f628e6387178",
+      "ref": "9b1c2d3",
+      "repo": "rbrus/agent-arena"
+    },
+    "started_at": "2026-11-01T02:00:00Z",
+    "tool_version": "0.3.0",
+    "trigger": "pre_promotion"
+  },
+  "admission": {
+    "reports_until": "2026-12-10T14:05:00Z",
+    "audit_until": "2028-11-09T14:05:00Z"
+  }
+}
