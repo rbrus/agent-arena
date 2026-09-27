@@ -96,6 +96,8 @@ export class DiplomacyTable {
   private pending = new Map<Power, Pending>();
   private promptedAt = 0;
   private resolved = true;
+  /** A deferred resolve() is queued for the open step (reset by prompt()). */
+  private resolveScheduled = false;
   private started = false;
   private ended = false;
   private cause: { cause: TableEndCause; closeCode: number } | null = null;
@@ -227,6 +229,7 @@ export class DiplomacyTable {
       return;
     }
     this.resolved = false;
+    this.resolveScheduled = false;
     this.pending = new Map();
     this.nonces = new Map();
     this.prompted = new Set();
@@ -285,10 +288,18 @@ export class DiplomacyTable {
   }
 
   private maybeResolve(): void {
-    if (this.resolved) return;
+    if (this.resolved || this.resolveScheduled) return;
     if ([...this.prompted].every((p) => this.pending.has(p))) {
-      // Defer so a burst of frames in the same I/O turn cannot reorder a resolution.
-      setImmediate(() => this.resolve());
+      // Defer so a burst of frames in the same I/O turn cannot reorder a resolution
+      // (a later frame for this step still replaces the earlier one until then).
+      // Scheduled ONCE per step, and bound to this step's tick: a second deferred
+      // resolve() would otherwise run after prompt() re-opened the table and close the
+      // NEXT step with no answers (every prompted seat a hard miss; chaos case 3, D-3).
+      this.resolveScheduled = true;
+      const tick = this.ep.tick;
+      setImmediate(() => {
+        if (this.ep.tick === tick) this.resolve();
+      });
     }
   }
 

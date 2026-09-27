@@ -41,7 +41,7 @@
     "wot-contracts": "*",
     "wot-engine": "*",
     "wot-store": "*",
-    "ws": "^8.21.3"
+    "ws": "^8.21.1"
   },
   "publishConfig": {
     "access": "public"
