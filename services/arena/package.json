@@ -18,6 +18,6 @@
     "wot-engine": "*",
     "wot-ledger": "*",
     "wot-store": "*",
-    "ws": "^8.21.1"
+    "ws": "^8.21.3"
   }
 }
