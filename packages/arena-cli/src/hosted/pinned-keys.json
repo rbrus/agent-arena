@@ -1,0 +1,46 @@
+{
+  "format": "agent-arena-pinned-keys/1",
+  "source": "https://sixi.ch/.well-known/arena-jwks.json",
+  "fetched_at": "2026-09-27T16:00:31Z",
+  "source_etag": "\"b96c9b3434d7d44359bf41927062622a\"",
+  "source_sha256": "sha256:b96c9b3434d7d44359bf41927062622a41664feac9a49fb3bc6d7073289784fe",
+  "note": "Public keys only. manifest = ?purpose=manifest, report = ?purpose=report, each kept exactly as served (JSON.stringify(set) + LF reproduces the served body, whose sha256 is recorded). The run-token key is not bundled: the CLI never verifies a run token with a pinned key (serve-reference --hosted takes --run-token-key). Rotation: a new key ships in an open release before the control plane first signs with it; keys have a 90-day window, so at least one open release per quarter.",
+  "manifest": {
+    "source": "https://sixi.ch/.well-known/arena-jwks.json?purpose=manifest",
+    "source_sha256": "sha256:2c31dd0c88e513febddf2b8d44e523c2ef682cb5f80a19e3d70d61599d311a88",
+    "keys": [
+      {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "kRhdxwyUXuJOwPwo8Gx0dXQXvhRweSkJxvvuVo68fyg",
+        "kid": "sixi-arena-manifest-ed25519-86c88a43cdcdb910e8f4",
+        "alg": "EdDSA",
+        "use": "sig",
+        "sixi_purpose": "manifest",
+        "status": "current",
+        "not_before": "2026-09-27T00:00:00Z",
+        "not_after": "2026-12-26T00:00:00Z",
+        "sixi_thumbprint": "hsiKQ83NuRDo9BXwNu0nlNZ57d6CdqTxd8ADQ2XnMxY"
+      }
+    ]
+  },
+  "report": {
+    "source": "https://sixi.ch/.well-known/arena-jwks.json?purpose=report",
+    "source_sha256": "sha256:1011f15a1308f68990dcb365e145b07a794c7ab7921265fbe97a3dfeef38865e",
+    "keys": [
+      {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "JUtusRmM32aPz9FiVlgVeDaDhFGbV1zHA7hwpxbISTo",
+        "kid": "sixi-arena-ed25519-c2f84888ae5d69e9f7df",
+        "alg": "EdDSA",
+        "use": "sig",
+        "sixi_purpose": "report",
+        "status": "current",
+        "not_before": "2026-09-27T00:00:00Z",
+        "not_after": "2026-12-26T00:00:00Z",
+        "sixi_thumbprint": "wvhIiK5daen3340TXvc0szlwr89tqjq-a0dgJo2wuzU"
+      }
+    ]
+  }
+}

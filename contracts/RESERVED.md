@@ -92,6 +92,8 @@ because old integrations may still send them.
 | **Mixed-ownership squads** (raid scenarios) | later | Several external targets in one raid encounter (per-seat transports, fairness rules). | `RunSpec.seats[]` exists since `2.2.0` for the Diplomacy family (`power` mode, `table` profile, recorded peers, ADR-004); extending it to other seat modes is additive. |
 | **Hard scenario variants** | open (arena-scenarios.md §6 Q4) | Withholding `next_lock_rank`, `is_primary`, `lead_cell`. | A new `scenario_id` or `scenario_version`; no schema change. |
 | **MCP discovery manifest** | open | The management plane as MCP tools (`list_scenarios`, `submit_run`, `get_report`, `fetch_replay`) for discovery. **The play loop never goes behind the platform's MCP surface** (api-architect charter). A target that IS an MCP server is a different thing: `eval_target` binding `mcp`. | The REST operations these tools would wrap exist. |
+| **Digest statements for pack envelopes** (2.11.0) | a later MINOR | Extending signing.md §5.2 to `pack.dsse.json`, so a pack whose PAE message is over `ARENA_SIGN_MAX_MESSAGE_BYTES` can be signed by a KMS-held key. It needs a pack layout in which the manifest travels beside the envelope. In `2.11.0` packs stay raw and the pack store refuses to publish a larger one. | `digest_statement.schema.json` `subject.payload_type` is an enum: adding the pack type is additive. The pack envelope already allows 1 to 4 signatures. |
+| **Pinned key file `agent-arena-pinned-keys/2`** | only with a breaking change to the bundled file | Any change to the bundled key file that a `/1` reader would misread, such as a third set or a key type other than Ed25519. | `pinned_keys.schema.json` `format` is a `const`, so a `/1` verifier refuses a `/2` file rather than misreading it. |
 | **Additional modes / topology levers** | v2+ | Hex grid, terrain line-of-sight, drafting, respawns, move-and-shoot, >4 unit types (A1 §16). | Mode-scoped schema `$id`s (`wot:observation:<mode>:<major>`) make each additive. |
 
 ---
@@ -110,3 +112,8 @@ records). `2.0.0` removed most of them (table above). The per-release detail is 
 and allowance 540, and it is not Diplomacy-only. The value `league` was never a member of any tier enum and stays
 refused as an unknown value. The live duel/raid queue and passport `league` fields keep edge, core and frontier.
 Hosted `extended` runs play one episode (signing.md §3.2 A6) until a run-token refresh path exists.
+
+`2.11.0` specified two hosted surfaces that were named but not defined. The first is **the pinned control-plane key set**,
+which signing.md §3.2 M3, M6 and §11 referred to: signing.md §3.3 and `pinned_keys.schema.json`, including the CLI value
+`verify --key pinned`. The second is **what a Sixi key signs when a payload is over the Cloud KMS raw-data limit**: signing.md
+§5.2 and `digest_statement.schema.json`. The pack form of §5.2 and a `/2` key file stay reserved (table above).

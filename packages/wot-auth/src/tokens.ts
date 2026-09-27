@@ -11,7 +11,7 @@ import {
   createRemoteJWKSet,
   type JWK,
   type JWTPayload,
-  type KeyLike,
+  type CryptoKey,
 } from 'jose';
 import {
   AUDIENCE,
@@ -133,7 +133,7 @@ export async function mintAccessToken(input: MintAccessTokenInput): Promise<stri
     .sign(privateKey);
 }
 
-type Verifier = KeyLike | ReturnType<typeof createRemoteJWKSet>;
+type Verifier = CryptoKey | ReturnType<typeof createRemoteJWKSet>;
 
 let remoteJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 

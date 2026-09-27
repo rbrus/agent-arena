@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:digest_statement:1",
+  "title": "Signed digest statement",
+  "description": "(2.11.0) What a Sixi key signs in place of a payload whose DSSE PAE message is longer than ARENA_SIGN_MAX_MESSAGE_BYTES (65536; the Cloud KMS raw-data limit for Ed25519, measured in production; Sixi's SIXI_ARENA_KMS_SIGN_MAX_BYTES must not exceed it). Normative text: signing.md §5.2. The statement names the covered payload by payload type, sha256 and length, binds it to its run (seal outputs) and to the seal time, and is itself signed like every signed document (signing.md §1, §2): signature = Ed25519(key, PAE(\"application/vnd.sixi.arena-digest-statement+json\", JCS(statement without /signing/signature))). A verifier recomputes sha256 and length over the bytes it was served (the JCS body for report.json and a cross-check record, the exact file bytes for report.sarif and bundle-manifest.json), compares them with `subject`, checks the binding, and then verifies the signature under the pinned key and window rules of signing.md §3.3. Allowed for any size of the covered payload; mandatory above the threshold, where the raw form is refused. For a detached file the statement travels as the payload of `<file>.dsse.json` (payloadType = this type); for an embedded signature (report, cross-check record, `signing.signed_form: digest_statement`) it is derived from the document and never stored separately. The statement is always small (well under 2 KiB), so it is never itself over the threshold.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "statement_version",
+    "subject",
+    "signing"
+  ],
+  "properties": {
+    "statement_version": {
+      "const": "1.0"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "sha256",
+        "bytes"
+      ],
+      "description": "The covered payload. Its payload type is the one the raw form would have used, so a statement for one kind of document never passes as a statement for another.",
+      "properties": {
+        "payload_type": {
+          "enum": [
+            "application/vnd.sixi.arena-report+json",
+            "application/vnd.sixi.arena-sarif+json",
+            "application/vnd.sixi.arena-bundle+json",
+            "application/vnd.sixi.arena-crosscheck+json"
+          ],
+          "description": "The covered document's payload type (signing.md §2). The run manifest, the deletion receipt and the pack are not listed: their caps keep them under the threshold, or (packs) they keep the raw form in 2.11.0."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "\"sha256:\" + hex(sha256(covered bytes))."
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864,
+          "description": "Byte length of the covered bytes. Compared before the digest."
+        }
+      }
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Seal outputs (report, SARIF, bundle manifest): the report's run.run_id. Absent for a cross-check record."
+    },
+    "run_manifest_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Seal outputs: the report's signing.run_manifest_digest. Absent for a cross-check record."
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "signing_key_id",
+        "canonicalization",
+        "payload_type",
+        "excluded",
+        "sealed_at",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "signing_key_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+          "description": "Equal to the covered document's kid and to the envelope keyid (signing.md §2 key id equality)."
+        },
+        "canonicalization": {
+          "const": "jcs-rfc8785"
+        },
+        "payload_type": {
+          "const": "application/vnd.sixi.arena-digest-statement+json",
+          "description": "The PAE type of the statement signature: a statement signature never verifies as a report, SARIF, bundle, cross-check or manifest signature, and the reverse."
+        },
+        "excluded": {
+          "const": [
+            "/signing/signature"
+          ]
+        },
+        "sealed_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "description": "The signing time t of signing.md §3.3 rule 3. Seal outputs: equal to the report's signing.sealed_at. Cross-check record: equal to its finished_at."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{86}==$",
+          "description": "Standard base64 of the 64-byte Ed25519 signature. Byte-identical to the envelope `signatures[0].sig`, and for an embedded signature to the document's signing.signature."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "subject": {
+            "properties": {
+              "payload_type": {
+                "enum": [
+                  "application/vnd.sixi.arena-report+json",
+                  "application/vnd.sixi.arena-sarif+json",
+                  "application/vnd.sixi.arena-bundle+json"
+                ]
+              }
+            },
+            "type": "object",
+            "required": [
+              "payload_type"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "run_id": true,
+          "run_manifest_digest": true
+        },
+        "required": [
+          "run_id",
+          "run_manifest_digest"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "subject": {
+            "properties": {
+              "payload_type": {
+                "const": "application/vnd.sixi.arena-crosscheck+json"
+              }
+            },
+            "type": "object",
+            "required": [
+              "payload_type"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "run_id": true
+              },
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "run_manifest_digest": true
+              },
+              "required": [
+                "run_manifest_digest"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "statement_version": "1.0",
+      "subject": {
+        "payload_type": "application/vnd.sixi.arena-bundle+json",
+        "sha256": "sha256:2174419f802250e960f1c18f0ab891807bc28e84d320949947a2fa10afde3ab6",
+        "bytes": 80070
+      },
+      "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
+      "run_manifest_digest": "sha256:c1da86382029d8944a901ef9d80e00ac9e4928216311231d81072eab36c08f37",
+      "signing": {
+        "algorithm": "ed25519",
+        "signing_key_id": "sixi-arena-ed25519-20261101",
+        "canonicalization": "jcs-rfc8785",
+        "payload_type": "application/vnd.sixi.arena-digest-statement+json",
+        "excluded": [
+          "/signing/signature"
+        ],
+        "sealed_at": "2026-11-10T14:07:15Z",
+        "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000=="
+      }
+    }
+  ]
+}

@@ -8,6 +8,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # @types/node tracks the runtime we test on (CI matrix Node 22 and 24, engines >= 22). A types
+      # major ahead of that runtime describes APIs the supported Nodes do not have; it moves with the
+      # CI matrix, by hand, not by Dependabot.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # one PR per week for every minor and patch bump; majors stay separate so a break is legible
       minor-and-patch:
@@ -18,6 +24,10 @@ updates:
       interval: weekly
     open-pull-requests-limit: 3
     groups:
+      # vite and @vitejs/plugin-react pin each other's majors as peers: a lone major of either
+      # cannot install (ERESOLVE), so they move in one PR. Listed first so it wins over minor-and-patch.
+      vite:
+        patterns: ["vite", "@vitejs/*"]
       minor-and-patch:
         update-types: ["minor", "patch"]
   - package-ecosystem: github-actions

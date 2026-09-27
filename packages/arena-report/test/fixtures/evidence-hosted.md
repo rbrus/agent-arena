@@ -38,7 +38,7 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 | Engine version and commit | `arena@2.1.0` @ `9b1c2d3` |
 | Runner image | `ghcr.io/rbrus/agent-arena@sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b`, platform manifest `sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582` (`linux/amd64`) |
 | Tool | `@rbrus/agent-arena@0.3.0` |
-| Contracts version | `2.10.0` (the contract this renderer validates against), report format `1.0` |
+| Contracts version | `2.12.0` (the contract this renderer validates against), report format `1.0` |
 | Scenario versions | `diplomacy_standard@1.0.0` |
 | Scenario packs | `sx-agentic-core@1.0.0` (`sha256:7f6d0b51227b0763abb97d11cf104afbf89625fed1fbe41bc9bbb26885fbeada`): Agentic robustness, clause-mapped |
 | Clause corpus | `sixi-ai/sixi-assure-rules@0a1b2c3d4e5f60718293a4b5c6d7e8f901234567`, ATLAS lens `v2026.09` |
@@ -256,7 +256,6 @@ Delete earlier from the dashboard, or with `DELETE /api/arena/runs/run_01JB5H0ST
 |---|---|---|
 | `report.json` | `sha256:1111111111111111111111111111111111111111111111111111111111111111` | `report.json.dsse.json` |
 | `report.sarif` | `sha256:2222222222222222222222222222222222222222222222222222222222222222` | `report.sarif.dsse.json` |
-| `bundle-manifest.json` | `sha256:3333333333333333333333333333333333333333333333333333333333333333` | `bundle-manifest.json.dsse.json` |
 
 Key set published at `https://keys.example.net/.well-known/sixi-arena-signing-keys.json`.
 

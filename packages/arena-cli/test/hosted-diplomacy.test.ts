@@ -16,7 +16,7 @@ import { CliError } from '../src/errors.ts';
 import { episodeSecretCommitment } from '../src/hosted/manifest.ts';
 import { startReferenceServer, type ReferenceServer } from '../src/reference/serve.ts';
 import { setOutputMode } from '../src/ui.ts';
-import { commitmentsFor, dipSecret, hostedEnv, MANIFEST_KID, ORIGIN, PLATFORM, PRIV, pubJwk, REPORT_KID, runSpec, signManifest, unsignedManifest, viaReference, writeInputs, runHosted } from './hosted-fixtures.ts';
+import { NO_PIN, commitmentsFor, dipSecret, hostedEnv, MANIFEST_KID, ORIGIN, PLATFORM, PRIV, pubJwk, REPORT_KID, runSpec, signManifest, unsignedManifest, viaReference, writeInputs, runHosted } from './hosted-fixtures.ts';
 import { scratch } from './helpers.ts';
 
 let srv: ReferenceServer;
@@ -68,7 +68,7 @@ test('secrets that hash to the manifest commitments: the run plays with them, di
   const sealed = signReport(report, PRIV, REPORT_KID, { sealedAt: '2026-11-10T14:07:00Z' });
   writeFileSync(join(out, 'report.json'), toFileJson(sealed));
   writeFileSync(join(out, 'report.sarif'), toFileJson(toSarif(sealed, { specPath: '.agent-arena/diplomacy_standard.run.json' })));
-  assert.equal(verifyCommand(join(out, 'report.json'), { key: pubJwk(), hosted: true, manifestKey: pubJwk(MANIFEST_KID) }), 0);
+  assert.equal(verifyCommand(join(out, 'report.json'), { pinnedKeys: NO_PIN, key: pubJwk(), hosted: true, manifestKey: pubJwk(MANIFEST_KID) }), 0);
 
   // A secret chosen after the fact (with a consistent per-episode commitment, re-sealed): the list no longer hashes to the manifest.
   const forged = JSON.parse(JSON.stringify(report)) as Report;
@@ -77,13 +77,13 @@ test('secrets that hash to the manifest commitments: the run plays with them, di
   const reSealed = signReport(forged, PRIV, REPORT_KID, { sealedAt: '2026-11-10T14:07:00Z' });
   writeFileSync(join(out, 'report.json'), toFileJson(reSealed));
   writeFileSync(join(out, 'report.sarif'), toFileJson(toSarif(reSealed, { specPath: '.agent-arena/diplomacy_standard.run.json' })));
-  assert.equal(verifyCommand(join(out, 'report.json'), { key: pubJwk(), hosted: true }), 1);
+  assert.equal(verifyCommand(join(out, 'report.json'), { pinnedKeys: NO_PIN, key: pubJwk(), hosted: true }), 1);
   // A disclosed secret that does not hash to its own commitment: exit 1 too.
   Object.assign(forged.episodes[0].diplomacy as object, { episode_secret: other, episode_secret_commitment: episodeSecretCommitment(SECRETS[0]) });
   const reSealed2 = signReport(forged, PRIV, REPORT_KID, { sealedAt: '2026-11-10T14:07:00Z' });
   writeFileSync(join(out, 'report.json'), toFileJson(reSealed2));
   writeFileSync(join(out, 'report.sarif'), toFileJson(toSarif(reSealed2, { specPath: '.agent-arena/diplomacy_standard.run.json' })));
-  assert.equal(verifyCommand(join(out, 'report.json'), { key: pubJwk(), hosted: true }), 1);
+  assert.equal(verifyCommand(join(out, 'report.json'), { pinnedKeys: NO_PIN, key: pubJwk(), hosted: true }), 1);
 });
 
 test('only ARENA_DIP_SECRET_<n> (contracts 2.5.0): the ARENA_EPISODE_SECRETS array form and malformed names are scrubbed and refused', async () => {

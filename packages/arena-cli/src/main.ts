@@ -20,9 +20,10 @@ import { readRunSpecDocument, runSpecFlags, specFileLocation, SPEC_COMPATIBLE_FL
 import { serveReferenceCommand } from './commands/serve-reference.ts';
 import { verifyCommand, verifyHostedSeal } from './commands/verify.ts';
 import { CliError, formatError } from './errors.ts';
+import type { PinnedKey } from './keys.ts';
 import { assertNoDiagnostics } from './hardening.ts';
 import { EXIT_CODES } from './report.ts';
-import { errorLine, setOutputMode, writeStdout } from './ui.ts';
+import { errorLine, markStdoutClosed, setOutputMode, writeStdout } from './ui.ts';
 
 const HELP = `agent-arena ${VERSION} — deterministic agent evaluation (no model runs here)
 
@@ -30,18 +31,23 @@ Usage:
   agent-arena run --scenario <id> --target <url|ref:coordinated> [options]
   agent-arena run --spec <run.json> [--out <dir>] [--json|--quiet] [--i-own-this-target] [--auth env:NAME|secret:name]
                            (the whole RunSpec from a file, schema-checked; no other run flag combines with it)
-  agent-arena run --hosted --manifest <path> --run-spec <path> [--manifest-key <pem|jwk|jwks>] [--out <dir>] [--json]
-                           (Sixi hosted runner only: every other run flag is refused; see README "Hosted mode")
+  agent-arena run --hosted --manifest <path> --run-spec <path> [--out <dir>] [--json]
+                           (Sixi hosted runner only: every other run flag is refused; see README "Hosted mode".
+                            The manifest is checked against the control-plane keys this release pins;
+                            --manifest-key is refused while a key set is pinned)
   agent-arena list-scenarios [--json]
   agent-arena replay <report.json> --episode <n> | --hash <sha256:…> [--json]
-  agent-arena verify <report.json> [--key <public key pem|jwk>] [--hosted [--manifest-key <pem|jwk|jwks>]] [--json]
+  agent-arena verify <report.json> [--key <public key pem|jwk> | --key pinned] [--hosted] [--json]
+                              (--key pinned: the Sixi report keys bundled in this release, see README
+                               "Pinned control-plane keys")
                               (--hosted also checks run-manifest.json beside the report and the Diplomacy commitments)
-  agent-arena verify --hosted-seal <bundle-dir|report.json> [--key <report key|jwks>] [--manifest-key <jwk|jwks>]
-                              [--expect-manifest-digest <sha256:…>] [--json]
-                              (a hosted bundle: pre-seal, or sealed with its DSSE envelopes and bundle-manifest.json;
-                               SARIF re-render byte equality, run manifest, commitments, then re-simulation.
-                               Pre-seal checks the run manifest's signature: the release's pinned key, or a
-                               kid-bound --manifest-key while none is pinned)
+  agent-arena verify --hosted-seal <bundle-dir|report.json> [--key <report key|jwks> | --key pinned]
+                              [--expect-manifest-digest <sha256:…>] [--result <path>] [--json]
+                              (a hosted bundle: pre-seal, or sealed with its DSSE envelopes and bundle-manifest.json,
+                               each signed raw or through a digest statement; SARIF re-render byte equality, run
+                               manifest, commitments, then re-simulation. Pre-seal checks the run manifest's signature
+                               against the release's pinned keys. --result also writes the --json document to <path>,
+                               create-only, outside the bundle, for every exit 0-2 (and 3 after the path is accepted))
   agent-arena version [--json]      (--json adds this build's engine build hashes per scope)
   agent-arena serve-reference [--scenario <id>] [--seat squad] [--policy coordinated|naive] [--port 8080]
                               [--host 127.0.0.1] [--allow-non-loopback]   (any other --host needs the flag)
@@ -235,7 +241,17 @@ export function assertHostedModeCommand(argv: readonly string[], env: NodeJS.Pro
   );
 }
 
-export async function main(argv: string[]): Promise<number> {
+/**
+ * Programmatic-only options of `main`/`cli` (the phase gates and tests). None of them is
+ * reachable from argv or the environment; the installed CLI passes none.
+ */
+export interface CliOptions {
+  /** Replaces the release's pinned manifest key set (hosted/pinned-keys.json); `[]` = a build that pins none. */
+  pinnedManifestKeys?: readonly PinnedKey[];
+}
+
+export async function main(argv: string[], o: CliOptions = {}): Promise<number> {
+  const pinned = o.pinnedManifestKeys ? { pinnedKeys: o.pinnedManifestKeys } : {};
   assertHostedModeCommand(argv);
   const [cmd, ...rest] = argv;
   if (!cmd || cmd === '--help' || cmd === '-h' || cmd === 'help') {
@@ -257,7 +273,7 @@ export async function main(argv: string[]): Promise<number> {
         refuseCustomerRunFlags(rest);
         const { values: v } = parse(rest, HOSTED_RUN_OPTIONS);
         setOutputMode({ json: !!v.json });
-        return (await runHostedCommand({ manifest: v.manifest as string | undefined, runSpec: v['run-spec'] as string | undefined, manifestKey: v['manifest-key'] as string | undefined, out: v.out as string | undefined })).exitCode;
+        return (await runHostedCommand({ manifest: v.manifest as string | undefined, runSpec: v['run-spec'] as string | undefined, manifestKey: v['manifest-key'] as string | undefined, out: v.out as string | undefined }, pinned)).exitCode;
       }
       const { values: v } = parse(rest, RUN_OPTIONS);
       setOutputMode({ json: !!v.json, quiet: !!v.quiet });
@@ -304,15 +320,16 @@ export async function main(argv: string[]): Promise<number> {
       return replayCommand(positionals[0], { episode: v.episode as string | undefined, hash: v.hash as string | undefined });
     }
     case 'verify': {
-      const { values: v, positionals } = parse(rest, { ...COMMON, key: { type: 'string' }, hosted: { type: 'boolean' }, 'hosted-seal': { type: 'boolean' }, 'manifest-key': { type: 'string' }, 'expect-manifest-digest': { type: 'string' } });
+      const { values: v, positionals } = parse(rest, { ...COMMON, key: { type: 'string' }, hosted: { type: 'boolean' }, 'hosted-seal': { type: 'boolean' }, 'manifest-key': { type: 'string' }, 'expect-manifest-digest': { type: 'string' }, result: { type: 'string' } });
       setOutputMode({ json: !!v.json });
       if (v['hosted-seal']) {
         if (v.hosted) throw new CliError('--hosted-seal already includes every --hosted check.', EXIT_CODES.misconfig, 'drop --hosted.');
-        return verifyHostedSeal(positionals[0], { key: v.key as string | undefined, manifestKey: v['manifest-key'] as string | undefined, expectManifestDigest: v['expect-manifest-digest'] as string | undefined });
+        return verifyHostedSeal(positionals[0], { key: v.key as string | undefined, manifestKey: v['manifest-key'] as string | undefined, expectManifestDigest: v['expect-manifest-digest'] as string | undefined, ...(v.result !== undefined ? { result: v.result as string } : {}), ...pinned });
       }
+      if (v.result !== undefined) throw new CliError('--result writes the result of a hosted bundle verification and needs --hosted-seal.', EXIT_CODES.misconfig, 'agent-arena verify --hosted-seal <bundle dir> --result <path> (for any other verify, redirect --json instead).');
       if (v['expect-manifest-digest'] !== undefined) throw new CliError('--expect-manifest-digest checks the run manifest of a hosted bundle and needs --hosted-seal.', EXIT_CODES.misconfig, 'agent-arena verify --hosted-seal <bundle dir> --expect-manifest-digest <sha256:…>');
       if (v['manifest-key'] !== undefined && !v.hosted) throw new CliError('--manifest-key checks the run manifest of a hosted report and needs --hosted or --hosted-seal.', EXIT_CODES.misconfig, 'add --hosted --key <report key>.');
-      return verifyCommand(positionals[0], { key: v.key as string | undefined, hosted: !!v.hosted, manifestKey: v['manifest-key'] as string | undefined });
+      return verifyCommand(positionals[0], { key: v.key as string | undefined, hosted: !!v.hosted, manifestKey: v['manifest-key'] as string | undefined, ...pinned });
     }
     case 'serve-reference':
     case 'target': {
@@ -373,15 +390,15 @@ function installCrashHandlers(): void {
   process.on('unhandledRejection', crash);
 }
 
-export async function cli(argv: string[]): Promise<void> {
+export async function cli(argv: string[], o: CliOptions = {}): Promise<void> {
   installCrashHandlers();
-  // `agent-arena replay … | head`: a closed stdout is not an error.
-  process.stdout.on('error', (e: NodeJS.ErrnoException) => {
-    if (e.code === 'EPIPE') process.exit(process.exitCode ?? 0);
-  });
+  // `agent-arena replay … | head`: a closed stdout is not an error, and it is not a result either (G-60). Later
+  // stdout writes are dropped and main() runs to its end; the process exits with main()'s code, never with a 0
+  // made up because the reader left early. Any other stdout error also leaves stdout unusable.
+  process.stdout.on('error', () => markStdoutClosed());
   try {
     assertNoDiagnostics();
-    const code = await main(argv);
+    const code = await main(argv, o);
     if (code >= 0) process.exitCode = code;
   } catch (e) {
     if (e instanceof CliError) {

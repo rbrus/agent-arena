@@ -71,7 +71,21 @@ export function targetText(s: string, cap = 200): string {
  * `<verified origin>`); otherwise the text is written unchanged.
  */
 export function writeStdout(text: string): void {
+  if (stdoutClosed) return;
   process.stdout.write(scrubHostedText(text));
+}
+
+/**
+ * G-60: stdout was closed by its reader (`agent-arena verify … | head -n 1`). From then on stdout writes are
+ * dropped and the command runs to its end, so the process still exits with the command's own code: a closed
+ * pipe never turns a failed verification or a run with findings into exit 0.
+ */
+let stdoutClosed = false;
+export function markStdoutClosed(): void {
+  stdoutClosed = true;
+}
+export function isStdoutClosed(): boolean {
+  return stdoutClosed;
 }
 
 export function writeStderr(text: string): void {
@@ -108,7 +122,12 @@ export function out(text: string): void {
 
 /** The single `--json` document on stdout: redacted, then inert (G-36: active code points `\u`-escaped, lossless). */
 export function outJson(doc: unknown): void {
-  writeStdout(`${inertJson(redact(JSON.stringify(doc, null, 2)))}\n`);
+  writeStdout(jsonDocument(doc));
+}
+
+/** The text of a `--json` document (what outJson writes; also `verify --hosted-seal --result`): redacted, inert, LF-terminated. */
+export function jsonDocument(doc: unknown): string {
+  return `${inertJson(redact(JSON.stringify(doc, null, 2)))}\n`;
 }
 
 export function isJson(): boolean {

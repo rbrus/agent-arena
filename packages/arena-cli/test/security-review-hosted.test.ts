@@ -58,6 +58,7 @@ import {
   writeInputs,
   writePack,
   runHosted,
+  NO_PIN,
 } from './hosted-fixtures.ts';
 import { PKG, runCli, scratch } from './helpers.ts';
 
@@ -383,17 +384,17 @@ describe('SR-9 verify --hosted-seal', () => {
   test('sealed bundle with separate report and manifest keys verifies; a missing run-manifest.json is exit 2', async () => {
     const out = await hostedOut();
     seal(out);
-    assert.equal(verifyHostedSeal(out, { key: REPORT_PUB_JWK, manifestKey: pubJwk(MANIFEST_KID) }), 0);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: REPORT_PUB_JWK, manifestKey: pubJwk(MANIFEST_KID) }), 0);
     const mp = join(out, 'run-manifest.json');
     const mt = readFileSync(mp, 'utf8');
     unlinkSync(mp);
-    assert.equal(verifyHostedSeal(out, { key: REPORT_PUB_JWK }), 2);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: REPORT_PUB_JWK }), 2);
     writeFileSync(mp, mt);
   });
   test('the manifest key cannot stand in for the report key', async () => {
     const out = await hostedOut();
     seal(out);
-    assert.equal(verifyHostedSeal(out, { key: pubJwk(REPORT_KID) }), 2);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: pubJwk(REPORT_KID) }), 2);
   });
   test('a re-encoded report signature (same bytes, other base64 text) is refused: the envelope must be byte-identical and report.json is digest-listed', async () => {
     const out = await hostedOut();
@@ -403,22 +404,22 @@ describe('SR-9 verify --hosted-seal', () => {
     const alt = reencode(r.signing!.signature);
     assert.equal(Buffer.from(alt, 'base64').equals(Buffer.from(r.signing!.signature, 'base64')), true, 'test premise: same signature bytes');
     writeFileSync(rp, toFileJson({ ...r, signing: { ...r.signing!, signature: alt } }));
-    assert.equal(verifyHostedSeal(out, { key: REPORT_PUB_JWK }), 2);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: REPORT_PUB_JWK }), 2);
   });
-  test('G-52 (info): a re-encoded SARIF envelope signature still verifies (base64 decoding is lenient); harmless, noted', async () => {
+  test('G-52 (closed, §8.3): a re-encoded SARIF envelope signature is refused (canonical base64 only), exit 2', async () => {
     const out = await hostedOut();
     seal(out);
     const ep = join(out, 'report.sarif.dsse.json');
     const env = JSON.parse(readFileSync(ep, 'utf8'));
     env.signatures[0].sig = reencode(env.signatures[0].sig);
     writeFileSync(ep, JSON.stringify(env));
-    assert.equal(verifyHostedSeal(out, { key: REPORT_PUB_JWK }), 0);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, key: REPORT_PUB_JWK }), 2);
   });
   test('pre-seal with --manifest-key: a run-manifest.json re-signed by another key is exit 2', async () => {
     const out = await hostedOut();
     const mp = join(out, 'run-manifest.json');
     writeFileSync(mp, `${JSON.stringify(signManifest(JSON.parse(readFileSync(mp, 'utf8')), OTHER_PRIV), null, 2)}\n`);
-    assert.equal(verifyHostedSeal(out, { manifestKey: pubJwk(MANIFEST_KID) }), 2);
+    assert.equal(verifyHostedSeal(out, { pinnedKeys: NO_PIN, manifestKey: pubJwk(MANIFEST_KID) }), 2);
   });
   test(
     'G-49: pre-seal (the verifier job) refuses to pass without the manifest key: a forged manifest + matching report must not exit 0',
@@ -435,7 +436,7 @@ describe('SR-9 verify --hosted-seal', () => {
       r.run.hosted!.run_manifest.digest = signedBodyDigest(signedForged);
       writeFileSync(rp, toFileJson(r));
       writeFileSync(join(out, 'report.sarif'), renderSarif(r));
-      assert.notEqual(verifyHostedSeal(out, {}), 0);
+      assert.notEqual(verifyHostedSeal(out, { pinnedKeys: NO_PIN }), 0);
     },
   );
 });
@@ -606,7 +607,7 @@ describe('SR-12 counter-signature: log-filter spellings and the cut', () => {
     let handle: HostedLogFilter | undefined;
     assert.equal(hostedLogFilterActive(), false);
     await refusedWith(
-      runHostedCommand({ ...s.inputs, manifestKey: pubJwk(MANIFEST_KID), out: join(s.dir, 'out') }, { env: hostedEnv({ ARENA_IMAGE_DIGEST: `sha256:${'c3'.repeat(32)},sha256:${'d4'.repeat(32)}` }), platform: PLATFORM, transportFactory: noTransport, onLogFilter: (h) => (handle = h) }),
+      runHostedCommand({ ...s.inputs, manifestKey: pubJwk(MANIFEST_KID), out: join(s.dir, 'out') }, { pinnedKeys: NO_PIN, env: hostedEnv({ ARENA_IMAGE_DIGEST: `sha256:${'c3'.repeat(32)},sha256:${'d4'.repeat(32)}` }), platform: PLATFORM, transportFactory: noTransport, onLogFilter: (h) => (handle = h) }),
       /image/i,
     );
     try {
@@ -636,7 +637,8 @@ describe('SR-12 counter-signature: log-filter spellings and the cut', () => {
       script,
       [
         `import { cli } from ${JSON.stringify(join(PKG, 'src', 'main.ts'))};`,
-        'await cli(process.argv.slice(2));',
+        // A build that pins no manifest key (the test key signs the manifest); programmatic only, never argv/env.
+        'await cli(process.argv.slice(2), { pinnedManifestKeys: [] });',
         `setTimeout(() => { throw new Error('late failure dialing https://${HOST}:443/arena/act from ${HOST}'); }, 20);`,
         '',
       ].join('\n'),

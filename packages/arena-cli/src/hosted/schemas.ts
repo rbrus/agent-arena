@@ -47,12 +47,16 @@ const packManifestSchema = load('pack_manifest.schema.json');
 
 const bundleManifestSchema = load('bundle_manifest.schema.json');
 const packVariantSchema = load('pack_variant.schema.json');
+const digestStatementSchema = load('digest_statement.schema.json');
 
 export const validateHostedContext: ValidateFunction = ajv.compile(hostedContextSchema);
 export const validatePackManifest: ValidateFunction = ajv.compile(packManifestSchema);
 export const validateBundleManifest: ValidateFunction = ajv.compile(bundleManifestSchema);
 /** contracts 2.6.0 `wot:pack_variant:1` (`arena-pack-variant/1`): exactly what the variant loader accepts. */
 export const validatePackVariant: ValidateFunction = ajv.compile(packVariantSchema);
+/** contracts 2.11.0 `wot:digest_statement:1` (signing.md §5.2 D3): the statement a detached envelope carries. */
+export const validateDigestStatement: ValidateFunction = ajv.compile(digestStatementSchema);
+export const DIGEST_STATEMENT_MAX_BYTES = Number(digestStatementSchema['x-max-frame-bytes'] ?? 4096);
 export const BUNDLE_MANIFEST_MAX_BYTES = Number(bundleManifestSchema['x-max-frame-bytes'] ?? 1048576);
 
 /** Frame caps declared by the contracts (`x-max-frame-bytes`). */

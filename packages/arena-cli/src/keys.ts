@@ -136,7 +136,35 @@ export function loadPublicKey(arg: string, F = '--key'): KeyObject {
 export interface PinnedKey {
   key: KeyObject;
   kid?: string;
+  /** Epoch ms. The bundled release keys carry a window (hosted/pinned-keys.json); a key from a flag has none. */
+  not_before?: number;
+  not_after?: number;
+  revoked_at?: number;
 }
+
+/** Why `k` may not verify a document signed at `at` (epoch ms), or null when it may. A key without a window (a test or --manifest-key key) has no limit. */
+export function keyWindowProblem(k: PinnedKey, at: number): string | null {
+  if (k.not_before === undefined && k.not_after === undefined && k.revoked_at === undefined) return null;
+  const iso = (t: number) => new Date(t).toISOString().replace('.000Z', 'Z');
+  if (Number.isNaN(at)) return 'the signing time is missing or not a time';
+  if (k.not_before !== undefined && at < k.not_before) return `signed at ${iso(at)}, before the key's not_before ${iso(k.not_before)}`;
+  if (k.not_after !== undefined && at >= k.not_after) return `signed at ${iso(at)}, at or after the key's not_after ${iso(k.not_after)}`;
+  if (k.revoked_at !== undefined && at >= k.revoked_at) return `signed at ${iso(at)}, at or after the key's revoked_at ${iso(k.revoked_at)}`;
+  return null;
+}
+
+/**
+ * The keys that may verify a document signed by `kid` at `at`: a pinned key with that kid (or
+ * a kid-less key) whose window covers `at`. `problem` says why none is left: `unpinned`, or the window problem.
+ */
+export function keysForKid(keys: readonly PinnedKey[], kid: string | undefined, at: number): { keys: PinnedKey[]; problem?: string } {
+  const named = keys.filter((k) => k.kid === undefined || k.kid === kid);
+  if (!named.length) return { keys: [], problem: 'unpinned' };
+  const inWindow = named.filter((k) => keyWindowProblem(k, at) === null);
+  if (!inWindow.length) return { keys: [], problem: keyWindowProblem(named[0]!, at) ?? 'outside the key window' };
+  return { keys: inWindow };
+}
+
 
 /**
  * A pinned key set (`run --hosted --manifest-key`): a PEM (one key, no kid), an

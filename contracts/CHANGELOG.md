@@ -10,6 +10,190 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions are Sem
 
 _Nothing pending._
 
+## [2.12.0] — 2026-09-27
+
+**The verifier's result file, four §5.2 reason tokens, and the evidence render order.** **MINOR**: a clarifying
+release that adds surfaces. `versioning.md` §2 has the worked example, which also says why this is not `2.11.1`.
+Source: the sdk-engineer's 2.11.0 CLI (`packages/arena-cli/src/result-file.ts`, `src/hosted/digest-statement.ts`),
+which had to choose behaviour that the contract did not state, and the Sixi seal step (sixi-scanner PR 6), which reads
+the verifier's result from a file.
+
+No ADR is needed. The frame protocol stays `1.0`, and every existing `$id` keeps `:1`. There is one new `$id`. **No
+oracle id or SARIF rule id is added, renamed or re-levelled.** Every signing vector, every digest-statement vector and
+every signed example is byte-identical.
+
+### Added: `verify --hosted-seal --result <path>` (signing.md §5.1.1, HOSTED-PROFILE §2.7)
+
+- `schemas/verify_result.schema.json` (`wot:verify_result:1`, at most 8388608 bytes, `x-direction: inbound` to the seal
+  step). Its five examples are real CLI outputs: `verified`, `mismatch`, `unverifiable` (a foreign
+  `--expect-manifest-digest`), `misuse`, and an unreadable report.
+- **Content.** The file is byte-identical to the `--json` document, whether or not `--json` is given. stdout does not
+  change.
+- **When it is written.**
+  - For every exit 0, 1 and 2.
+  - For exit 3, once the path has been accepted: a misuse is written as
+    `{"ok":false,"status":"misuse","exitCode":3,"errors":[…],"signed_forms":{}}`, and `unsupported_engine` as a full
+    result.
+  - `exitCode` equals the process exit code.
+- **The path.** It is checked after the `--manifest-key` refusal and before the bundle is read. It must not exist, must
+  not be a symbolic link, must have an existing parent directory, and must be outside the bundle. Otherwise the exit is
+  3 and nothing is written. The file is created create-only and synced.
+- **Write failure.** A failure after verification is exit 2 with the prefix `result_not_written`, and a partial file is
+  removed.
+- **Only with `--hosted-seal`.** `--result` without `--hosted-seal` is exit 3.
+- **The seal precondition** (signing.md §3 rule 2) is read from the file only: `exitCode` 0, `status` `verified`,
+  `hosted_seal.sarif_equal` true, and empty `hosted_seal.seal` and `hosted_seal.mismatch`. No usable file (absent, over
+  the cap, not JSON, schema-invalid) is `seal_failed` with the reason `verify_no_result`.
+- HOSTED-PROFILE §2.7 now describes the verifier job as built. It had still named `agent-arena verify /out/report.json`
+  and a future `verify --sarif` flag. Appendix A gains `result_not_written`.
+
+### Added: errors.md §1d `result_not_written`
+
+Exit 2. The verifier could not create or fully write the result file. A refused path is not this code (exit 3, nothing
+written). The `seal_failed` row names the reason `verify_no_result`.
+
+### Clarified: signing.md §5.2 reason tokens the CLI had to choose
+
+Each case was already `signature_invalid`, exit 2. Only the token is now fixed:
+
+- an envelope that is not an object, does not have exactly one signature, or whose `sig` is not standard base64 of 64
+  bytes → `signature` (D1, and E3 for `report.json.dsse.json`);
+- a `payload` that is not standard base64 → `payload_mismatch` (raw form, D2 and E3) or `statement_malformed`
+  (statement form, D3);
+- a raw envelope whose `keyid` differs from the report's kid → `binding` (§5.1 rule 7), checked after payload equality
+  and before D8;
+- a `signed_form` other than `raw` or `digest_statement`, or `digest_statement` on an always-raw document type (run
+  manifest, deletion receipt) → `form_mismatch` (E1); a document without a well-formed `signing` block → `signature`.
+
+`tools/contract-check.mjs` §17 replays each case with the §16 verifier, which follows the clarified text. The cases are
+built by mutating existing vectors, so the vector file is unchanged.
+
+### Decided: the evidence render order (signing.md §5.3)
+
+- **The problem.** `evidence.json` listed the sha256 of `bundle-manifest.json`, while `bundle-manifest.json` lists
+  `evidence.json`. Both cannot hold. The keyless pre-seal verifier also lacks the seal time, the cross-check record and
+  the admission record.
+- **The decision.** The seal step renders the evidence after it signs `report.json` and `report.sarif`, and before it
+  writes `bundle-manifest.json`. `evidence.json` drops the `bundle-manifest.json` entry, and the evidence gets no
+  envelope of its own. §5.3 gives the six-step order and says why a separate envelope was rejected: a fourth KMS
+  signature, a new payload type, and a file outside the §5.1 layout.
+- **`evidence_report.schema.json`.**
+  - `signature.files` `minItems` 3 → 2 (a relaxation).
+  - `path` `bundle-manifest.json` is deprecated: MUST NOT be emitted, ignored by readers, removed at 3.0.0.
+  - Both examples drop the entry.
+- **EVIDENCE-REPORT-TEMPLATE.md.** The inputs, the §11 table and R7 are updated.
+- **Follow-ups.** The arena-report renderer and the Phase-9 gate still pass a `bundle-manifest.json` entry. That stays
+  schema-valid, but a 2.12.0 renderer must drop it; the owners are the sdk-engineer and sim-qa. On the Sixi side, the
+  sealer (not the verifier job) must render the evidence.
+
+## [2.11.0] — 2026-09-27
+
+**The pinned key set, and signed digest statements.** **MINOR**: additive (`versioning.md` §2 has the worked example).
+Sources:
+- the sdk-engineer's pinned key set in the CLI (`packages/arena-cli/src/hosted/pinned-keys.{json,ts}`, `verify --key
+  pinned`), which implements SECURITY-REVIEW-HOSTED S-1, SIXI-INTEGRATION OQ-3 and Sixi review condition A8, and which
+  found that signing.md §3.2 M3, M6 and §11 name "the pinned control-plane key set" without defining it;
+- a production measurement: Cloud KMS `asymmetricSign` with an `EC_SIGN_ED25519` key (SOFTWARE, `europe-west6`) signs at
+  most 65536 bytes of raw data (`deploy/arena/kms-cap-probe.sh`, sixi-scanner PR 6). A hosted Diplomacy report's JCS body
+  is about 192 KiB at the M10 cap.
+
+No ADR is needed. The frame protocol stays `1.0`, and every existing `$id` keeps `:1`. There are two new `$id`s. **No
+oracle id or SARIF rule id is added, renamed or re-levelled.** Every signed example and every signing vector is
+byte-identical.
+
+### Added: the pinned key set (signing.md §3.3)
+
+- `schemas/pinned_keys.schema.json` (`wot:pinned_keys:1`, `format: agent-arena-pinned-keys/1`, at most 65536 bytes,
+  `x-direction: inbound`). The example is the set pinned on 2026-09-27: manifest kid
+  `sixi-arena-manifest-ed25519-86c88a43cdcdb910e8f4` and report kid `sixi-arena-ed25519-c2f84888ae5d69e9f7df`, both
+  valid from 2026-09-27T00:00:00Z to 2026-12-26T00:00:00Z.
+- **Rule 1, what is pinned.** Two sets, as served at `https://sixi.ch/.well-known/arena-jwks.json?purpose=manifest` and
+  `?purpose=report`. Each body is reproduced exactly: `JSON.stringify({keys}) + LF` hashes to its `source_sha256`.
+  - Keys are public only: OKP Ed25519, `use: sig`, `not_before`, `not_after`, and optional `revoked_at`. A key with `d`
+    is invalid.
+  - Each kid is derived from its key: `sixi-arena-manifest-ed25519-` or `sixi-arena-ed25519-`, followed by the first 80
+    bits of the RFC 7638 thumbprint in hex. This makes normative the PR 3 derivation already in production.
+  - Kids are unique across the file, and no key appears in both sets.
+  - A window is at most 120 days.
+  - The run-token key is not bundled.
+- **Rule 2, use.**
+  - The manifest set is the only trust anchor for run manifests and packs.
+  - A pinning release refuses `--manifest-key` on `run --hosted`, `verify --hosted` and `verify --hosted-seal`:
+    `hosted_context_invalid`, with the new detail field `--manifest-key`.
+  - The runner never fetches keys.
+- **Rule 3, the window.** `not_before ≤ t < not_after`, and `t < revoked_at` when set.
+  - `t` is the signing time of each document: `issued_at` for a manifest, `signing.sealed_at` for a report and its
+    envelopes, `finished_at` for a cross-check record, `purged_at` for a deletion receipt.
+  - For a pack, `t` is the `issued_at` of the run manifest that lists it. This is a decision: packs carry no signing
+    time, and the rule asks whether the key is trusted for this run.
+  - Outside its window a document is refused like one signed by an unpinned kid.
+  - M1 bounds a manifest's use to 24 h after `not_after`.
+- **Rule 4, rotation.**
+  - A key signs for at most 90 days, followed by at most 30 days of overlap.
+  - A new key must be in a promoted open release, with a green cross-check, before the control plane signs with it and
+    before the current key's `not_after`. So there is at least one promoted open release per quarter.
+  - Retired keys stay published.
+  - Revocation reaches a runner only through a release.
+- **Rule 5, `verify --key pinned`.**
+  - The key is chosen by `signing.signing_key_id` and checked at `signing.sealed_at`.
+  - An unpinned kid, a key outside its window, or an unsealed report is `signature_invalid` (exit 2).
+  - An older report verifies with the release that was current when it was sealed, or with the key passed explicitly.
+- M3, M6, §3 rule 1, §5.1, §11.1 and §11.3 step 5 now point to §3.3, and §11.3 step 5 applies the pack window.
+
+### Added: signed digest statements (signing.md §5.2)
+
+- **The constant** `ARENA_SIGN_MAX_MESSAGE_BYTES = 65536`: the largest PAE message a Sixi key signs directly. Sixi's
+  `SIXI_ARENA_KMS_SIGN_MAX_BYTES` maps to it and must not exceed it.
+- **The statement.** `schemas/digest_statement.schema.json` (`wot:digest_statement:1`, payload type
+  `application/vnd.sixi.arena-digest-statement+json`) holds:
+  - `subject {payload_type, sha256, bytes}`;
+  - for the seal outputs, `run_id` and `run_manifest_digest`;
+  - a `signing` block with `sealed_at`.
+  It is signed as §1 and §2 describe.
+- **When each form is allowed.** The statement form is allowed at any size and is mandatory above the threshold. The raw
+  form is unchanged below the threshold and refused above it (`raw_over_threshold`).
+- **Scope.** The report, `report.sarif`, `bundle-manifest.json` and the cross-check record. The run manifest and the
+  deletion receipt always fit raw. Packs stay raw in 2.11.0, and the pack store refuses a larger one (RESERVED.md).
+- **Detached files.** The envelope carries the statement as its payload.
+- **Embedded signatures.** The new optional `signing.signed_form` (`raw` | `digest_statement`, absent = `raw`) is added
+  to `report` and `crosscheck_record`. The statement is derived from the document, and `signed_form` lies inside the
+  signed body.
+- **Verifier.** Steps D1 to D9 and E1 to E4, in a fixed order. Every refusal is `signature_invalid` with one of eleven
+  reason tokens.
+- **Reporting the form.** `verify --hosted-seal` names the form per file, and `--json` carries `signed_forms`. The
+  evidence report gets an optional `signature.files[].signed_form`.
+- **Vectors.** `fixtures/digest_statement_vectors.json` holds 23 vectors (RFC 8032 test key): the raw and statement
+  pairs over `report.sarif` and an 80070-byte `bundle-manifest.json` (`fixtures/digest_statement/`), the embedded report
+  in both forms, an embedded cross-check record, and 17 must-rejects. `tools/digest-statement-vectors.mjs` regenerates
+  them deterministically.
+
+### Changed (documentation)
+
+- `errors.md`: `hosted_context_invalid` (the key window; `--manifest-key`), and `signature_invalid` (`--key pinned` and
+  the §5.2 reason tokens).
+- `docs/phase-9/HOSTED-PROFILE.md` §3.1 and §3.2 had drifted and are corrected:
+  - the JWKS URL is `https://sixi.ch/.well-known/arena-jwks.json`, not the placeholder
+    `https://sixi.ai/.well-known/sixi-arena-signing-keys.json`;
+  - the verify flag is `--key pinned`, not `--keys <file>`;
+  - the `openssl` steps cover the statement form;
+  - Q12's location is marked resolved.
+- `tools/contract-check.mjs` adds §15 (the pinned key set, over the example and over the CLI's bundled file) and §16
+  (digest statements). Tier 0: 49 schemas.
+
+### For implementers
+
+- **sdk-engineer:**
+  - apply the pack window in `openPackEnvelope` (t = the manifest's `issued_at`), which is not yet applied;
+  - `pinnedKeyFileProblems` could add the kid-derivation and as-served checks (contract-check §15 covers them at
+    release time);
+  - implement §5.2 in `verify --hosted` and `verify --hosted-seal` (D1 to D9, E1 to E4, `signed_forms`), and in the
+    test sealer if one signs reports over 64 KiB;
+  - no generated type changes (`contracts.ts` covers run_spec, eval_episode_end, hosted_context and pack_manifest, none
+    of which changed).
+- **Sixi control plane and sealer:** sign through the statement when the PAE message is over
+  `SIXI_ARENA_KMS_SIGN_MAX_BYTES`, set `signing.signed_form`, replay `digest_statement_vectors.json`, and follow §3.3
+  rule 4 for rotation.
+
 ## [2.10.0] — 2026-09-27
 
 **The `extended` budget tier, and two hosted episode caps.** **MINOR**: additive (`versioning.md` §2 has the worked

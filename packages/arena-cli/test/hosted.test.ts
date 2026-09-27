@@ -40,6 +40,7 @@ import {
   viaReference,
   writeInputs,
   runHosted,
+  NO_PIN,
 } from './hosted-fixtures.ts';
 import { allFiles, assertNoLeak, scratch } from './helpers.ts';
 
@@ -126,7 +127,7 @@ describe('run --hosted: the round trip', () => {
     const sealed = signReport(report, PRIV, REPORT_KID, { sealedAt: '2026-11-10T14:07:00Z' });
     writeFileSync(join(out, 'report.json'), toFileJson(sealed));
     writeFileSync(join(out, 'report.sarif'), toFileJson(toSarif(sealed, { specPath: '.agent-arena/byzantine.run.json' })));
-    assert.equal(verifyCommand(join(out, 'report.json'), { key: pubJwk(), hosted: true, manifestKey: pubJwk(MANIFEST_KID) }), 0);
+    assert.equal(verifyCommand(join(out, 'report.json'), { pinnedKeys: NO_PIN, key: pubJwk(), hosted: true, manifestKey: pubJwk(MANIFEST_KID) }), 0);
   });
 
   test('G-47: a PEM manifest key (no kid) is refused in hosted mode: a kid-less key would match every kid', async () => {

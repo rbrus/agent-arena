@@ -27,6 +27,7 @@ import { referenceNames } from '../src/reference/policy.ts';
 import { makeRerun, regenerate } from '../src/rerun.ts';
 import { setOutputMode } from '../src/ui.ts';
 import { runCli, scratch } from './helpers.ts';
+import { NO_PIN } from './hosted-fixtures.ts';
 
 setOutputMode({ quiet: true });
 
@@ -184,10 +185,10 @@ test('verify --key: a sealed report verifies (PEM file or JWK); tampering or a f
 
 test('verify --hosted: needs --key; cross-checks the SARIF key id against the DSSE seal and the run-manifest digest', async () => {
   const f = await sealedFixture();
-  assert.throws(() => verifyCommand(f.path, { hosted: true }), /needs the public key/);
+  assert.throws(() => verifyCommand(f.path, { pinnedKeys: NO_PIN, hosted: true }), /needs the public key/);
   // Phase 9 B1: --hosted requires the run manifest beside the report (run.hosted.run_manifest.path = run-manifest.json);
   // this fixture carries none, so the seal cannot be tied to a manifest. The full positive path is in hosted.test.ts.
-  assert.equal(verifyCommand(f.path, { hosted: true, key: f.pub }), 2);
+  assert.equal(verifyCommand(f.path, { pinnedKeys: NO_PIN, hosted: true, key: f.pub }), 2);
   const sarif = readJson<{ runs: { properties: { agentArena: Record<string, unknown> } }[] }>(join(f.out, 'report.sarif'));
   sarif.runs[0].properties.agentArena.signing_key_id = 'sixi-arena-ed25519-other';
   writeFileSync(join(f.out, 'report.sarif'), JSON.stringify(sarif));

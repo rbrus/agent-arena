@@ -8,21 +8,22 @@
  */
 
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { sign as edSign, type KeyObject } from 'node:crypto';
 import { join } from 'node:path';
-import { after, before, test } from 'node:test';
-import type { Report } from 'arena-report';
+import { after, before, describe, test } from 'node:test';
+import { pae, toPublicKey, type Report } from 'arena-report';
 import { engineBuildFor } from '../src/build-info.ts';
 import { runCommand } from '../src/commands/run.ts';
 import { verifyCommand } from '../src/commands/verify.ts';
 import { CliError } from '../src/errors.ts';
-import { loadPacks, packCoverageMissing, parseVariantParams, resolveVariant } from '../src/hosted/packs.ts';
+import { loadPacks, PACK_ENVELOPE_FILE, PACK_PAYLOAD_TYPE, packCoverageMissing, parseVariantParams, resolveVariant } from '../src/hosted/packs.ts';
 import type { PackManifestContract } from '../src/generated/contracts.ts';
 import { contractsDir } from 'wot-contracts/contracts-dir';
-import { loadPublicKeySet } from '../src/keys.ts';
+import { loadPublicKeySet, type PinnedKey } from '../src/keys.ts';
 import { startReferenceServer, type ReferenceServer } from '../src/reference/serve.ts';
 import { setOutputMode } from '../src/ui.ts';
-import { hostedEnv, MANIFEST_KID, OTHER_PRIV, packManifest, PLATFORM, pubJwk, runSpec, sha256Of, signManifest, unsignedManifest, VARIANT_PARAMS, viaReference, writeInputs, writePack, runHosted } from './hosted-fixtures.ts';
+import { hostedEnv, MANIFEST_KID, OTHER_PRIV, packManifest, PLATFORM, PRIV, PUB, pubJwk, runSpec, sha256Of, signManifest, unsignedManifest, VARIANT_PARAMS, viaReference, writeInputs, writePack, runHosted } from './hosted-fixtures.ts';
 import { scratch } from './helpers.ts';
 
 let srv: ReferenceServer;
@@ -149,4 +150,63 @@ test('verify: an sx_ report exits 3 (re-simulation needs the pack)', () => {
   const p = join(dir, 'report.json');
   writeFileSync(p, JSON.stringify({ scenario: { scenario_id: 'sx_deadlock_hard' } }));
   assert.throws(() => verifyCommand(p), isRefusal(/^scenario_pack_unavailable: sx_deadlock_hard/));
+});
+
+/* ---- contracts 2.11.0: the pack window (signing.md §3.3 rule 3 "Packs", §11.3 step 5) ---- */
+describe('pack window: a pack signature counts only with a pinned key whose window covers the run manifest\'s issued_at', () => {
+  const DAY = 86_400_000;
+  const OLD_KID = 'sixi-arena-manifest-ed25519-20260801';
+  const now = Date.now();
+  const pin = (kid: string, key: KeyObject, nb: number, na: number, revoked?: number): PinnedKey => ({ key, kid, not_before: nb, not_after: na, ...(revoked !== undefined ? { revoked_at: revoked } : {}) });
+  const current = pin(MANIFEST_KID, PUB, now - 10 * DAY, now + 80 * DAY);
+  const closed = pin(OLD_KID, toPublicKey(OTHER_PRIV), now - 100 * DAY, now - 3_600_000);
+  /** A pack envelope carrying one signature per [key, kid], in order (1 to 4 allowed, §11.1). */
+  function mountSigned(sigs: [KeyObject, string][]) {
+    const dir = scratch();
+    const pm = packManifest({}, sha256Of(VARIANT_PARAMS));
+    const pdir = join(dir, pm.id);
+    mkdirSync(join(pdir, 'variants'), { recursive: true });
+    writeFileSync(join(pdir, 'variants', 'deadlock-hard.json'), VARIANT_PARAMS);
+    const payload = Buffer.from(JSON.stringify(pm), 'utf8');
+    const env = `${JSON.stringify({ payloadType: PACK_PAYLOAD_TYPE, payload: payload.toString('base64'), signatures: sigs.map(([k, kid]) => ({ keyid: kid, sig: edSign(null, pae(PACK_PAYLOAD_TYPE, payload), k).toString('base64') })) })}\n`;
+    writeFileSync(join(pdir, PACK_ENVELOPE_FILE), env);
+    return { dir, entry: { id: pm.id, version: pm.version, digest: sha256Of(env) } };
+  }
+
+  test('inside the window: loads; not_after is exclusive; revoked_at ends the window; a missing issued_at is outside every window', () => {
+    const p = mountSigned([[PRIV, MANIFEST_KID]]);
+    assert.equal(loadPacks([p.entry], p.dir, [current], build, 'byzantine', now - 60_000).length, 1);
+    const w = pin(MANIFEST_KID, PUB, now - 10 * DAY, now);
+    assert.equal(loadPacks([p.entry], p.dir, [w], build, 'byzantine', now - 1000).length, 1);
+    assert.throws(() => loadPacks([p.entry], p.dir, [w], build, 'byzantine', now), isRefusal(/no signature is by a pinned control-plane key whose window covers the run manifest's issued_at \(sixi-arena-manifest-ed25519-20261101: signed at .*Z, at or after the key's not_after .*Z\)/));
+    assert.throws(() => loadPacks([p.entry], p.dir, [pin(MANIFEST_KID, PUB, now - DAY, now + DAY, now - 3_600_000)], build, 'byzantine', now - 60_000), isRefusal(/at or after the key's revoked_at/));
+    assert.throws(() => loadPacks([p.entry], p.dir, [current], build, 'byzantine'), isRefusal(/window covers the run manifest's issued_at .*the signing time is missing/));
+  });
+
+  test('rotation: a pack signed only by a key whose window has closed is refused; with the successor\'s signature added (up to 4) it loads; 5 signatures are refused', () => {
+    const old = mountSigned([[OTHER_PRIV, OLD_KID]]);
+    assert.throws(() => loadPacks([old.entry], old.dir, [current, closed], build, 'byzantine', now - 60_000), isRefusal(/^scenario_pack_unavailable: pack sx-test-core: no signature is by a pinned control-plane key whose window covers/));
+    const both = mountSigned([[OTHER_PRIV, OLD_KID], [PRIV, MANIFEST_KID]]);
+    assert.equal(loadPacks([both.entry], both.dir, [current, closed], build, 'byzantine', now - 60_000).length, 1);
+    const four = mountSigned([[OTHER_PRIV, OLD_KID], [OTHER_PRIV, OLD_KID], [OTHER_PRIV, OLD_KID], [PRIV, MANIFEST_KID]]);
+    assert.equal(loadPacks([four.entry], four.dir, [current, closed], build, 'byzantine', now - 60_000).length, 1);
+    const five = mountSigned([[OTHER_PRIV, OLD_KID], [OTHER_PRIV, OLD_KID], [OTHER_PRIV, OLD_KID], [OTHER_PRIV, OLD_KID], [PRIV, MANIFEST_KID]]);
+    assert.throws(() => loadPacks([five.entry], five.dir, [current, closed], build, 'byzantine', now - 60_000), isRefusal(/with 1 to 4 signatures/));
+  });
+
+  test('run --hosted applies it at the verified manifest\'s issued_at, before any I/O', async () => {
+    const spec = runSpec({ seeds: [20260720], episodes: 1 });
+    const old = mountSigned([[OTHER_PRIV, OLD_KID]]);
+    const dir = scratch();
+    const inputs = writeInputs(join(dir, 'in'), signManifest(unsignedManifest(spec, { packs: [old.entry] })), spec);
+    await assert.rejects(
+      runHosted({ ...inputs, out: join(dir, 'out') }, { pinnedKeys: [current, closed], env: hostedEnv({ ARENA_PACKS_DIR: old.dir }), platform: PLATFORM }),
+      isRefusal(/^scenario_pack_unavailable: pack sx-test-core: no signature is by a pinned control-plane key whose window covers the run manifest's issued_at \(sixi-arena-manifest-ed25519-20260801: signed at .*, at or after the key's not_after/),
+    );
+    const both = mountSigned([[OTHER_PRIV, OLD_KID], [PRIV, MANIFEST_KID]]);
+    const dir2 = scratch();
+    const inputs2 = writeInputs(join(dir2, 'in'), signManifest(unsignedManifest(spec, { packs: [both.entry] })), spec);
+    const r = await runHosted({ ...inputs2, out: join(dir2, 'out') }, { pinnedKeys: [current, closed], env: hostedEnv({ ARENA_PACKS_DIR: both.dir }), platform: PLATFORM, transportFactory: viaReference(srv.urls.rest, {}) });
+    assert.equal(r.exitCode, 0);
+  });
 });

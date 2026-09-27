@@ -13,6 +13,10 @@
 name: ci
 
 on:
+  # Nightly run on main: merges performed by the automerge workflow's GITHUB_TOKEN do not trigger
+  # push workflows, so main would otherwise never be re-verified after a Dependabot merge.
+  schedule:
+    - cron: '17 3 * * *'
   push:
     branches: [main]
   pull_request:

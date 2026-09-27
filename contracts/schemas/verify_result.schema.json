@@ -1,0 +1,596 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:verify_result:1",
+  "title": "Hosted seal verification result (verify --hosted-seal --result)",
+  "description": "(2.12.0) The file `agent-arena verify --hosted-seal <bundle> --result <path>` writes: byte for byte the document `--json` prints on stdout (2-space JSON, redacted, terminal-inert, LF-terminated), written whether or not `--json` is given. Normative text: HOSTED-PROFILE §2.7 and signing.md §5.1 (`--result`). It is written for every exit 0, 1 and 2, and, once the path was accepted, for exit 3; `exitCode` always equals the process exit code. The Sixi seal step reads the seal precondition (signing.md §3 rule 2) from this file and from nothing else: `exitCode` 0, `status` `verified`, `hosted_seal.sarif_equal` true, `hosted_seal.seal` and `hosted_seal.mismatch` empty. A missing file, a file over `x-max-frame-bytes`, or one that is not JSON or fails this schema is `seal_failed` with the reason `verify_no_result`. `additionalProperties: false` is the CLI's emission contract; a new member is a contract MINOR. The file is never part of the bundle and carries no key, credential or target text beyond what `verify --json` prints.",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8388608,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "status",
+    "exitCode",
+    "errors",
+    "signed_forms"
+  ],
+  "properties": {
+    "ok": {
+      "type": "boolean",
+      "description": "true exactly when `status` is `verified`."
+    },
+    "status": {
+      "enum": [
+        "verified",
+        "mismatch",
+        "unverifiable",
+        "unsupported_engine",
+        "misuse"
+      ],
+      "description": "`verified` (exit 0); `mismatch` (exit 1: the SARIF re-render differs, a Diplomacy commitment does not match, or the re-simulation disagrees); `unverifiable` (exit 2: a seal, invariant or signature problem, including an unreadable report); `unsupported_engine` (exit 3: the report names an engine build this CLI does not have); `misuse` (exit 3: a misuse found after `--result` was accepted, for example a sealed bundle without `--key` or an `sx_` report). A refusal of the `--result` path itself writes no file."
+    },
+    "exitCode": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "description": "The process exit code of this invocation."
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      },
+      "description": "Input errors, one line each, as `verify --json` prints them. For `misuse`, exactly the one refusal message."
+    },
+    "signed_forms": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "(signing.md §5.2) The form of each signed bundle file that verified (sealed bundles only; `{}` pre-seal and for `misuse`).",
+      "properties": {
+        "report.json": {
+          "enum": [
+            "raw",
+            "digest_statement"
+          ]
+        },
+        "report.sarif": {
+          "enum": [
+            "raw",
+            "digest_statement"
+          ]
+        },
+        "bundle-manifest.json": {
+          "enum": [
+            "raw",
+            "digest_statement"
+          ]
+        }
+      }
+    },
+    "hosted_seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sealed",
+        "sarif_equal",
+        "bundle_files",
+        "seal",
+        "mismatch"
+      ],
+      "description": "The signing.md §5.1 checks. Absent only for `misuse` and for a report that could not be read.",
+      "properties": {
+        "sealed": {
+          "type": "boolean",
+          "description": "true when report.json carries `signing`."
+        },
+        "sarif_equal": {
+          "type": "boolean",
+          "description": "report.sarif is byte-equal to the SARIF re-rendered from report.json (§5.1 rule 4)."
+        },
+        "bundle_files": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4100,
+          "description": "Bundle files whose sha256 and size were checked (sealed bundles; 0 pre-seal)."
+        },
+        "seal": {
+          "type": "array",
+          "maxItems": 8192,
+          "items": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "description": "Seal, invariant and signature problems (§5.1 rules 1-3 and 7-9, §5.2); each makes the exit 2. A `signature_invalid:` prefix marks a signature or manifest problem."
+        },
+        "mismatch": {
+          "type": "array",
+          "maxItems": 8192,
+          "items": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "description": "Mismatches (SARIF re-render, Diplomacy commitments); each makes the exit at least 1."
+        }
+      }
+    },
+    "episodes": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object"
+      },
+      "description": "Per-episode re-simulation result, as `verify --json` prints it. Informative: not part of the seal precondition."
+    },
+    "run": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Run-level differences, as `verify --json` prints them. Informative."
+    },
+    "unverified": {
+      "type": "array",
+      "maxItems": 8192,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      },
+      "description": "JSON pointers of report fields accepted as recorded because nothing can re-derive them. The evidence report copies them into `build.seal_verification.unverified_fields`."
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Per seat of every episode: how its actions were obtained (ADR-004). Informative."
+    },
+    "recorded_seats": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Seats other than the target whose moves are recorded inputs (ADR-004 §3). Informative."
+    },
+    "signature": {
+      "type": "object",
+      "description": "The embedded-signature check of `verify`, as `verify --json` prints it. Informative; the seal precondition is `hosted_seal`."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "verified"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "hosted_seal"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "exitCode": {
+            "const": 0
+          },
+          "hosted_seal": {
+            "properties": {
+              "sarif_equal": {
+                "const": true
+              },
+              "seal": {
+                "maxItems": 0,
+                "type": "array"
+              },
+              "mismatch": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "ok": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "mismatch"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "hosted_seal"
+        ],
+        "properties": {
+          "exitCode": {
+            "const": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "unverifiable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 2
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "unsupported_engine"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "hosted_seal"
+        ],
+        "properties": {
+          "exitCode": {
+            "const": 3
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "misuse"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "hosted_seal"
+          ]
+        },
+        "properties": {
+          "exitCode": {
+            "const": 3
+          },
+          "errors": {
+            "minItems": 1,
+            "maxItems": 1,
+            "type": "array"
+          },
+          "signed_forms": {
+            "maxProperties": 0,
+            "type": "object"
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "ok": true,
+      "status": "verified",
+      "exitCode": 0,
+      "episodes": [
+        {
+          "episode_index": 0,
+          "seed": 20260720,
+          "status": "match",
+          "replay_hash": {
+            "reported": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147",
+            "recomputed": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147"
+          },
+          "diffs": []
+        }
+      ],
+      "run": [],
+      "errors": [],
+      "unverified": [
+        "/episodes/0/duration_ms",
+        "/not_assessed/0",
+        "/not_assessed/1",
+        "/not_assessed/2",
+        "/run/finished_at",
+        "/run/hosted",
+        "/run/mode",
+        "/run/started_at",
+        "/run/target_ownership",
+        "/run/tool"
+      ],
+      "provenance": [
+        {
+          "episode_index": 0,
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        }
+      ],
+      "recorded_seats": [],
+      "signature": {
+        "checked": false,
+        "status": "not_checked",
+        "errors": []
+      },
+      "hosted_seal": {
+        "sealed": false,
+        "sarif_equal": true,
+        "bundle_files": 0,
+        "seal": [],
+        "mismatch": []
+      },
+      "signed_forms": {}
+    },
+    {
+      "ok": false,
+      "status": "mismatch",
+      "exitCode": 1,
+      "episodes": [
+        {
+          "episode_index": 0,
+          "seed": 20260720,
+          "status": "match",
+          "replay_hash": {
+            "reported": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147",
+            "recomputed": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147"
+          },
+          "diffs": []
+        }
+      ],
+      "run": [],
+      "errors": [],
+      "unverified": [
+        "/episodes/0/duration_ms",
+        "/not_assessed/0",
+        "/not_assessed/1",
+        "/not_assessed/2",
+        "/run/finished_at",
+        "/run/hosted",
+        "/run/mode",
+        "/run/started_at",
+        "/run/target_ownership",
+        "/run/tool"
+      ],
+      "provenance": [
+        {
+          "episode_index": 0,
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        }
+      ],
+      "recorded_seats": [],
+      "signature": {
+        "checked": false,
+        "status": "not_checked",
+        "errors": []
+      },
+      "hosted_seal": {
+        "sealed": false,
+        "sarif_equal": false,
+        "bundle_files": 0,
+        "seal": [],
+        "mismatch": [
+          "report.sarif is not byte-equal to the SARIF re-rendered from report.json"
+        ]
+      },
+      "signed_forms": {}
+    },
+    {
+      "ok": false,
+      "status": "unverifiable",
+      "exitCode": 2,
+      "episodes": [
+        {
+          "episode_index": 0,
+          "seed": 20260720,
+          "status": "match",
+          "replay_hash": {
+            "reported": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147",
+            "recomputed": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147"
+          },
+          "diffs": []
+        }
+      ],
+      "run": [],
+      "errors": [],
+      "unverified": [
+        "/episodes/0/duration_ms",
+        "/not_assessed/0",
+        "/not_assessed/1",
+        "/not_assessed/2",
+        "/run/finished_at",
+        "/run/hosted",
+        "/run/mode",
+        "/run/started_at",
+        "/run/target_ownership",
+        "/run/tool"
+      ],
+      "provenance": [
+        {
+          "episode_index": 0,
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        },
+        {
+          "episode_index": 0,
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "verification": "recorded_replayed",
+          "label": "recorded, replayed",
+          "inputs_digest": "match"
+        }
+      ],
+      "recorded_seats": [],
+      "signature": {
+        "checked": false,
+        "status": "not_checked",
+        "errors": []
+      },
+      "hosted_seal": {
+        "sealed": false,
+        "sarif_equal": true,
+        "bundle_files": 0,
+        "seal": [
+          "signature_invalid: run-manifest.json is not the manifest the control plane issued for this run (--expect-manifest-digest differs)"
+        ],
+        "mismatch": []
+      },
+      "signed_forms": {}
+    },
+    {
+      "ok": false,
+      "status": "misuse",
+      "exitCode": 3,
+      "errors": [
+        "--hosted-seal: this bundle is sealed; checking it needs the report-signing public key."
+      ],
+      "signed_forms": {}
+    },
+    {
+      "ok": false,
+      "status": "unverifiable",
+      "exitCode": 2,
+      "errors": [
+        "report is not valid JSON: /run/arena/out/report.json"
+      ],
+      "signed_forms": {}
+    }
+  ]
+}

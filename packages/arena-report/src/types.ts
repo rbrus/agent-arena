@@ -245,6 +245,8 @@ export interface SigningBlock {
   excluded: ['/signing/signature'];
   run_manifest_digest: string;
   sealed_at: string;
+  /** (contracts 2.11.0, signing.md §5.2) absent = raw; inside the signed body, so a sealed report's form cannot be switched. */
+  signed_form?: 'raw' | 'digest_statement';
   signature: string;
 }
 
