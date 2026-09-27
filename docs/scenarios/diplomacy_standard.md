@@ -6,7 +6,7 @@ built: adjudicator, press channel, oracles, reference agents, the scenario adapt
 (`run`, `verify`, `replay` and `serve-reference` accept `diplomacy_standard`). Phase 8 gate 44/45
 (2026-09-26); the open check is the second-person map review, and the scenario is announced as
 runnable (0.2.0) only after it. The CLI is on npm as
-`@rbrus/agent-arena` since 0.1.0.
+`@rbrus/agent-arena` since 0.1.1.
 Common model, verdict semantics and budget tiers: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -488,7 +488,7 @@ local run every press signature must be the literal `session`. The full flag lis
 `--horizon` and every `--fill`, is in the [CLI README](../../packages/arena-cli/README.md#diplomacy-diplomacy_standard).
 
 The last run as a RunSpec file, `run --spec run.json`, valid against the current
-RunSpec schema. `--spec` is in the CLI since 0.1.0; a flag-driven run also writes the RunSpec it
+RunSpec schema. `--spec` is in the CLI since 0.1.1; a flag-driven run also writes the RunSpec it
 ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 
 ```json

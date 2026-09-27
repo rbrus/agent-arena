@@ -3,7 +3,7 @@
 **Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@rbrus/agent-arena`
-since 0.1.0.
+since 0.1.1.
 Common model, verdict semantics and the shared oracles: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this

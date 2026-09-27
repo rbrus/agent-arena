@@ -33,11 +33,12 @@ leaderboard. See [Limitations](#limitations).
 
 ## Status
 
-`0.1.0`, on npm as `@rbrus/agent-arena`. Pre-1.0: contracts, oracle ids and thresholds may still
-change between minor versions (see [Limitations](#limitations)). Everything marked **built** below
-is in this repository and covered by the release gate.
+`0.1.1`, on npm as `@rbrus/agent-arena`: the first published release (the `v0.1.0` tag was never
+published). Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
+(see [Limitations](#limitations)). Everything marked **built** below is in this repository and
+covered by the release gate.
 
-Release gates, re-run on the contracts 2.10.0 tree (2026-09-27):
+Release gates, re-run on the contracts 2.12.0 tree (2026-09-27):
 
 - **Phase 7 (open arena): `GATE: OPEN`, 82/82 checks** in the development repository. In this
   repository's layout, `npm run gate` does not evaluate the checks that read private evidence
@@ -53,7 +54,7 @@ Release gates, re-run on the contracts 2.10.0 tree (2026-09-27):
 | Per-scenario oracles with severities, `not_assessed` reasons, re-derivation from the record | built |
 | Target-facing observation filter (no ground truth reaches the target; 9 leak classes tested) | built |
 | Golden pairs with frozen replay hashes in the `edge`, `core` and `frontier` budget tiers (none at `extended`) | built |
-| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.10.0) |
+| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.12.0) |
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference` (`packages/arena-cli`) | built: the gate command runs in 1.41 s; 4.6 s from a clean clone to a report |
 | Target transports: REST, WebSocket, MCP, A2A | built: identical replay hashes, verdicts and SARIF fingerprints on all four (gate criterion 2, 15/15) |
 | Report writer (`report.json`) and SARIF 2.1.0 emitter (`packages/arena-report`) | built: every SARIF log the gate produced validates (18/18) |
@@ -63,7 +64,7 @@ Release gates, re-run on the contracts 2.10.0 tree (2026-09-27):
 | Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 44/45; announced as runnable in 0.2.0 after the map review |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
 | `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
-| `@rbrus/agent-arena` on npm | published: 0.1.0 |
+| `@rbrus/agent-arena` on npm | published: 0.1.1 |
 | SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@rbrus/agent-arena` |
 
 ---
@@ -221,7 +222,7 @@ Full flag list, exit codes and security posture: [packages/arena-cli/README.md](
 Budgets are the only fairness mechanism. The arena never asks which model you run, because it
 could not verify the answer; it enforces what the referee can measure. The four tiers are
 evaluation classes, not leagues. The values are fixed by the contracts; changing one is a major
-version change, because it changes results. `extended` was added in contracts 2.10.0 for agents
+version change, because it changes results. `extended` was added in contracts 2.12.0 for agents
 whose decisions take tens of seconds; the other three tiers did not change.
 
 | Tier | Soft deadline | Hard deadline | Action-token allowance per seat | Tick cap |
