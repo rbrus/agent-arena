@@ -20,7 +20,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^6.1.1",
     "happy-dom": "^20.14.5",
     "vite": "^6.0.7",
     "vitest": "^4.1.11"
