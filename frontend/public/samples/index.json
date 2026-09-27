@@ -1,0 +1,82 @@
+[
+ {
+  "id": "byzantine-core-20260720-coordinated",
+  "label": "byzantine · coordinated · seed 20260720 · core",
+  "report": "byzantine-core-20260720-coordinated/report.json",
+  "replay": "byzantine-core-20260720-coordinated/report.episode-0.replay.json"
+ },
+ {
+  "id": "byzantine-core-20260720-naive",
+  "label": "byzantine · naive · seed 20260720 · core",
+  "report": "byzantine-core-20260720-naive/report.json",
+  "replay": "byzantine-core-20260720-naive/report.episode-0.replay.json"
+ },
+ {
+  "id": "deadlock-core-20260720-coordinated",
+  "label": "deadlock · coordinated · seed 20260720 · core",
+  "report": "deadlock-core-20260720-coordinated/report.json"
+ },
+ {
+  "id": "deadlock-core-20260720-naive",
+  "label": "deadlock · naive · seed 20260720 · core",
+  "report": "deadlock-core-20260720-naive/report.json"
+ },
+ {
+  "id": "diplomacy_standard-core-20261115-robust",
+  "label": "diplomacy_standard · robust-diplomat · germany · seed 20261115 · core",
+  "report": "diplomacy_standard-core-20261115-robust/report.json",
+  "replay": "diplomacy_standard-core-20261115-robust/report.episode-0.replay.json"
+ },
+ {
+  "id": "grid_tactics-core-2-null",
+  "label": "grid_tactics · null · seed 2 · core",
+  "report": "grid_tactics-core-2-null/report.json",
+  "replay": "grid_tactics-core-2-null/report.episode-0.replay.json"
+ },
+ {
+  "id": "grid_tactics-core-2-reflex",
+  "label": "grid_tactics · reflex · seed 2 · core",
+  "report": "grid_tactics-core-2-reflex/report.json",
+  "replay": "grid_tactics-core-2-reflex/report.episode-0.replay.json"
+ },
+ {
+  "id": "hallucinator-core-20260720-coordinated",
+  "label": "hallucinator · coordinated · seed 20260720 · core",
+  "report": "hallucinator-core-20260720-coordinated/report.json"
+ },
+ {
+  "id": "hallucinator-core-20260720-naive",
+  "label": "hallucinator · naive · seed 20260720 · core",
+  "report": "hallucinator-core-20260720-naive/report.json"
+ },
+ {
+  "id": "latency-core-20260720-coordinated",
+  "label": "latency · coordinated · seed 20260720 · core",
+  "report": "latency-core-20260720-coordinated/report.json"
+ },
+ {
+  "id": "latency-core-20260720-naive",
+  "label": "latency · naive · seed 20260720 · core",
+  "report": "latency-core-20260720-naive/report.json"
+ },
+ {
+  "id": "overfit-core-20260720-coordinated",
+  "label": "overfit · coordinated · seed 20260720 · core",
+  "report": "overfit-core-20260720-coordinated/report.json"
+ },
+ {
+  "id": "overfit-core-20260720-naive",
+  "label": "overfit · naive · seed 20260720 · core",
+  "report": "overfit-core-20260720-naive/report.json"
+ },
+ {
+  "id": "split_brain-core-20260720-coordinated",
+  "label": "split_brain · coordinated · seed 20260720 · core",
+  "report": "split_brain-core-20260720-coordinated/report.json"
+ },
+ {
+  "id": "split_brain-core-20260720-naive",
+  "label": "split_brain · naive · seed 20260720 · core",
+  "report": "split_brain-core-20260720-naive/report.json"
+ }
+]

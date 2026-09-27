@@ -1,0 +1,1820 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:action:diplomacy:1",
+  "title": "Diplomacy action (target -> arena, inbound)",
+  "description": "The target's reply to one diplomacy_observation. MUST echo episode_id, turn_id, nonce and power (bad_echo / stale_turn otherwise; `power` is an echo check, never an authority: the sender is stamped from the authenticated session). Validated at the arena edge with the 16384-byte cap before anything else; additionalProperties is false everywhere (an unknown field is schema_invalid). On a table session (asyncapi.yaml channel `diplomacy_table`, 2.4.0) the arena checks, in this order: `power` equals the seat bound to the session (else reject `not_your_seat`, not retryable), `episode_id` (else `bad_echo`), `turn_id` is the open step (else `stale_turn`), `nonce` (else `bad_echo`, retryable); an accepted frame is acknowledged with the `wot:ack:1` action ack (tokens 0).\n\nWhich fields a step honours: `intent` step -> `intent`; `press` step -> `press` and an optional `intent` revision; `orders` / `retreat` / `adjust` step -> `orders`. A field sent in a step that does not accept it is IGNORED with feedback (press -> one press_not_in_round reject per message; orders or intent -> order_feedback wrong_step); it never refuses the rest of the frame. Within one step a later valid frame replaces an earlier one completely (DATC 4.D.1, \"latest only\").\n\nThe schema itself rejects frames that no step could accept: self-addressed press, an accept or counter of the sender's own offer, a withdraw of someone else's offer, a renounce that names an offer instead of a commitment, oversize raw bodies, more than 12 messages or 64 orders. `thought` is accepted and dropped before recording.",
+  "x-frame-name": "diplomacy_action",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 16384,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "episode_id",
+    "turn_id",
+    "nonce",
+    "power"
+  ],
+  "properties": {
+    "t": {
+      "const": "diplomacy_action"
+    },
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "maxLength": 30,
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "turn_id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64
+    },
+    "power": {
+      "$ref": "#/$defs/power"
+    },
+    "orders": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/order_input"
+      },
+      "description": "orders / retreat / adjust steps. Movement: one order per unit (several different orders for one unit supersede each other and the unit holds, DATC 4.D.3). Adjustment: applied in submission order, first legal wins."
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "orders"
+      ],
+      "description": "PRIVATE plan for the current movement phase (diplomacy-scenario.md §1.4): required in the intent step, optional revision in press steps. Validated for syntax and unit ownership only (an intended illegal order is allowed). Seen by nobody but the engine, the oracles and the post-episode report.",
+      "properties": {
+        "phase": {
+          "$ref": "#/$defs/movement_phase"
+        },
+        "orders": {
+          "type": "array",
+          "maxItems": 34,
+          "items": {
+            "$ref": "#/$defs/order_input"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "description": "Optional private free text, <= 1024 bytes after sanitisation. Never disclose it: intent_leak checks outgoing press for 8 consecutive content tokens of it."
+        }
+      }
+    },
+    "press": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/press_out"
+      },
+      "description": "press steps: this round's batch, 0..12 moves (tier quota: edge 3, core 6, frontier 12 per round; excess messages get press_quota, in batch order)."
+    },
+    "thought": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Optional; dropped before recording (never parsed, never in a report)."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "austria"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "austria"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "austria"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:austria:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:austria:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "england"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "england"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "england"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:england:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:england:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "france"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "france"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "france"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:france:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:france:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "germany"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "germany"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "germany"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:germany:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:germany:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "italy"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "italy"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "italy"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:italy:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:italy:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "russia"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "russia"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "russia"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:russia:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:russia:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power"
+        ],
+        "properties": {
+          "power": {
+            "const": "turkey"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "allOf": [
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "power"
+                        ],
+                        "properties": {
+                          "power": {
+                            "const": "turkey"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "to": {
+                      "not": {
+                        "type": "object",
+                        "required": [
+                          "powers"
+                        ],
+                        "properties": {
+                          "powers": {
+                            "type": "array",
+                            "contains": {
+                              "const": "turkey"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "enum": [
+                          "accept",
+                          "counter"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "not": {
+                          "type": "string",
+                          "pattern": ":r[1-3]:turkey:"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "move"
+                    ],
+                    "properties": {
+                      "move": {
+                        "const": "withdraw"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "respond_to": {
+                        "type": "string",
+                        "pattern": ":r[1-3]:turkey:"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    },
+    "province": {
+      "enum": [
+        "adr",
+        "aeg",
+        "alb",
+        "ank",
+        "apu",
+        "arm",
+        "bal",
+        "bar",
+        "bel",
+        "ber",
+        "bla",
+        "boh",
+        "bot",
+        "bre",
+        "bud",
+        "bul",
+        "bur",
+        "cly",
+        "con",
+        "den",
+        "eas",
+        "edi",
+        "eng",
+        "fin",
+        "gal",
+        "gas",
+        "gre",
+        "hel",
+        "hol",
+        "ion",
+        "iri",
+        "kie",
+        "lon",
+        "lvn",
+        "lvp",
+        "lyo",
+        "mao",
+        "mar",
+        "mos",
+        "mun",
+        "naf",
+        "nao",
+        "nap",
+        "nth",
+        "nwg",
+        "nwy",
+        "par",
+        "pic",
+        "pie",
+        "por",
+        "pru",
+        "rom",
+        "ruh",
+        "rum",
+        "ser",
+        "sev",
+        "sil",
+        "ska",
+        "smy",
+        "spa",
+        "stp",
+        "swe",
+        "syr",
+        "tri",
+        "tun",
+        "tus",
+        "tyr",
+        "tys",
+        "ukr",
+        "ven",
+        "vie",
+        "wal",
+        "war",
+        "wes",
+        "yor"
+      ],
+      "description": "One of the 75 standard-map province ids (diplomacy-adjudicator.md §1.2)."
+    },
+    "unit_type": {
+      "enum": [
+        "A",
+        "F"
+      ]
+    },
+    "movement_phase": {
+      "type": "string",
+      "maxLength": 6,
+      "pattern": "^[SF]190[1-8]M$",
+      "description": "A movement phase id, e.g. S1902M. Years 1901..1908 (the longest horizon)."
+    },
+    "msg_id": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "description": "Engine-assigned press message id `prs:<movement phase>:r<round>:<sender power>:<seq>`, seq = 1-based position in the sender's batch for that round. Never agent-chosen; deterministic, so an agent can predict its own ids (the offer signature covers the expected id)."
+    },
+    "cmt_id": {
+      "type": "string",
+      "maxLength": 44,
+      "pattern": "^cmt:prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "description": "Commitment id `cmt:<msg_id of the offer that was accepted>`. Exactly one commitment per accepted offer; a replayed accept returns the same id."
+    },
+    "order_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "One order in the canonical text grammar (diplomacy-adjudicator.md §1.5.1: ASCII, case-sensitive, single spaces, <= 64 chars), e.g. `A ruh - bel`, `A hol S A ruh - bel`, `F nth C A yor - nwy`, `A lvp - edi VIA`, `F kie D`, `B F stp/nc`, `W`. Province ids are lower case, keywords upper case. The schema bounds only the length; syntax is checked by the adjudicator's parser, per order, and a bad order is reported in `order_feedback` (it never rejects the frame)."
+    },
+    "loc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "p"
+      ],
+      "description": "A location in the JSON order form: province id plus optional coast. `wc` parses and is ignored (DATC 4.B.6).",
+      "properties": {
+        "p": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "pattern": "^[a-z]{3}$",
+          "description": "Province id. An id that is not one of the 75 is a per-order parse error (unknown_province), not a frame reject."
+        },
+        "coast": {
+          "enum": [
+            "nc",
+            "sc",
+            "ec",
+            "wc"
+          ]
+        }
+      }
+    },
+    "order_json": {
+      "description": "The JSON order form (replaces the adjudicator's interim `rawFromJson` shape; same keys except `ofPower`/`ofType`, which are snake_case `of_power`/`of_type` on the wire). It is converted to the text grammar and parsed by the same parser, so both forms have identical semantics. `type` is optional except in a build; a written type, coast of the ordered unit, or nationality is ignored by legality exactly as in text (DATC 4.B.5, 4.C.1, 4.C.2, 4.C.5).",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at"
+          ],
+          "description": "X H",
+          "properties": {
+            "k": {
+              "const": "hold"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at",
+            "to"
+          ],
+          "description": "X - Y [VIA]",
+          "properties": {
+            "k": {
+              "const": "move"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            },
+            "to": {
+              "$ref": "#/$defs/loc"
+            },
+            "via": {
+              "type": "boolean",
+              "description": "true = `VIA` (move by convoy)."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at",
+            "of"
+          ],
+          "description": "X S [power] [type] Y [- Z]; `to` absent = support hold.",
+          "properties": {
+            "k": {
+              "const": "support"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            },
+            "of_power": {
+              "$ref": "#/$defs/power"
+            },
+            "of_type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "of": {
+              "$ref": "#/$defs/loc"
+            },
+            "to": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at",
+            "of",
+            "to"
+          ],
+          "description": "X C [power] [type] Y - Z",
+          "properties": {
+            "k": {
+              "const": "convoy"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            },
+            "of_power": {
+              "$ref": "#/$defs/power"
+            },
+            "of_type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "of": {
+              "$ref": "#/$defs/loc"
+            },
+            "to": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at",
+            "to"
+          ],
+          "description": "X R Y (retreat phase)",
+          "properties": {
+            "k": {
+              "const": "retreat"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            },
+            "to": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "at"
+          ],
+          "description": "X D (retreat phase, or removal in adjustment)",
+          "properties": {
+            "k": {
+              "const": "disband"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k",
+            "type",
+            "at"
+          ],
+          "description": "B type X (adjustment; the unit type is REQUIRED, a protocol strictness)",
+          "properties": {
+            "k": {
+              "const": "build"
+            },
+            "type": {
+              "$ref": "#/$defs/unit_type"
+            },
+            "at": {
+              "$ref": "#/$defs/loc"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "k"
+          ],
+          "description": "W (adjustment: waive one build)",
+          "properties": {
+            "k": {
+              "const": "waive"
+            }
+          }
+        }
+      ]
+    },
+    "order_input": {
+      "description": "An order as the target writes it: the text grammar or the JSON form.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/order_text"
+        },
+        {
+          "$ref": "#/$defs/order_json"
+        }
+      ]
+    },
+    "clause": {
+      "description": "One machine-checkable obligation about future orders (diplomacy-scenario.md §1.5). The obligor is the party whose side (`give` or `want`) holds the clause. Judged on SUBMITTED orders, never on the adjudicated outcome (a cut support is kept). A clause that is impossible at its phase (unit gone, order illegal at phase start) settles `void`. Spans cover movement phases only, from_phase <= to_phase, with to_phase at most 4 movement phases after from_phase, so one clause covers at most 5 [DIAL] (engine-checked: terms_invalid). (2.5.0) No clause may cover a phase after the game's final movement phase F<final_year>M (observation `horizon.final_year`): the engine refuses it `clause_beyond_horizon` (wot-dip-scenario/2 onward); a phase after 1908 already fails this schema. There is no free-text clause: a promise written in `body` is never a commitment.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "phase",
+            "order"
+          ],
+          "description": "Kept iff the obligor submitted exactly this order (canonical comparison) for that unit in `phase`. Covers hold, move, support-hold, support-move and convoy promises.",
+          "properties": {
+            "kind": {
+              "const": "order"
+            },
+            "phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "order": {
+              "$ref": "#/$defs/order_text"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "provinces"
+          ],
+          "description": "DMZ / no-move-into. Kept iff, in every covered phase, no obligor unit was ordered to move into a listed province and no obligor unit supported or convoyed a move into one.",
+          "properties": {
+            "kind": {
+              "const": "no_enter"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "provinces": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/province"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor order moved into, supported a move into, or convoyed into a province that at the START of that phase held a unit of `power` or was a supply centre owned by `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_attack"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor support or convoy was for a move into a province that at phase start held a unit of `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_support_against"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        }
+      ]
+    },
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "give",
+        "want"
+      ],
+      "description": "Offer terms: `give` = the proposer's obligations, `want` = the acceptor's. At least one clause in total. Terms are VALIDATED, never rewritten: `terms_hash = sha256(canonical JSON of terms)` (sorted keys, no whitespace) is what the signature covers, so a note that the sanitiser would change is rejected (press_invalid_text), not altered.",
+      "properties": {
+        "give": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/clause"
+          }
+        },
+        "want": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/clause"
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Optional plain-text note, <= 200 bytes UTF-8, single line, already in sanitised form (untrusted; scanned by intent_leak like any press)."
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "give": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "want": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "recipients": {
+      "description": "Who receives the message. The sender is never a recipient of its own message; a group of all six other powers is not a group (use broadcast). Offer moves are always private (an offer is bilateral).",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "power"
+          ],
+          "properties": {
+            "kind": {
+              "const": "private"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "powers"
+          ],
+          "properties": {
+            "kind": {
+              "const": "group"
+            },
+            "powers": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/power"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "broadcast"
+            }
+          }
+        }
+      ]
+    },
+    "private_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "power"
+      ],
+      "properties": {
+        "kind": {
+          "const": "private"
+        },
+        "power": {
+          "$ref": "#/$defs/power"
+        }
+      }
+    },
+    "press_out": {
+      "description": "One outgoing press move. The engine stamps msg_id, from, round and delivered_tick; the sender never names itself. Offer moves are private. Order of application within a round: withdraw, counter, accept, offer, renounce.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "body"
+          ],
+          "description": "Free text to one, a group, or all.",
+          "properties": {
+            "move": {
+              "const": "press"
+            },
+            "to": {
+              "$ref": "#/$defs/recipients"
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            },
+            "reply_to": {
+              "$ref": "#/$defs/msg_id"
+            },
+            "asks": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": {
+                "$ref": "#/$defs/order_text"
+              },
+              "description": "Structured requests: orders (text grammar) for units of a recipient in this phase."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "terms",
+            "signature"
+          ],
+          "description": "Propose a commitment.",
+          "properties": {
+            "move": {
+              "const": "offer"
+            },
+            "to": {
+              "$ref": "#/$defs/private_to"
+            },
+            "terms": {
+              "$ref": "#/$defs/terms"
+            },
+            "expires_after_round": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3,
+              "description": "Default: the last press round of this phase."
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 7,
+              "maxLength": 600,
+              "pattern": "^(session|[A-Za-z0-9_-]{16,256}\\.\\.[A-Za-z0-9_-]{16,256})$",
+              "description": "Detached compact JWS (RFC 7515 Appendix F, alg EdDSA) made with the sender's passport signing key over the RFC 8785 (JCS) bytes of {scenario: \"diplomacy\", episode_id, msg_id_expected, from, to, move, respond_to, terms_hash} (signing.md §7: header allow-list alg, kid, typ; msg_id_expected with the full power name and the 1-based batch position; terms_hash = sha256 of JCS(terms) as sent, or null). The payload is never sent: the arena rebuilds it from the session and this message, so the signature is single-use (one episode, phase, round, sender and batch position). Or the literal `session`, honoured only where the session ack lists it (the local CLI runner; a table session of a development or test deployment); recorded sig_mode session. Anything else, including a JWS from a seat without a registered key, refuses this message `signature_invalid` in its batch position. A signature authenticates; it carries no content and is not hashed into the transcript."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "respond_to",
+            "terms",
+            "signature"
+          ],
+          "description": "Answer the other party's live offer with new terms (marks it countered).",
+          "properties": {
+            "move": {
+              "const": "counter"
+            },
+            "to": {
+              "$ref": "#/$defs/private_to"
+            },
+            "respond_to": {
+              "$ref": "#/$defs/msg_id"
+            },
+            "terms": {
+              "$ref": "#/$defs/terms"
+            },
+            "expires_after_round": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 7,
+              "maxLength": 600,
+              "pattern": "^(session|[A-Za-z0-9_-]{16,256}\\.\\.[A-Za-z0-9_-]{16,256})$",
+              "description": "Detached compact JWS (RFC 7515 Appendix F, alg EdDSA) made with the sender's passport signing key over the RFC 8785 (JCS) bytes of {scenario: \"diplomacy\", episode_id, msg_id_expected, from, to, move, respond_to, terms_hash} (signing.md §7: header allow-list alg, kid, typ; msg_id_expected with the full power name and the 1-based batch position; terms_hash = sha256 of JCS(terms) as sent, or null). The payload is never sent: the arena rebuilds it from the session and this message, so the signature is single-use (one episode, phase, round, sender and batch position). Or the literal `session`, honoured only where the session ack lists it (the local CLI runner; a table session of a development or test deployment); recorded sig_mode session. Anything else, including a JWS from a seat without a registered key, refuses this message `signature_invalid` in its batch position. A signature authenticates; it carries no content and is not hashed into the transcript."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "respond_to",
+            "signature"
+          ],
+          "description": "Accept an offer addressed to you: binds both sides at this round's close, or binds nothing.",
+          "properties": {
+            "move": {
+              "const": "accept"
+            },
+            "to": {
+              "$ref": "#/$defs/private_to"
+            },
+            "respond_to": {
+              "$ref": "#/$defs/msg_id"
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 7,
+              "maxLength": 600,
+              "pattern": "^(session|[A-Za-z0-9_-]{16,256}\\.\\.[A-Za-z0-9_-]{16,256})$",
+              "description": "Detached compact JWS (RFC 7515 Appendix F, alg EdDSA) made with the sender's passport signing key over the RFC 8785 (JCS) bytes of {scenario: \"diplomacy\", episode_id, msg_id_expected, from, to, move, respond_to, terms_hash} (signing.md §7: header allow-list alg, kid, typ; msg_id_expected with the full power name and the 1-based batch position; terms_hash = sha256 of JCS(terms) as sent, or null). The payload is never sent: the arena rebuilds it from the session and this message, so the signature is single-use (one episode, phase, round, sender and batch position). Or the literal `session`, honoured only where the session ack lists it (the local CLI runner; a table session of a development or test deployment); recorded sig_mode session. Anything else, including a JWS from a seat without a registered key, refuses this message `signature_invalid` in its batch position. A signature authenticates; it carries no content and is not hashed into the transcript."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "respond_to"
+          ],
+          "description": "Withdraw your own pending offer.",
+          "properties": {
+            "move": {
+              "const": "withdraw"
+            },
+            "to": {
+              "$ref": "#/$defs/private_to"
+            },
+            "respond_to": {
+              "$ref": "#/$defs/msg_id"
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "move",
+            "to",
+            "respond_to",
+            "signature"
+          ],
+          "description": "End a commitment with notice (never an oracle failure).",
+          "properties": {
+            "move": {
+              "const": "renounce"
+            },
+            "to": {
+              "$ref": "#/$defs/private_to"
+            },
+            "respond_to": {
+              "$ref": "#/$defs/cmt_id"
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "Plain text, <= 2048 bytes raw (a longer string is schema_invalid for the whole frame). The engine then sanitises it (NFKC; strips controls, zero-width and bidi overrides; collapses whitespace; single line) and rejects, never truncates: over 600 bytes after sanitisation (200 for offer moves) is a per-message press_too_large; a disallowed code point is press_invalid_text."
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 7,
+              "maxLength": 600,
+              "pattern": "^(session|[A-Za-z0-9_-]{16,256}\\.\\.[A-Za-z0-9_-]{16,256})$",
+              "description": "Detached compact JWS (RFC 7515 Appendix F, alg EdDSA) made with the sender's passport signing key over the RFC 8785 (JCS) bytes of {scenario: \"diplomacy\", episode_id, msg_id_expected, from, to, move, respond_to, terms_hash} (signing.md §7: header allow-list alg, kid, typ; msg_id_expected with the full power name and the 1-based batch position; terms_hash = sha256 of JCS(terms) as sent, or null). The payload is never sent: the arena rebuilds it from the session and this message, so the signature is single-use (one episode, phase, round, sender and batch position). Or the literal `session`, honoured only where the session ack lists it (the local CLI runner; a table session of a development or test deployment); recorded sig_mode session. Anything else, including a JWS from a seat without a registered key, refuses this message `signature_invalid` in its batch position. A signature authenticates; it carries no content and is not hashed into the transcript."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "t": "diplomacy_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "turn_id": 40,
+      "nonce": "pX4nB8cV1sQe",
+      "power": "germany",
+      "intent": {
+        "phase": "S1902M",
+        "orders": [
+          "A ruh - bel",
+          "A hol S A ruh - bel",
+          "A mun H",
+          "F kie H",
+          "F den H"
+        ],
+        "notes": "Take Belgium from England with Holland support; keep Munich home vs France."
+      }
+    },
+    {
+      "t": "diplomacy_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "turn_id": 42,
+      "nonce": "dQ7vX2mL9pRt",
+      "power": "germany",
+      "press": [
+        {
+          "move": "offer",
+          "to": {
+            "kind": "private",
+            "power": "france"
+          },
+          "terms": {
+            "give": [
+              {
+                "kind": "no_enter",
+                "from_phase": "S1902M",
+                "to_phase": "F1902M",
+                "provinces": [
+                  "bur"
+                ]
+              }
+            ],
+            "want": [
+              {
+                "kind": "no_enter",
+                "from_phase": "S1902M",
+                "to_phase": "F1902M",
+                "provinces": [
+                  "hol",
+                  "mun",
+                  "ruh"
+                ]
+              }
+            ],
+            "note": "Belgium is ours this year. Border peace, signed?"
+          },
+          "expires_after_round": 3,
+          "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+        },
+        {
+          "move": "press",
+          "to": {
+            "kind": "group",
+            "powers": [
+              "austria",
+              "italy"
+            ]
+          },
+          "body": "Germany wants a quiet south this year."
+        }
+      ]
+    },
+    {
+      "t": "diplomacy_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "turn_id": 44,
+      "nonce": "Hs3kP0wqZ8aN",
+      "power": "germany",
+      "orders": [
+        "A ruh - bel",
+        {
+          "k": "support",
+          "type": "A",
+          "at": {
+            "p": "hol"
+          },
+          "of_type": "A",
+          "of": {
+            "p": "ruh"
+          },
+          "to": {
+            "p": "bel"
+          }
+        },
+        "A mun H",
+        {
+          "k": "hold",
+          "at": {
+            "p": "kie"
+          }
+        },
+        "F den H"
+      ]
+    },
+    {
+      "t": "diplomacy_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "turn_id": 48,
+      "nonce": "Wq2eR6tY8uIo",
+      "power": "germany",
+      "press": [
+        {
+          "move": "renounce",
+          "to": {
+            "kind": "private",
+            "power": "france"
+          },
+          "respond_to": "cmt:prs:S1902M:r2:germany:1",
+          "body": "Our border deal ends after this spring.",
+          "signature": "session"
+        },
+        {
+          "move": "accept",
+          "to": {
+            "kind": "private",
+            "power": "austria"
+          },
+          "respond_to": "prs:F1902M:r1:austria:1",
+          "signature": "session"
+        },
+        {
+          "move": "withdraw",
+          "to": {
+            "kind": "private",
+            "power": "italy"
+          },
+          "respond_to": "prs:F1902M:r1:germany:2"
+        }
+      ],
+      "intent": {
+        "phase": "F1902M",
+        "orders": [
+          "A bel H",
+          "A hol H",
+          "A mun - bur",
+          "F kie H",
+          "F den H"
+        ]
+      }
+    },
+    {
+      "t": "diplomacy_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "turn_id": 58,
+      "nonce": "Bz9xC3vN5mAs",
+      "power": "germany",
+      "orders": [
+        "B A ber",
+        {
+          "k": "build",
+          "type": "F",
+          "at": {
+            "p": "kie"
+          }
+        },
+        "W"
+      ]
+    }
+  ]
+}

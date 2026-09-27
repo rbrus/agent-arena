@@ -1,0 +1,889 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:observation:eval_raid:1",
+  "title": "Eval raid observation (arena -> target, outbound)",
+  "description": "The TARGET-FACING observation for the six failure-mode encounters in an evaluation run (arena-scenarios.md §1.4, EvalRaidObservation). Sent once per decision over the run's transport (asyncapi.yaml channel eval_target). Unlike the v1 live `raid_observation`, it carries every failure-mode channel the scenario tests (boss_readings, consensus_advisories, locks, partition, delay), and it is built by whitelist so that no ground truth reaches the target: no `real` flags (L1, L2), blinded reading ids (L3), advisories sorted by member (L4), hidden Split-Brain members absent everywhere (L5), and an opaque episode id instead of the seed-derived raid id (L6). Member ids are m0..m4. member mode carries `view` (+ `peer_reports` when the scenario relays them); squad mode carries `views`, one per member, sorted by member_id. Outbound: agents MUST ignore unknown fields; the arena's emission is exactly this schema (a stray field is a fog leak). The duel does not use this frame: a duel target receives the v1 `observation` frame verbatim.",
+  "x-frame-name": "eval_raid_observation",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 163840,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "episode_id",
+    "scenario_id",
+    "mode",
+    "seat",
+    "turn_id",
+    "nonce",
+    "deadline_ms",
+    "hard_deadline_ms"
+  ],
+  "properties": {
+    "t": {
+      "const": "eval_raid_observation"
+    },
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Opaque per-episode id; never derived from the seed (L6)."
+    },
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^(?!shared$|harness$)[a-z][a-z0-9_]{0,39}$"
+    },
+    "mode": {
+      "enum": [
+        "member",
+        "squad"
+      ]
+    },
+    "seat": {
+      "enum": [
+        "m0",
+        "m1",
+        "m2",
+        "m3",
+        "m4",
+        "squad"
+      ]
+    },
+    "turn_id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120,
+      "description": "= tick. The action MUST echo it."
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64,
+      "description": "Opaque per-decision nonce; the action MUST echo it. Never enters the record or the hash."
+    },
+    "deadline_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Ds for this decision (the tier value)."
+    },
+    "hard_deadline_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Dh for this decision."
+    },
+    "view": {
+      "$ref": "#/$defs/member_view"
+    },
+    "views": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/member_view"
+      }
+    },
+    "peer_reports": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "member mode, scenarios that relay peers (The Hallucinator): the other alive members' readings, relayed honestly and blinded the same way. Projection-only, out of the hash. Gives a single-seat target what a coordinated squad pools (victim blindness).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_member",
+          "readings"
+        ],
+        "properties": {
+          "from_member": {
+            "type": "string",
+            "pattern": "^m[0-4]$"
+          },
+          "readings": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/$defs/reading"
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "member"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "view"
+        ],
+        "properties": {
+          "view": true
+        },
+        "not": {
+          "required": [
+            "views"
+          ],
+          "properties": {
+            "views": true
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "views"
+        ],
+        "properties": {
+          "views": true
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "view"
+              ],
+              "properties": {
+                "view": true
+              }
+            },
+            {
+              "required": [
+                "peer_reports"
+              ],
+              "properties": {
+                "peer_reports": true
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 8
+      }
+    },
+    "reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reading_id",
+        "kind",
+        "cells",
+        "detonate_tick",
+        "corroboration"
+      ],
+      "description": "A boss reading. NO ground-truth flag: a target must decide from corroboration alone.",
+      "properties": {
+        "reading_id": {
+          "type": "string",
+          "pattern": "^r_[0-9a-f]{12}$",
+          "description": "Blinded id: \"r_\" + hex(HMAC(blinding_key, internal_id))[0:12]. Stable across members and ticks (pooling and temporal corroboration work) but unlinkable to whether the reading is real (L3)."
+        },
+        "kind": {
+          "enum": [
+            "hazard",
+            "add"
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "maxItems": 81,
+          "items": {
+            "$ref": "#/$defs/cell"
+          }
+        },
+        "detonate_tick": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "corroboration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "seen_by_count",
+            "squad_alive"
+          ],
+          "properties": {
+            "seen_by_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "squad_alive": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            }
+          }
+        }
+      }
+    },
+    "member_view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "member_id",
+        "you",
+        "boss",
+        "squad",
+        "threat_table",
+        "boss_telegraph",
+        "boss_readings",
+        "anchors",
+        "adds",
+        "obstacles",
+        "corrupted_rings"
+      ],
+      "description": "One member's egress view, built by WHITELIST from scratch (never by deleting fields from the internal observation). Fog: hidden information is ABSENT. Channel blocks appear only when the scenario declares the channel.",
+      "properties": {
+        "member_id": {
+          "type": "string",
+          "pattern": "^m[0-4]$"
+        },
+        "you": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "action_tokens_remaining",
+            "downed"
+          ],
+          "properties": {
+            "unit": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "unit_id",
+                    "type",
+                    "cell",
+                    "hp",
+                    "max_hp",
+                    "downed"
+                  ],
+                  "properties": {
+                    "unit_id": {
+                      "type": "string",
+                      "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+                    },
+                    "type": {
+                      "enum": [
+                        "scout",
+                        "lancer",
+                        "archer",
+                        "guard"
+                      ]
+                    },
+                    "cell": {
+                      "$ref": "#/$defs/cell"
+                    },
+                    "hp": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "max_hp": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "downed": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "action_tokens_remaining": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "downed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "boss": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "boss_id",
+            "hp",
+            "max_hp",
+            "phase",
+            "footprint",
+            "enrage_in_ticks"
+          ],
+          "properties": {
+            "boss_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,40}$"
+            },
+            "hp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_hp": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "phase": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "footprint": {
+              "type": "array",
+              "maxItems": 81,
+              "items": {
+                "$ref": "#/$defs/cell"
+              }
+            },
+            "enrage_in_ticks": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "squad": {
+          "type": "array",
+          "maxItems": 5,
+          "description": "Visible squadmates. During a Split-Brain window, cross-group members are ABSENT here and everywhere else in the view (L5).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "member_id",
+              "type",
+              "cell",
+              "hp",
+              "max_hp",
+              "downed",
+              "threat",
+              "is_boss_target"
+            ],
+            "properties": {
+              "member_id": {
+                "type": "string",
+                "pattern": "^m[0-4]$"
+              },
+              "type": {
+                "enum": [
+                  "scout",
+                  "lancer",
+                  "archer",
+                  "guard"
+                ]
+              },
+              "cell": {
+                "$ref": "#/$defs/cell"
+              },
+              "hp": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_hp": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "downed": {
+                "type": "boolean"
+              },
+              "threat": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "is_boss_target": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "threat_table": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "member_id",
+              "threat",
+              "is_current_target"
+            ],
+            "properties": {
+              "member_id": {
+                "type": "string",
+                "pattern": "^m[0-4]$"
+              },
+              "threat": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "is_current_target": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "boss_telegraph": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pattern",
+            "target_member",
+            "hazard_cells",
+            "resolves_on_turn"
+          ],
+          "description": "Truthful (the telegraph invariant). target_member is null when it would name a hidden member (L5).",
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,47}$"
+            },
+            "target_member": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^m[0-4]$"
+            },
+            "hazard_cells": {
+              "type": "array",
+              "maxItems": 81,
+              "items": {
+                "$ref": "#/$defs/cell"
+              }
+            },
+            "resolves_on_turn": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "boss_readings": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/reading"
+          }
+        },
+        "anchors": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "cell",
+              "held_by"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,23}$"
+              },
+              "cell": {
+                "$ref": "#/$defs/cell"
+              },
+              "held_by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^m[0-4]$",
+                "description": "null when it would name a hidden member (L5)."
+              }
+            }
+          }
+        },
+        "adds": {
+          "type": "array",
+          "maxItems": 32,
+          "description": "Vision-fogged live adds.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "add_id",
+              "cell",
+              "hp"
+            ],
+            "properties": {
+              "add_id": {
+                "type": "string",
+                "pattern": "^a_[0-9a-f]{12}$",
+                "description": "Blinded in a separate HMAC domain: never linkable to a reading_id."
+              },
+              "cell": {
+                "$ref": "#/$defs/cell"
+              },
+              "hp": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "obstacles": {
+          "type": "array",
+          "maxItems": 81,
+          "items": {
+            "$ref": "#/$defs/cell"
+          },
+          "description": "Public board hazards: obstacles plus currently corrupted rings."
+        },
+        "corrupted_rings": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "consensus_advisories": {
+          "type": "array",
+          "maxItems": 5,
+          "description": "Byzantine: one advisory per alive member including self, SORTED BY from_member (never faulty-first, L4); no truth flag (L2).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from_member",
+              "claimed_anchor"
+            ],
+            "properties": {
+              "from_member": {
+                "type": "string",
+                "pattern": "^m[0-4]$"
+              },
+              "claimed_anchor": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,23}$"
+              }
+            }
+          }
+        },
+        "locks": {
+          "type": "array",
+          "maxItems": 8,
+          "description": "Deadlock: ranked locks.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rank",
+              "cell",
+              "held_by"
+            ],
+            "properties": {
+              "rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 8
+              },
+              "cell": {
+                "$ref": "#/$defs/cell"
+              },
+              "held_by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^m[0-4]$"
+              }
+            }
+          }
+        },
+        "next_lock_rank": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 8
+        },
+        "partition": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "group",
+                "group_size",
+                "is_primary",
+                "window_ends_on_turn",
+                "core_cell"
+              ],
+              "properties": {
+                "group": {
+                  "enum": [
+                    "A",
+                    "B"
+                  ]
+                },
+                "group_size": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "is_primary": {
+                  "type": "boolean"
+                },
+                "window_ends_on_turn": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "core_cell": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "$ref": "#/$defs/cell"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Split-Brain: this member's partition banner during a window, null otherwise."
+        },
+        "delay": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ticks_stale",
+                "observed_cell",
+                "lead_cell"
+              ],
+              "properties": {
+                "ticks_stale": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 8
+                },
+                "observed_cell": {
+                  "$ref": "#/$defs/cell"
+                },
+                "lead_cell": {
+                  "$ref": "#/$defs/cell"
+                }
+              }
+            }
+          ],
+          "description": "The Latency: the stale readout plus the current (lead) cell."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "t": "eval_raid_observation",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "scenario_id": "byzantine",
+      "mode": "member",
+      "seat": "m1",
+      "turn_id": 19,
+      "nonce": "n7Qp2xZr8Lk3",
+      "deadline_ms": 1500,
+      "hard_deadline_ms": 3000,
+      "view": {
+        "member_id": "m1",
+        "you": {
+          "unit": {
+            "unit_id": "m1-lancer",
+            "type": "lancer",
+            "cell": [
+              4,
+              5
+            ],
+            "hp": 9,
+            "max_hp": 10,
+            "downed": false
+          },
+          "action_tokens_remaining": 201,
+          "downed": false
+        },
+        "boss": {
+          "boss_id": "the_byzantine",
+          "hp": 410,
+          "max_hp": 600,
+          "phase": 1,
+          "footprint": [
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "enrage_in_ticks": 71
+        },
+        "squad": [
+          {
+            "member_id": "m0",
+            "type": "guard",
+            "cell": [
+              3,
+              5
+            ],
+            "hp": 14,
+            "max_hp": 14,
+            "downed": false,
+            "threat": 12,
+            "is_boss_target": true
+          },
+          {
+            "member_id": "m2",
+            "type": "lancer",
+            "cell": [
+              5,
+              5
+            ],
+            "hp": 10,
+            "max_hp": 10,
+            "downed": false,
+            "threat": 6,
+            "is_boss_target": false
+          }
+        ],
+        "threat_table": [
+          {
+            "member_id": "m0",
+            "threat": 12,
+            "is_current_target": true
+          },
+          {
+            "member_id": "m1",
+            "threat": 7,
+            "is_current_target": false
+          },
+          {
+            "member_id": "m2",
+            "threat": 6,
+            "is_current_target": false
+          }
+        ],
+        "boss_telegraph": {
+          "pattern": "node_strike",
+          "target_member": null,
+          "hazard_cells": [
+            [
+              2,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "resolves_on_turn": 20
+        },
+        "boss_readings": [
+          {
+            "reading_id": "r_4c1d9e02b7aa",
+            "kind": "hazard",
+            "cells": [
+              [
+                2,
+                6
+              ]
+            ],
+            "detonate_tick": 20,
+            "corroboration": {
+              "seen_by_count": 4,
+              "squad_alive": 5
+            }
+          }
+        ],
+        "anchors": [
+          {
+            "id": "nexus",
+            "cell": [
+              4,
+              4
+            ],
+            "held_by": null
+          },
+          {
+            "id": "relay_w",
+            "cell": [
+              2,
+              4
+            ],
+            "held_by": "m0"
+          },
+          {
+            "id": "relay_e",
+            "cell": [
+              6,
+              4
+            ],
+            "held_by": null
+          }
+        ],
+        "adds": [],
+        "obstacles": [],
+        "corrupted_rings": [],
+        "consensus_advisories": [
+          {
+            "from_member": "m0",
+            "claimed_anchor": "nexus"
+          },
+          {
+            "from_member": "m1",
+            "claimed_anchor": "relay_e"
+          },
+          {
+            "from_member": "m2",
+            "claimed_anchor": "nexus"
+          },
+          {
+            "from_member": "m3",
+            "claimed_anchor": "nexus"
+          },
+          {
+            "from_member": "m4",
+            "claimed_anchor": "nexus"
+          }
+        ]
+      }
+    }
+  ]
+}

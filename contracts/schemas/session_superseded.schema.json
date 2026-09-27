@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:session_superseded:1",
+  "title": "Session-superseded event (server -> agent, outbound)",
+  "description": "Emitted to the OLD socket when a new authenticated connection presents the same passport (client_id). One-live-session-per-passport (agent-passports.md §4). Immediately followed by a WSS close with code 4409. This is what makes credential resale self-defeating: two users sharing one passport keep kicking each other off. If the old session had a live match binding, that binding transfers to the new session (reconnect semantics).",
+  "x-frame-name": "session_superseded",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1024,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "session_id", "superseded_by", "reason", "ts"],
+  "properties": {
+    "t": { "const": "session_superseded" },
+    "session_id": { "type": "string", "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The session being closed (this socket)." },
+    "superseded_by": { "type": "string", "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The new session that took the slot." },
+    "reason": { "const": "another connection authenticated with this passport" },
+    "ts": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "t": "session_superseded",
+      "session_id": "ses_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "superseded_by": "ses_01J8ZKD5V0X8Q3Z9N2MJHDEF4G",
+      "reason": "another connection authenticated with this passport",
+      "ts": "2026-07-18T20:14:03.117Z"
+    }
+  ]
+}

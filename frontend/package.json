@@ -1,0 +1,28 @@
+{
+  "name": "arena-replay-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent Arena replay inspector (Phase 7 B5): load a report.json (+ replay), scrub ticks, per-seat observations, oracle verdicts. Static, offline, no runtime network.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "test": "vitest run",
+    "lint:no-danger": "node verify/no-danger.mjs",
+    "verify": "npm run lint:no-danger && npm run build && node verify/no-network.mjs && npm test",
+    "samples": "../node_modules/.bin/tsx scripts/gen-samples.ts"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.5",
+    "@fontsource/ibm-plex-sans": "^5.2.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "happy-dom": "^20.14.5",
+    "vite": "^6.0.7",
+    "vitest": "^3.2.7"
+  }
+}

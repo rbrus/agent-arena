@@ -1,0 +1,573 @@
+{
+ "datc_version": "3.0",
+ "section": "6.B",
+ "cases": [
+  {
+   "id": "6.B.1",
+   "title": "Moving with unspecified coast when coast is necessary",
+   "status": "standard",
+   "rules": [
+    "4.B.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "por" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F por - spa", "result": "illegal", "reason": "coast_required" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.2",
+   "title": "Moving with unspecified coast when coast is not necessary",
+   "status": "standard",
+   "rules": [
+    "4.B.2"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "gas" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F gas - spa", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "spa/nc" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.3",
+   "title": "Moving with wrong coast when coast is not necessary",
+   "status": "standard",
+   "rules": [
+    "4.B.3"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "gas" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F gas - spa/sc", "result": "illegal", "reason": "bad_coast" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "gas" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.4",
+   "title": "Support to unreachable coast allowed",
+   "status": "standard",
+   "rules": [
+    "4.B.4"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "gas" },
+     { "power": "france", "type": "F", "at": "mar" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F gas - spa/nc", "result": "success" },
+       { "o": "F mar S F gas - spa/nc", "result": "success" }
+      ],
+      "italy": [
+       { "o": "F wes - spa/sc", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "spa/nc" },
+       { "power": "france", "type": "F", "at": "mar" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.5",
+   "title": "Support from unreachable coast not allowed",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "mar" },
+     { "power": "france", "type": "F", "at": "spa/nc" },
+     { "power": "italy", "type": "F", "at": "lyo" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F mar - lyo", "result": "failure" },
+       { "o": "F spa/nc S F mar - lyo", "result": "illegal", "reason": "support_unreachable" }
+      ],
+      "italy": [
+       "F lyo H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "mar" },
+       { "power": "france", "type": "F", "at": "spa/nc" },
+       { "power": "italy", "type": "F", "at": "lyo" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.6",
+   "title": "Support can be cut with other coast",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "iri" },
+     { "power": "england", "type": "F", "at": "nao" },
+     { "power": "france", "type": "F", "at": "spa/nc" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "italy", "type": "F", "at": "lyo" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F iri S F nao - mao", "result": "success" },
+       { "o": "F nao - mao", "result": "success" }
+      ],
+      "france": [
+       { "o": "F spa/nc S F mao", "result": "failure" },
+       "F mao H"
+      ],
+      "italy": [
+       { "o": "F lyo - spa/sc", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "iri" },
+       { "power": "england", "type": "F", "at": "mao" },
+       { "power": "france", "type": "F", "at": "spa/nc" },
+       { "power": "italy", "type": "F", "at": "lyo" }
+      ],
+      "dislodged_after": [
+       { "power": "france", "type": "F", "at": "mao" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.7",
+   "title": "Supporting own unit with unspecified coast",
+   "status": "standard",
+   "rules": [
+    "4.B.4"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "por" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F por S F mao - spa", "result": "success" },
+       { "o": "F mao - spa/nc", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "F lyo S F wes - spa/sc", "result": "success" },
+       { "o": "F wes - spa/sc", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" },
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "italy", "type": "F", "at": "lyo" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "spa"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.8",
+   "title": "Supporting with unspecified coast when only one coast is possible",
+   "status": "standard",
+   "rules": [
+    "4.B.4"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "por" },
+     { "power": "france", "type": "F", "at": "gas" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F por S F gas - spa", "result": "success" },
+       { "o": "F gas - spa/nc", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "F lyo S F wes - spa/sc", "result": "success" },
+       { "o": "F wes - spa/sc", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" },
+       { "power": "france", "type": "F", "at": "gas" },
+       { "power": "italy", "type": "F", "at": "lyo" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "spa"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.9",
+   "title": "Supporting with wrong coast",
+   "status": "standard",
+   "rules": [
+    "4.B.4"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "por" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F por S F mao - spa/nc", "result": "void" },
+       { "o": "F mao - spa/sc", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "F lyo S F wes - spa/sc", "result": "success" },
+       { "o": "F wes - spa/sc", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" },
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "italy", "type": "F", "at": "lyo" },
+       { "power": "italy", "type": "F", "at": "spa/sc" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.10",
+   "title": "Unit ordered with wrong coast",
+   "status": "standard",
+   "rules": [
+    "4.B.5"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "spa/sc" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F spa/nc - lyo", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "lyo" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.11",
+   "title": "Coast cannot be ordered to change",
+   "status": "standard",
+   "rules": [
+    "4.B.5"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "spa/nc" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F spa/sc - lyo", "result": "illegal", "reason": "not_adjacent" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "spa/nc" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.12",
+   "title": "Army movement with coastal specification",
+   "status": "standard",
+   "rules": [
+    "4.B.6"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "gas" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A gas - spa/nc", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "spa" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.13",
+   "title": "Coastal crawl not allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "bul/sc" },
+     { "power": "turkey", "type": "F", "at": "con" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F bul/sc - con", "result": "failure" },
+       { "o": "F con - bul/ec", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "bul/sc" },
+       { "power": "turkey", "type": "F", "at": "con" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.14",
+   "title": "Building with unspecified coast",
+   "status": "standard",
+   "rules": [
+    "4.B.7"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia",
+     "mos": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "B F stp", "result": "illegal", "reason": "coast_required" }
+      ]
+     },
+     "expect": {
+      "units_after": [],
+      "dislodged_after": [],
+      "phase_after": "S1902M"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.B.15",
+   "title": "Supporting foreign unit with unspecified coast",
+   "status": "standard",
+   "rules": [
+    "4.B.4"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "por" },
+     { "power": "england", "type": "F", "at": "mao" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F por S F mao - spa", "result": "success" }
+      ],
+      "england": [
+       { "o": "F mao - spa/nc", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "F lyo S F wes - spa/sc", "result": "success" },
+       { "o": "F wes - spa/sc", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" },
+       { "power": "england", "type": "F", "at": "mao" },
+       { "power": "italy", "type": "F", "at": "lyo" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "spa"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

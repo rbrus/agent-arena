@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:raid_end:1",
+  "title": "Raid-end frame (server -> agent, outbound)",
+  "description": "Terminal frame for a raid encounter, sent to each surviving/connected squad member. Carries the outcome (clear/wipe/timeout/forfeit), whether the boss was defeated, this member's and the squad's result, the revealed seed, the hash-committed replay pointer. Immediately followed by a normal WSS close (1000). Mirrors `wot:match_end:1`. CONTRACTS 2.0.0 (ADR-001): the optional `reward` (faucet Tokens/Weights/loot) and `verified` (anti-farm flag) fields are no longer emitted and were removed from the emission contract; both were OPTIONAL and outbound, so conforming agents are unaffected and the $id stays :1.",
+  "x-frame-name": "raid_end",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "raid_id", "outcome", "boss_defeated", "you", "seed", "replay_id", "replay_hash"],
+  "properties": {
+    "t": { "const": "raid_end" },
+    "raid_id": { "type": "string", "pattern": "^rad_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "boss_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,40}$" },
+    "outcome": { "enum": ["clear", "wipe", "timeout", "forfeit"], "description": "clear = boss defeated; wipe = whole squad downed; timeout = enrage/tick-cap reached with boss alive; forfeit = squad disconnected/abandoned." },
+    "boss_defeated": { "type": "boolean" },
+    "you": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["member_id", "survived"],
+      "properties": {
+        "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "slot": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "survived": { "type": "boolean" }
+      }
+    },
+    "squad": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Squad-level result summary.",
+      "properties": {
+        "squad_id": { "type": "string", "pattern": "^sqd_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "members": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["member_id", "survived"],
+            "properties": {
+              "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+              "survived": { "type": "boolean" },
+              "downed_at_end": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "boss": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phase_reached": { "type": "integer", "minimum": 0 },
+        "hp_remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ticks_played": { "type": "integer", "minimum": 0 },
+    "seed": { "type": "integer", "description": "The encounter seed, REVEALED at end. Combined with the replay it makes the raid bit-for-bit reproducible (deterministic boss, Pillar 9)." },
+    "replay_id": { "type": "string", "pattern": "^rpl_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Fetch the full replay at GET /v1/replays/{replay_id}." },
+    "replay_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$", "description": "The hash committed at end (the running per-tick state-hash chain). A re-sim from seed + inputs must reproduce it exactly." }
+  },
+  "examples": [
+    {
+      "t": "raid_end",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "boss_id": "the_hallucinator",
+      "outcome": "clear",
+      "boss_defeated": true,
+      "you": { "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "slot": 1, "survived": true },
+      "squad": {
+        "squad_id": "sqd_01J8ZKN9AA1B2C3D4E5F6G7H8J",
+        "members": [
+          { "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "survived": true, "downed_at_end": false },
+          { "member_id": "mem_RR33N2WP4JDB6SXCKN87CKTSV6", "survived": true, "downed_at_end": false },
+          { "member_id": "mem_KW6FCST8Z65024SN2BESYVKNVJ", "survived": false, "downed_at_end": true }
+        ]
+      },
+      "boss": { "phase_reached": 3, "hp_remaining": 0 },
+      "ticks_played": 156,
+      "seed": 991243007,
+      "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+      "replay_hash": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"
+    },
+    {
+      "t": "raid_end",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "boss_id": "the_hallucinator",
+      "outcome": "wipe",
+      "boss_defeated": false,
+      "you": { "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "slot": 1, "survived": false },
+      "boss": { "phase_reached": 2, "hp_remaining": 240 },
+      "ticks_played": 118,
+      "seed": 991243007,
+      "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+      "replay_hash": "sha256:9f2c1b7e4a6d8035f1c2b3a4d5e6f7089a0b1c2d3e4f5061728394a5b6c7d8e9"
+    }
+  ]
+}

@@ -1,0 +1,441 @@
+{
+ "datc_version": "3.0",
+ "section": "6.A",
+ "cases": [
+  {
+   "id": "6.A.1",
+   "title": "Moving to an area that is not a neighbour",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth - pic", "result": "illegal", "reason": "not_adjacent" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.2",
+   "title": "Move army to sea",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - iri", "result": "illegal", "reason": "army_to_sea" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "lvp" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.3",
+   "title": "Move fleet to land",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "kie" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F kie - mun", "result": "illegal", "reason": "not_adjacent" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "kie" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.4",
+   "title": "Move to own sector",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "kie" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F kie - kie", "result": "illegal", "reason": "move_to_self" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "kie" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.5",
+   "title": "Move to own sector with convoy",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "transcription_notes": "The DATC gives Germany a fleet in London; transcribed as written.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "yor" },
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "germany", "type": "F", "at": "lon" },
+     { "power": "germany", "type": "A", "at": "wal" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth C A yor - yor", "result": "illegal", "reason": "convoy_bad_destination" },
+       { "o": "A yor - yor", "result": "illegal", "reason": "move_to_self" },
+       { "o": "A lvp S A yor - yor", "result": "illegal", "reason": "unsupportable_move" }
+      ],
+      "germany": [
+       { "o": "F lon - yor", "result": "success" },
+       { "o": "A wal S F lon - yor", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "A", "at": "lvp" },
+       { "power": "germany", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "A", "at": "wal" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "A", "at": "yor" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.6",
+   "title": "Ordering a unit of another country",
+   "status": "standard",
+   "rules": [
+    "4.E.5"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "lon" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F lon - nth", "result": "illegal", "reason": "not_your_unit" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "lon" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.7",
+   "title": "Only armies can be convoyed",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "lon" },
+     { "power": "england", "type": "F", "at": "nth" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F lon - bel", "result": "illegal", "reason": "not_adjacent" },
+       { "o": "F nth C A lon - bel", "result": "illegal", "reason": "convoy_not_army" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "lon" },
+       { "power": "england", "type": "F", "at": "nth" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.8",
+   "title": "Support to hold yourself is not possible",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" },
+     { "power": "austria", "type": "F", "at": "tri" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "A ven - tri", "result": "success" },
+       { "o": "A tyr S A ven - tri", "result": "success" }
+      ],
+      "austria": [
+       { "o": "F tri S F tri", "result": "illegal", "reason": "support_own_area" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "tyr" }
+      ],
+      "dislodged_after": [
+       { "power": "austria", "type": "F", "at": "tri" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.9",
+   "title": "Fleets must follow coast if not on sea",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "F", "at": "rom" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "F rom - ven", "result": "illegal", "reason": "not_adjacent" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "F", "at": "rom" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.10",
+   "title": "Support on unreachable destination not possible",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "F", "at": "rom" },
+     { "power": "italy", "type": "A", "at": "apu" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "A ven H"
+      ],
+      "italy": [
+       { "o": "F rom S A apu - ven", "result": "illegal", "reason": "support_unreachable" },
+       { "o": "A apu - ven", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "F", "at": "rom" },
+       { "power": "italy", "type": "A", "at": "apu" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.11",
+   "title": "Simple bounce",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "ven" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A vie - tyr", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "A ven - tyr", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "ven" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "tyr"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.A.12",
+   "title": "Bounce of three units",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "italy", "type": "A", "at": "ven" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A vie - tyr", "result": "failure" }
+      ],
+      "germany": [
+       { "o": "A mun - tyr", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "A ven - tyr", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "italy", "type": "A", "at": "ven" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "tyr"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

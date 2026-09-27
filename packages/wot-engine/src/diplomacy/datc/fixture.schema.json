@@ -1,0 +1,403 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot-engine/diplomacy/datc/fixture.schema.json",
+  "title": "Diplomacy adjudicator fixture file",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "datc_version",
+    "section",
+    "cases"
+  ],
+  "properties": {
+    "datc_version": {
+      "const": "3.0"
+    },
+    "section": {
+      "type": "string",
+      "pattern": "^(6\\.[A-J]|X\\.[A-Z])$"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ]
+    },
+    "province": {
+      "type": "string",
+      "pattern": "^[a-z]{3}$"
+    },
+    "node": {
+      "type": "string",
+      "pattern": "^[a-z]{3}(/(nc|sc|ec))?$"
+    },
+    "phaseId": {
+      "type": "string",
+      "pattern": "^[SFW][0-9]{4}[MRA]$"
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "power",
+        "type",
+        "at"
+      ],
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/power"
+        },
+        "type": {
+          "enum": [
+            "A",
+            "F"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/node"
+        }
+      }
+    },
+    "dislodgedUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "power",
+        "type",
+        "at"
+      ],
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/power"
+        },
+        "type": {
+          "enum": [
+            "A",
+            "F"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/node"
+        },
+        "retreat_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "dislodgedSetup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "power",
+        "type",
+        "at",
+        "attacker_from",
+        "by_convoy",
+        "retreat_options"
+      ],
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/power"
+        },
+        "type": {
+          "enum": [
+            "A",
+            "F"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/node"
+        },
+        "attacker_from": {
+          "$ref": "#/$defs/province"
+        },
+        "by_convoy": {
+          "type": "boolean"
+        },
+        "retreat_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "orderEntry": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 64
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "o"
+          ],
+          "properties": {
+            "o": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "result": {
+              "enum": [
+                "success",
+                "failure",
+                "void",
+                "illegal",
+                "superseded",
+                "parse_error"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "pattern": "^[a-z_]+$"
+            }
+          }
+        }
+      ]
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "units"
+      ],
+      "properties": {
+        "phase": {
+          "$ref": "#/$defs/phaseId"
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/unit"
+          }
+        },
+        "supply_centers_base": {
+          "enum": [
+            "standard_1901",
+            "none"
+          ],
+          "default": "standard_1901"
+        },
+        "supply_centers": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/province"
+          },
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/power"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "dislodged": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dislodgedSetup"
+          }
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orders",
+        "expect"
+      ],
+      "properties": {
+        "orders": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/power"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/orderEntry"
+            }
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "units_after"
+          ],
+          "properties": {
+            "units_after": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/unit"
+              }
+            },
+            "dislodged_after": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/dislodgedUnit"
+              }
+            },
+            "contested_after": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/province"
+              }
+            },
+            "supply_centers_after": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/province"
+              }
+            },
+            "phase_after": {
+              "$ref": "#/$defs/phaseId"
+            }
+          }
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(6\\.[A-J]\\.[0-9]{1,2}|X\\.[A-Z]\\.[0-9]{1,3})(#[0-9])?$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "status": {
+          "enum": [
+            "standard",
+            "deviation",
+            "informative",
+            "todo"
+          ],
+          "description": "\"todo\" (engine extension): a reserved DATC id not yet encoded; needs no setup/steps."
+        },
+        "deviation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "datc_expects",
+            "we_expect",
+            "why"
+          ],
+          "properties": {
+            "datc_expects": {
+              "type": "string"
+            },
+            "we_expect": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string"
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^4\\.[A-E]\\.[0-9]$"
+          }
+        },
+        "requires": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "movement",
+              "convoy",
+              "retreat",
+              "adjustment"
+            ]
+          }
+        },
+        "transcription_notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "setup": {
+          "$ref": "#/$defs/setup"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "deviation"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "deviation"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "standard",
+                  "deviation",
+                  "informative"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "requires",
+              "setup",
+              "steps"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "arena",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WSS session layer + Grid Tactics match runner (Stage B1). Attaches to an http.Server on /v1/arena; auth, matchmaking, tick loop, replay persistence.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "wot-auth": "*",
+    "wot-contracts": "*",
+    "wot-engine": "*",
+    "wot-ledger": "*",
+    "wot-store": "*",
+    "ws": "^8.21.1"
+  }
+}

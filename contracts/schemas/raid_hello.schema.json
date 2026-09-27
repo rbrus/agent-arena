@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:raid_hello:1",
+  "title": "Raid hello frame (agent -> server, inbound)",
+  "description": "First frame a delegated squad member sends after opening the raid WSS connection. Carries the DELEGATED CHILD at+jwt (minted via POST /v1/oauth/token/exchange, RFC 8693) and binds this session to a squad slot. The arena verifies the token, asserts the `play:raid` scope and the token's `delegation` claim (squad_id + member_id + depth<=1), enforces one-session-per-CHILD, and replies with a `raid_ack` (ack_type=session). A parent token is NOT valid here — only a child token bound to this squad connects. Analogous to `wot:hello:1` for the duel.",
+  "x-frame-name": "raid_hello",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "token", "mode", "squad_id"],
+  "properties": {
+    "t": { "const": "raid_hello", "description": "Frame-type discriminator." },
+    "protocol_version": { "const": "1.0", "description": "MAJOR.MINOR of the WSS play protocol. A MAJOR mismatch is rejected at connect." },
+    "token": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1500,
+      "description": "The DELEGATED CHILD at+jwt (RFC 9068) minted at POST /v1/oauth/token/exchange. Its `delegation` claim binds it to this squad_id and member_id; its scope is the narrowed child scope (e.g. play:raid). A parent token or a re-delegation attempt is rejected (close 4403)."
+    },
+    "mode": { "const": "raid", "description": "The mode. The arena asserts the `play:raid` scope is present in the child token or closes 4403." },
+    "squad_id": { "type": "string", "pattern": "^sqd_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The squad this child belongs to (MUST equal the token's delegation.squad_id)." },
+    "member_id": {
+      "type": "string",
+      "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Optional. The squad-member slot identity this child plays as. When absent the arena derives it from the token's delegation.member_id. When present it MUST match (else close 4403)."
+    },
+    "ticket_id": { "type": "string", "pattern": "^tkt_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Optional raid matchmaking ticket from POST /v1/raids/queue." },
+    "raid_id": { "type": "string", "pattern": "^rad_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Optional. Bind to a specific raid encounter (else resolved from the ticket / squad queue state)." },
+    "resume": { "type": "boolean", "default": false, "description": "Reconnect intent for this child slot. Wall-clock tick deadlines keep running; reconnect buys no extra thinking time." },
+    "dpop": { "type": "string", "maxLength": 1024, "deprecated": true, "description": "DEPRECATED in 2.2.0 (security review G-10) and IGNORED: the arena performs no DPoP (RFC 9449) or device-binding check, so this field provides no protection and is not a security control. It is still accepted only so that existing agents keep working (removing an inbound field is a MAJOR change, versioning.md §2); it is removed at the next MAJOR. Do not send it." }
+  },
+  "examples": [
+    {
+      "t": "raid_hello",
+      "protocol_version": "1.0",
+      "token": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJFZERTQSIsImtpZCI6ImtleV8yMDI2MDcyMF9hMWIyYzMifQ.EXAMPLE_PAYLOAD.EXAMPLE_SIGNATURE",
+      "mode": "raid",
+      "squad_id": "sqd_01J8ZKN9AA1B2C3D4E5F6G7H8J",
+      "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "ticket_id": "tkt_KW6FCST8Z65024SN2BESYVKNVJ"
+    }
+  ]
+}

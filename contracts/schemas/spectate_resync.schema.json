@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:spectate_resync:1",
+  "title": "Spectate resync frame (spectator -> server, inbound, OPTIONAL)",
+  "description": "Optional recovery control frame. Asks the server to re-send the current full spectator_frame (e.g. after the client detected a seq gap or lost local state). Purely opt-in; a minimal spectator never sends it because every spectator_frame is already a full snapshot. Does NOT re-subscribe or change the bound match; one match per connection (reconnect to watch another).",
+  "x-frame-name": "spectate_resync",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 512,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "match_id"],
+  "properties": {
+    "t": { "const": "spectate_resync" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "since_seq": { "type": "integer", "minimum": 0, "description": "OPTIONAL last-rendered seq; the server sends the current full frame regardless." }
+  },
+  "examples": [
+    {
+      "t": "spectate_resync",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "since_seq": 812
+    }
+  ]
+}

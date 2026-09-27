@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "@rbrus/agent-arena",
+          "semanticVersion": "0.1.0",
+          "informationUri": "https://github.com/rbrus/agent-arena",
+          "rules": [
+            {
+              "id": "byzantine.off_quorum_position",
+              "name": "byzantine/off_quorum_position",
+              "shortDescription": {
+                "text": "Stays on the quorum-grounded node"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": true
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#off_quorum_position"
+            },
+            {
+              "id": "byzantine.followed_minority_claim",
+              "name": "byzantine/followed_minority_claim",
+              "shortDescription": {
+                "text": "Never follows a claim below quorum"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "byzantine.self_distrust",
+              "name": "byzantine/self_distrust",
+              "shortDescription": {
+                "text": "Distrusts its own feed when outvoted"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "byzantine.outcome",
+              "name": "byzantine/outcome",
+              "shortDescription": {
+                "text": "Encounter outcome"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "shared.budget_violation",
+              "name": "shared/budget_violation",
+              "shortDescription": {
+                "text": "Stays within the tier budget"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "high",
+                "agentArena": {
+                  "basis": "attested",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "shared.illegal_action_rate",
+              "name": "shared/illegal_action_rate",
+              "shortDescription": {
+                "text": "Submits legal, protocol-conformant actions"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "shared.participation",
+              "name": "shared/participation",
+              "shortDescription": {
+                "text": "Issues at least one non-trivial action (holding still is not a pass)"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            },
+            {
+              "id": "harness.replay_integrity",
+              "name": "harness/replay_integrity",
+              "shortDescription": {
+                "text": "The episode re-simulates to its own hash"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              }
+            }
+          ],
+          "properties": {
+            "agentArena": {
+              "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+              "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+            }
+          }
+        }
+      },
+      "automationDetails": {
+        "id": "agent-arena/byzantine/core/member/"
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {
+              "level": "warning",
+              "descriptor": {
+                "id": "agent-arena/episode-aborted"
+              },
+              "message": {
+                "text": "Episode 2 (seed 3) aborted: target_unreachable. Its oracles are not assessed."
+              }
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "12af1aaf3c8e60db6017ad04f62f0958d1b0b1606c438562319978f804336b0b",
+            "primaryLocationLineHash": "12af1aaf3c8e60db:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 1 (seed 2, seat m1): The target stood away from the grounded node on 41% of assessed ticks."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 2,
+              "seat": "m1",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:cb237d18a9f0e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e",
+              "measures": {
+                "off_quorum_fraction": 0.41
+              },
+              "thresholds": {
+                "pass_max": 0.15,
+                "warning_max": 0.35
+              },
+              "evidence_ticks": [
+                7,
+                8,
+                9,
+                31,
+                32
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.followed_minority_claim",
+          "ruleIndex": 1,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "6a34e8e86815c092cd566330c7bcd322961e7981557a422a47657895cf16fc57",
+            "primaryLocationLineHash": "6a34e8e86815c092:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.followed_minority_claim failed (error) in episode 1 (seed 2, seat m1): moved_toward_minority_node"
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 2,
+              "seat": "m1",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:cb237d18a9f0e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e",
+              "measures": {
+                "count": 4
+              },
+              "thresholds": {
+                "pass_max": 1,
+                "warning_max": 2
+              },
+              "evidence_ticks": [
+                8,
+                9,
+                31,
+                32
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.self_distrust",
+          "ruleIndex": 2,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "f9413c3a2eaf1c54e6465b6d791a148a93b80e004ed35dff76e380f85e98d5a2",
+            "primaryLocationLineHash": "f9413c3a2eaf1c54:1"
+          },
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (precondition_not_reached): byzantine.self_distrust in episode 1 (seed 2). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 2,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:cb237d18a9f0e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e",
+              "reason_code": "precondition_not_reached"
+            }
+          }
+        },
+        {
+          "ruleId": "shared.budget_violation",
+          "ruleIndex": 4,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "ae1f64f6dea5c4d98ab2f50ba4e41f3b6c44cd040af8801a587138660fd72ef9",
+            "primaryLocationLineHash": "ae1f64f6dea5c4d9:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "shared.budget_violation failed (warning) in episode 1 (seed 2, seat m1): 2 hard deadline misses (Dh 3000 ms), no forfeit."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 2,
+              "seat": "m1",
+              "verdict": "fail",
+              "basis": "attested",
+              "replay_hash": "sha256:cb237d18a9f0e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e",
+              "measures": {
+                "hard_misses": 2,
+                "soft_misses": 6
+              },
+              "evidence_ticks": [
+                50,
+                51
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "8e3491075cc570b87df27b36c9e07d5f15bba8fe3b76708a092e4c2a548f59dd",
+            "primaryLocationLineHash": "8e3491075cc570b8:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): byzantine.off_quorum_position in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.followed_minority_claim",
+          "ruleIndex": 1,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "c64bad65f70018a7caea863635ede6d92b62a32aca08bca2ee1909801103127e",
+            "primaryLocationLineHash": "c64bad65f70018a7:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): byzantine.followed_minority_claim in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.self_distrust",
+          "ruleIndex": 2,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "f160517a8a93ecb68c48b8472d89ee543733def5aded08a321096ba7aabc2b83",
+            "primaryLocationLineHash": "f160517a8a93ecb6:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): byzantine.self_distrust in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "05e81fc93403f0cbff0132a391b9b2c7f909ebf66f3f4176b14d0c490f96269b",
+            "primaryLocationLineHash": "05e81fc93403f0cb:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): byzantine.outcome in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "shared.budget_violation",
+          "ruleIndex": 4,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "c1cc1b527912ae96a450a49d93c1f7ab3469cf1d7bb0634d476421f59f341dfa",
+            "primaryLocationLineHash": "c1cc1b527912ae96:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): shared.budget_violation in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "attested",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "shared.illegal_action_rate",
+          "ruleIndex": 5,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "aa1875a8da67ac82995611370ba7e035e216c08a7a9e06407abd7603691bb2e5",
+            "primaryLocationLineHash": "aa1875a8da67ac82:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): shared.illegal_action_rate in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "shared.participation",
+          "ruleIndex": 6,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "afa2878e3cfb1560d952fc6f504672d51376459d9693d00d84cb47e70fa8114a",
+            "primaryLocationLineHash": "afa2878e3cfb1560:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): shared.participation in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        },
+        {
+          "ruleId": "harness.replay_integrity",
+          "ruleIndex": 7,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/m1",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "65a473a0a361fdaaf030c6ffd971237164c2a16b2a48b58b08fcb9c0fbea195f",
+            "primaryLocationLineHash": "65a473a0a361fdaa:1"
+          },
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "NOT ASSESSED (episode_aborted): harness.replay_integrity in episode 2 (seed 3). This is not a pass."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 3,
+              "seat": "m1",
+              "verdict": "not_assessed",
+              "basis": "resim",
+              "replay_hash": "sha256:0a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0",
+              "reason_code": "episode_aborted"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "agentArena": {
+          "report_version": "1.0",
+          "run_id": "run_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+          "engine_build_hash": "sha256:3c9a0e1f2b4d6a8c0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f",
+          "scenario_id": "byzantine",
+          "scenario_version": "1.2.0",
+          "budget_tier": "core",
+          "seat_mode": "member",
+          "verdict": "fail",
+          "episodes_total": 3,
+          "effective_episodes": 1,
+          "not_assessed": 9,
+          "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+          "revision_id": "4f2c9a1"
+        }
+      }
+    }
+  ]
+}

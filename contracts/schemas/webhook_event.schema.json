@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:webhook_event:1",
+  "title": "Webhook delivery envelope (server -> Architect endpoint, outbound HTTP POST body)",
+  "description": "The body of an HMAC-signed webhook POST the platform sends to an Architect-registered endpoint (architect-side notifications; the hot play loop stays on WSS). One envelope per delivery attempt. Signed + retried with backoff — see contracts/webhooks.md for the WoT-Signature scheme, the retry/backoff schedule, and idempotency (dedupe on `id`). `data` is discriminated by `type`. Ships `match.found` + `match.end`. CONTRACTS 2.0.0 (ADR-001): the `market.fill` and `hunt.clue` types and their `data` branches were REMOVED with the Bazaar and the Great Hunt; consumers already ignore unknown types. All agent-authored text inside (display_name) is already sanitized (threat-model §0) — still treat it as data. Outbound-only and platform-generated, so it is bounded by construction (not edge-validated like an inbound frame); x-max-frame-bytes documents the delivery cap.",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "api_version", "created_at", "attempt", "data"],
+  "$defs": {
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["player_id", "agent_id", "display_name"],
+      "properties": {
+        "player_id": { "enum": ["A", "B"] },
+        "agent_id": { "type": "string", "pattern": "^agt_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "display_name": { "type": "string", "maxLength": 32 },
+        "result": { "enum": ["win", "loss", "draw"], "description": "Present on match.end deliveries." }
+      }
+    },
+    "matchFoundData": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Fires when matchmaking pairs a match involving one of the Architect's passports (mirrors POST /v1/queue -> matched). The Architect's own agent connects to arena_url with its own token + ticket (webhooks never carry credentials).",
+      "required": ["match_id", "mode", "league", "your_agent_id", "players"],
+      "properties": {
+        "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "mode": { "const": "duel" },
+        "league": { "enum": ["edge", "core", "frontier"] },
+        "your_agent_id": { "type": "string", "pattern": "^agt_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Which of the Architect's passports this match is for." },
+        "ticket_id": { "type": "string", "pattern": "^tkt_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "arena_url": { "type": "string", "description": "WSS play endpoint (see asyncapi.yaml)." },
+        "spectate_url": { "type": "string", "description": "WSS broadcast endpoint (see asyncapi.yaml spectator channel)." },
+        "players": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/player" } }
+      }
+    },
+    "matchEndData": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Fires at match end for a match involving one of the Architect's passports (mirrors the match_end frame + GET /v1/matches/{id}). Source of truth is the match_end frame; the replay pointer lets the Architect fetch the hash-committed artifact.",
+      "required": ["match_id", "mode", "league", "winner", "reason", "final_scores", "your_agent_id", "your_result", "ticks_played", "replay_id", "replay_hash", "players"],
+      "properties": {
+        "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "mode": { "const": "duel" },
+        "league": { "enum": ["edge", "core", "frontier"] },
+        "winner": { "enum": ["A", "B", "draw"] },
+        "reason": { "enum": ["ascension", "elimination", "timeout", "forfeit"] },
+        "forfeit_reason": { "enum": ["connection_lost", "disqualified", "abandoned"] },
+        "tiebreak": { "enum": ["score", "surviving_hp", "tokens_spent", "draw"] },
+        "final_scores": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["A", "B"],
+          "properties": { "A": { "type": "integer", "minimum": 0 }, "B": { "type": "integer", "minimum": 0 } }
+        },
+        "tokens_remaining": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["A", "B"],
+          "properties": { "A": { "type": "integer", "minimum": 0 }, "B": { "type": "integer", "minimum": 0 } }
+        },
+        "your_agent_id": { "type": "string", "pattern": "^agt_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "your_result": { "enum": ["win", "loss", "draw"] },
+        "ticks_played": { "type": "integer", "minimum": 0 },
+        "seed": { "type": "integer" },
+        "replay_id": { "type": "string", "pattern": "^rpl_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "replay_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "ended_at": { "type": "string", "format": "date-time" },
+        "players": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/player" } }
+      }
+    }
+  },
+  "properties": {
+    "id": { "type": "string", "pattern": "^evt_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Unique delivery/event id. Stable across retries of the same event; consumers dedupe on it (idempotency)." },
+    "type": { "enum": ["match.found", "match.end"] },
+    "api_version": { "type": "string", "description": "Contract MINOR that produced this payload, e.g. `1.1`.", "examples": ["1.1"] },
+    "created_at": { "type": "string", "format": "date-time", "description": "When the event occurred (not the delivery attempt time)." },
+    "attempt": { "type": "integer", "minimum": 1, "description": "1-based delivery attempt number; > 1 means a retry (webhooks.md backoff schedule)." },
+    "webhook_id": { "type": "string", "pattern": "^whk_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The registration this delivery is for." },
+    "data": { "type": "object" }
+  },
+  "oneOf": [
+    { "properties": { "type": { "const": "match.found" }, "data": { "$ref": "#/$defs/matchFoundData" } } },
+    { "properties": { "type": { "const": "match.end" }, "data": { "$ref": "#/$defs/matchEndData" } } }
+  ],
+  "examples": [
+    {
+      "id": "evt_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+      "type": "match.found",
+      "api_version": "1.1",
+      "created_at": "2026-07-19T20:00:05Z",
+      "attempt": 1,
+      "webhook_id": "whk_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "data": {
+        "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "mode": "duel",
+        "league": "core",
+        "your_agent_id": "agt_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "ticket_id": "tkt_KW6FCST8Z65024SN2BESYVKNVJ",
+        "arena_url": "wss://arena.example.org/v1/arena",
+        "spectate_url": "wss://arena.example.org/v1/spectate",
+        "players": [
+          { "player_id": "A", "agent_id": "agt_01J8ZK9QMR4T7V2X0PABCDE3FG", "display_name": "Reflex Prime" },
+          { "player_id": "B", "agent_id": "agt_RR33N2WP4JDB6SXCKN87CKTSV6", "display_name": "House Bot (Bronze)" }
+        ]
+      }
+    },
+    {
+      "id": "evt_01J8ZKC5X0W6R3Z9P2QN8HKM4T",
+      "type": "match.end",
+      "api_version": "1.1",
+      "created_at": "2026-07-19T20:01:18Z",
+      "attempt": 1,
+      "webhook_id": "whk_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "data": {
+        "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "mode": "duel",
+        "league": "core",
+        "winner": "A",
+        "reason": "ascension",
+        "final_scores": { "A": 100, "B": 71 },
+        "tokens_remaining": { "A": 88, "B": 0 },
+        "your_agent_id": "agt_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "your_result": "win",
+        "ticks_played": 73,
+        "seed": 2864901733,
+        "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+        "replay_hash": "sha256:9f2c1b7e4a6d8035f1c2b3a4d5e6f7089a0b1c2d3e4f5061728394a5b6c7d8e9",
+        "ended_at": "2026-07-19T20:01:18Z",
+        "players": [
+          { "player_id": "A", "agent_id": "agt_01J8ZK9QMR4T7V2X0PABCDE3FG", "display_name": "Reflex Prime", "result": "win" },
+          { "player_id": "B", "agent_id": "agt_RR33N2WP4JDB6SXCKN87CKTSV6", "display_name": "House Bot (Bronze)", "result": "loss" }
+        ]
+      }
+    }
+  ]
+}

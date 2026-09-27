@@ -1,0 +1,112 @@
+# Agent Arena sandbox: the arena server + one reference target agent, both from
+# ONE image (sandbox/Dockerfile) — the image the Phase 9 hosted runner reuses.
+#
+#   ./gen-env.sh                 # once: writes .env (pepper + signing key)
+#   docker compose up --build    # arena on 127.0.0.1:8080, target on 127.0.0.1:8081
+#   ./verify.sh                  # CLI-in-container run + golden-anchor check
+#
+# Both ports are published on loopback only (threat-model-arena G-2, N-9).
+# Every container is read-only, drops all capabilities and cannot gain new
+# privileges; /tmp is the only writable path (tmpfs).
+
+name: agent-arena-sandbox
+
+x-image: &image
+  # ARENA_IMAGE pins a published image (e.g. ghcr.io/rbrus/agent-arena@sha256:...)
+  # for the hosted cross-check; unset, compose builds agent-arena:local.
+  image: ${ARENA_IMAGE:-agent-arena:local}
+  build:
+    context: ..
+    dockerfile: sandbox/Dockerfile
+    # The contracts/ directory as a named context, in both layouts:
+    #   public repo:   ../contracts     (inside the checkout; the default)
+    #   nested source layout:  ../../contracts  (beside ascension/, outside the context)
+    # gen-env.sh writes the right value into .env, which compose reads for
+    # interpolation; verify.sh computes and exports it on every run. The named
+    # context is kept in the public layout too: .dockerignore drops **/*.md
+    # from the main context, and tests read contracts/*.md.
+    additional_contexts:
+      contracts: ${ARENA_CONTRACTS_CONTEXT:-../contracts}
+    args:
+      VERSION: ${ARENA_VERSION:-0.0.0-dev}
+      REVISION: ${ARENA_REVISION:-unknown}
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+
+services:
+  # Arena server: passports + gateway REST and the WSS dial-in planes
+  # (/v1/arena, /v1/raid) for agents that connect to the arena.
+  arena:
+    <<: [*image, *hardening]
+    entrypoint: ['/nodejs/bin/node', '/app/arena-server.mjs']
+    command: []
+    # .env holds WOT_ENV, WOT_DEV_AUTH, WOT_SECRET_PEPPER, WOT_JWT_PRIVATE_JWK.
+    # Nothing secret is in the image or in this file. Missing .env = refuse.
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      WOT_HOST: 0.0.0.0 # inside the container; exposure is the loopback publish below
+      WOT_PORT: '8080'
+      WOT_PUBLIC_WS_ORIGIN: ws://localhost:8080
+      ARENA_HEALTH_PORT: '8080'
+    ports:
+      - '127.0.0.1:8080:8080'
+    restart: 'no'
+
+  # One reference target agent over REST: the coordinated (CLEAR) reference
+  # squad, served by the CLI (`serve-reference`, script contract
+  # `target:reference -- --policy coordinated|naive --port N`).
+  target:
+    <<: [*image, *hardening]
+    command: ['serve-reference', '--policy', '${ARENA_TARGET_POLICY:-coordinated}', '--port', '8081', '--host', '0.0.0.0', '--allow-non-loopback']
+    environment:
+      ARENA_HEALTH_PORT: '8081'
+    ports:
+      - '127.0.0.1:8081:8081'
+    restart: 'no'
+
+  # One-shot CLI run (profile `run`, used by verify.sh). It joins the TARGET's
+  # network namespace, so the literal loopback URL http://127.0.0.1:8081 reaches
+  # the target from a second container. That is the CLI's explicit, logged
+  # loopback opt-in; a compose hostname (http://target:8081) resolves to a
+  # private address, which the CLI's network guard blocks by design.
+  run:
+    <<: [*image, *hardening]
+    profiles: [run]
+    network_mode: 'service:target'
+    depends_on:
+      target:
+        condition: service_healthy
+    # Write the report as the invoking user (verify.sh sets these) so ./out is
+    # readable on the host without root.
+    user: '${ARENA_UID:-65532}:${ARENA_GID:-65532}'
+    volumes:
+      - ${ARENA_OUT_DIR:-./out}:/tmp/out
+    healthcheck:
+      disable: true
+    command:
+      - run
+      - --scenario
+      - byzantine
+      - --seat
+      - squad
+      - --tier
+      - core
+      - --seeds
+      - '20260720,1,2,3,5'
+      - --episodes
+      - '5'
+      - --target
+      - http://127.0.0.1:8081
+      - --transport
+      - rest
+      - --i-own-this-target
+      - --out
+      - /tmp/out
+    restart: 'no'

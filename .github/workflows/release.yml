@@ -1,0 +1,446 @@
+# rbrus/agent-arena - release. Tag vX.Y.Z (or vX.Y.Z-rc.N) on main ->
+#   1. verify:   full CI re-run (ci.yml via workflow_call): npm ci, typecheck,
+#                tests, tier-0, contract checks, lint:net, the phase gate, the
+#                bundle smoke, secrets scan, inspector
+#   2. bundle:   npm ci -> build:cli -> third-party licences -> the bundle
+#                reproduces the frozen anchor + the five gate anchors -> the
+#                golden gate directory (whole: report + record/replay siblings)
+#                -> SBOM (CycloneDX 1.5 via `npm sbom`, from the lockfile)
+#   3. binaries: Node SEA, one native runner per target, postject from the
+#                lockfile (no `npx --yes`); each binary must print the version,
+#                reproduce the frozen anchor hash itself, and verify the whole
+#                golden directory before it is packaged and attested
+#   4. image:    sandbox/Dockerfile (== the Phase 9 hosted image) -> the image
+#                reproduces the anchor -> GHCR push -> digest as a job output,
+#                in the step summary and in the release notes -> build-provenance
+#                attestation + cosign keyless signature
+#   5. npm:      npm publish --provenance of @rbrus/agent-arena (irreversible,
+#                so it runs only after 3 and 4 are green; `npm-publish`
+#                environment with a required reviewer)
+#   6. release:  GitHub release with binaries, SHA256SUMS, SBOM, image digest
+#
+# Ordering note: npm publish is deliberately AFTER the binaries and the image,
+# not before. A published npm version can never be re-published, so it waits
+# until every other artifact of the version has proven the anchor hashes.
+#
+# Binary tool choice (Node SEA over bun build --compile / pkg) and the npm name
+# decision are recorded in docs/phase-7/EXTRACTION.md sections 7 and 8.
+# Copied to .github/workflows/ by the extraction procedure; not active in the
+# nested source layout (contracts/ beside the workspace).
+name: release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+', 'v[0-9]+.[0-9]+.[0-9]+-*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false # never cancel a half-finished publish
+
+env:
+  # The exact Node embedded in every binary. Bump deliberately: every binary
+  # re-proves the anchor below, so a bump that changes a hash fails here.
+  SEA_NODE_VERSION: 22.23.3
+  # Frozen golden anchor (packages/arena-scenarios/src/anchors.ts): byzantine,
+  # core, squad seating, seed 20260720, in-process coordinated reference.
+  ANCHOR_HASH: sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147
+  GATE_SEEDS: 20260720,1,2,3,5
+  # npm CLI used for the publish (trusted publishing needs >= 11.5.1). Exact
+  # version: nothing in this workflow installs an unpinned tool.
+  NPM_PUBLISH_VERSION: 11.17.0
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  bundle:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.SEA_NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Tag must equal packages/arena-cli version; anchor must be frozen
+        id: v
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(node -p "require('./packages/arena-cli/package.json').version")
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag v$tag does not match packages/arena-cli version $pkg"; exit 1
+          fi
+          grep -qF "$ANCHOR_HASH" packages/arena-scenarios/src/anchors.ts \
+            || { echo "::error::ANCHOR_HASH is not in packages/arena-scenarios/src/anchors.ts"; exit 1; }
+          echo "version=$pkg" >> "$GITHUB_OUTPUT"
+          case "$pkg" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT";; *) echo "prerelease=false" >> "$GITHUB_OUTPUT";; esac
+      - name: Build bundle + third-party licence file
+        run: |
+          set -euo pipefail
+          npm run build:cli
+          npm run licenses:third-party -- --out packages/arena-cli/dist/THIRD_PARTY_LICENSES.txt
+          ls -la packages/arena-cli/dist
+      - name: Golden gate directory (five gate seeds; must match every frozen anchor)
+        run: |
+          set -euo pipefail
+          cli=packages/arena-cli/dist/agent-arena.cjs
+          node "$cli" run --scenario byzantine --seat squad --tier core \
+            --seeds "$GATE_SEEDS" --episodes 5 --target ref:coordinated \
+            --out "$RUNNER_TEMP/golden/gate" 2>&1 | tee "$RUNNER_TEMP/golden.log"
+          test "$(grep -c 'anchor: match' "$RUNNER_TEMP/golden.log")" -eq 5
+          got=$(node -p "require(process.argv[1]).episodes[0].replay_hash" "$RUNNER_TEMP/golden/gate/report.json")
+          [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::anchor mismatch: $got"; exit 1; }
+          # Committed golden fixtures (Stage C1), if present, travel WHOLE:
+          # verify needs the report.episode-<n>.record.json siblings.
+          if [ -d qa/fixtures/golden ]; then cp -R qa/fixtures/golden "$RUNNER_TEMP/golden/committed"; fi
+          ls -laR "$RUNNER_TEMP/golden"
+      - name: SBOM (CycloneDX 1.5, from the lockfile)
+        # `npm sbom` (npm >= 10.1, ships with Node 22) instead of a new
+        # @cyclonedx/cyclonedx-npm devDependency. It lists the workspace's build
+        # tree (all bundled packages are devDependencies, so dev is included);
+        # THIRD_PARTY_LICENSES.txt lists the exact subset inside the bundle.
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sbom"
+          npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
+            -w @rbrus/agent-arena > "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
+          node -e "const b=require(process.argv[1]); if(b.bomFormat!=='CycloneDX'||!b.components?.length) process.exit(1); console.log(b.bomFormat, b.specVersion, b.components.length, 'components')" \
+            "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cli-bundle
+          path: packages/arena-cli/dist
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: golden
+          path: ${{ runner.temp }}/golden
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: ${{ runner.temp }}/sbom
+          if-no-files-found: error
+          retention-days: 7
+
+  binaries:
+    needs: bundle
+    name: binary (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # build-provenance attestation
+      attestations: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: linux-x64, os: ubuntu-24.04, ext: '' }
+          - { target: linux-arm64, os: ubuntu-24.04-arm, ext: '' }
+          - { target: darwin-arm64, os: macos-15, ext: '' }
+          # macos-13 (last x64 image) was retired in 2025; macos-15-intel is the
+          # remaining GitHub-hosted Intel image. Drop this row when it retires.
+          - { target: darwin-x64, os: macos-15-intel, ext: '' }
+          - { target: win-x64, os: windows-2025, ext: '.exe' }
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.bundle.outputs.version }}
+      BIN: agent-arena${{ matrix.ext }}
+    steps:
+      # Checkout only for package-lock.json: postject comes from the lockfile.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.SEA_NODE_VERSION }}
+          cache: npm
+      - name: Install build tools from the lockfile (postject; no install scripts)
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          echo "postject $(node -p "require('postject/package.json').version") (lockfile)"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: cli-bundle
+          path: sea/dist
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: golden
+          path: sea/golden
+
+      - name: Build single executable (Node SEA)
+        working-directory: sea
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v${SEA_NODE_VERSION}"
+          cat > sea-config.json <<'JSON'
+          {
+            "main": "dist/agent-arena.cjs",
+            "output": "sea-prep.blob",
+            "disableExperimentalSEAWarning": true,
+            "useSnapshot": false,
+            "useCodeCache": false
+          }
+          JSON
+          node --experimental-sea-config sea-config.json
+          cp "$(node -p 'process.execPath')" "$BIN"
+          if [ "$RUNNER_OS" = "macOS" ]; then codesign --remove-signature "$BIN"; fi
+          macho=()
+          if [ "$RUNNER_OS" = "macOS" ]; then macho=(--macho-segment-name NODE_SEA); fi
+          # --no-install: fail rather than fetch; the lockfile pins postject.
+          npx --no-install postject "$BIN" NODE_SEA_BLOB sea-prep.blob \
+            --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 "${macho[@]}"
+          if [ "$RUNNER_OS" = "macOS" ]; then codesign --sign - "$BIN"; fi
+
+      - name: Smoke - version, frozen anchor, verify the whole golden directory
+        working-directory: sea
+        run: |
+          set -euo pipefail
+          ./"$BIN" --version | grep -F "$VERSION"
+          ./"$BIN" list-scenarios > /dev/null
+          # 1. The binary itself reproduces the frozen anchor (no network: ref: target).
+          ./"$BIN" run --scenario byzantine --seat squad --target ref:coordinated \
+            --seeds 20260720 --episodes 1 --out smoke/anchor --json > smoke-anchor.json
+          got=$(node -p "require('./smoke-anchor.json').episodes[0].replay_hash")
+          echo "anchor: $got"
+          [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::${{ matrix.target }} binary produced $got, frozen anchor is $ANCHOR_HASH"; exit 1; }
+          # 2. It verifies the golden gate directory produced by the npm bundle
+          #    (and any committed C1 fixtures) - copied whole, siblings included.
+          ./"$BIN" verify golden/gate/report.json
+          if [ -d golden/committed ]; then
+            find golden/committed -type f \( -name report.json -o -name '*.report.json' \) -print0 \
+              | xargs -0 -n1 ./"$BIN" verify
+          fi
+
+      - name: Package
+        id: pkg
+        working-directory: sea
+        run: |
+          set -euo pipefail
+          name="agent-arena-${VERSION}-${{ matrix.target }}"
+          mkdir -p "$name"
+          cp "$BIN" ../LICENSE ../NOTICE dist/THIRD_PARTY_LICENSES.txt "$name/"
+          curl -fsSL -o "$name/LICENSE.node.txt" \
+            "https://raw.githubusercontent.com/nodejs/node/v${SEA_NODE_VERSION}/LICENSE"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a -tzip "$name.zip" "$name" > /dev/null
+            echo "file=sea/$name.zip" >> "$GITHUB_OUTPUT"
+          else
+            tar -czf "$name.tar.gz" "$name"
+            echo "file=sea/$name.tar.gz" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.pkg.outputs.file }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-${{ matrix.target }}
+          path: ${{ steps.pkg.outputs.file }}
+          if-no-files-found: error
+          retention-days: 7
+
+  image:
+    needs: bundle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # attestation + cosign keyless
+      attestations: write
+    outputs:
+      name: ${{ steps.push.outputs.name }}
+      digest: ${{ steps.push.outputs.digest }}
+    env:
+      VERSION: ${{ needs.bundle.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build + smoke (sandbox/Dockerfile == Phase 9 hosted image)
+        id: build
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          # contracts/ is ALWAYS passed as the named context, exactly as
+          # sandbox/docker-compose.yml does, so this image equals the sandbox
+          # image. Without it the Dockerfile's fallback stage copies contracts/
+          # from the main context, where .dockerignore drops **/*.md: the
+          # contract tests fail, and build.ts would inline no CHANGELOG.md, so
+          # the CLI bundle would differ from the sandbox's (release blocker).
+          # Public layout: ./contracts. Private layout: ../contracts.
+          if [ -d contracts/schemas ]; then ctx=(--build-context contracts=./contracts)
+          elif [ -d ../contracts/schemas ]; then ctx=(--build-context contracts=../contracts)
+          else echo "::error::contracts/schemas not found"; exit 1; fi
+          docker build -f sandbox/Dockerfile "${ctx[@]}" \
+            --build-arg "VERSION=${VERSION}" --build-arg "REVISION=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            -t "$image:$VERSION" .
+          docker run --rm --network none "$image:$VERSION" --version | grep -F "$VERSION"
+          # The image reproduces the frozen anchor, hardened as compose runs it.
+          got=$(docker run --rm --network none --read-only --tmpfs /tmp --cap-drop ALL \
+                  --security-opt no-new-privileges:true "$image:$VERSION" \
+                  run --scenario byzantine --seat squad --target ref:coordinated \
+                  --seeds 20260720 --episodes 1 --out /tmp/anchor --json \
+                | jq -r '.episodes[0].replay_hash')
+          echo "anchor: $got"
+          [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::image produced $got, frozen anchor is $ANCHOR_HASH"; exit 1; }
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+      - name: Push to GHCR, record the digest
+        id: push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ steps.build.outputs.image }}
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE:$VERSION"
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$VERSION" | cut -d@ -f2)
+          case "$digest" in sha256:*) ;; *) echo "::error::no registry digest after push"; exit 1;; esac
+          echo "name=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Container image"
+            echo
+            echo "\`$IMAGE@$digest\` (tag \`$VERSION\`)"
+            echo
+            echo "Pin this digest in the hosted runner (Phase 9 cross-check)."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.push.outputs.name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2 (installs its pinned, checksum-verified cosign)
+      - name: Cosign keyless signature (GitHub OIDC -> Fulcio, Rekor)
+        env:
+          REF: ${{ steps.push.outputs.name }}@${{ steps.push.outputs.digest }}
+        run: cosign sign --yes "$REF"
+
+  npm:
+    needs: [bundle, binaries, image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Create this environment with a required reviewer: the npm publish is the
+    # one irreversible step (a version can never be re-published).
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write # npm provenance + trusted publishing (OIDC)
+    env:
+      VERSION: ${{ needs.bundle.outputs.version }}
+      DIST_TAG: ${{ needs.bundle.outputs.prerelease == 'true' && 'next' || 'latest' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.SEA_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: npm ${{ env.NPM_PUBLISH_VERSION }} (trusted publishing needs >= 11.5.1)
+        run: npm install -g "npm@${NPM_PUBLISH_VERSION}"
+      # The same bytes the binaries embedded and the smoke tests proved.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: cli-bundle
+          path: packages/arena-cli/dist
+      - name: Publish (exactly once per version)
+        working-directory: packages/arena-cli
+        env:
+          # Bootstrap only (first publish, before the trusted publisher is
+          # configured on npmjs.com). Delete the secret afterwards; OIDC is used
+          # whenever it is absent.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          name=$(node -p "require('./package.json').name")
+          if npm view "${name}@${VERSION}" version > /dev/null 2>&1; then
+            echo "::notice::${name}@${VERSION} already on npm - skipping (idempotent re-run)"
+            exit 0
+          fi
+          # package.json "files" lists LICENSE and NOTICE at the package root.
+          cp ../../LICENSE ../../NOTICE .
+          npm pack --dry-run
+          npm publish --provenance --access public --tag "$DIST_TAG"
+
+  github-release:
+    needs: [bundle, binaries, image, npm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.bundle.outputs.version }}
+      PRERELEASE: ${{ needs.bundle.outputs.prerelease }}
+      IMAGE_NAME: ${{ needs.image.outputs.name }}
+      IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: bin-*
+          path: assets
+          merge-multiple: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: sbom
+          path: assets
+      - name: Checksums, notes (image digest) + release (idempotent)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd assets
+          echo "${IMAGE_NAME}@${IMAGE_DIGEST}" > image-digest.txt
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+          notes="$RUNNER_TEMP/notes.md"
+          {
+            echo "<!-- agent-arena:artifacts -->"
+            echo "**Container image** (same image as the hosted runner): \`${IMAGE_NAME}@${IMAGE_DIGEST}\`"
+            echo
+            echo "- npm: \`@rbrus/agent-arena@${VERSION}\` (with npm provenance)"
+            echo "- Binaries: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win-x64 (Node ${SEA_NODE_VERSION} SEA). Each reproduced the frozen anchor \`${ANCHOR_HASH}\` on its own runner."
+            echo "- SBOM: \`agent-arena-${VERSION}.cdx.json\` (CycloneDX 1.5)."
+            echo "- Verify: \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`; image: \`cosign verify ${IMAGE_NAME}@${IMAGE_DIGEST} --certificate-identity-regexp '^https://github.com/${GITHUB_REPOSITORY}/' --certificate-oidc-issuer https://token.actions.githubusercontent.com\`"
+            echo "<!-- /agent-arena:artifacts -->"
+          } > "$notes"
+          pre=()
+          if [ "$PRERELEASE" = "true" ]; then pre=(--prerelease); fi
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            # Re-run: replace our block in the existing notes, keep the rest.
+            gh release view "$GITHUB_REF_NAME" --json body -q .body > "$RUNNER_TEMP/old.md"
+            python3 - "$RUNNER_TEMP/old.md" "$notes" > "$RUNNER_TEMP/new.md" <<'PY'
+          import re, sys
+          old = open(sys.argv[1]).read()
+          block = open(sys.argv[2]).read().strip()
+          pat = re.compile(r"<!-- agent-arena:artifacts -->.*?<!-- /agent-arena:artifacts -->", re.S)
+          print(pat.sub(lambda _m: block, old) if pat.search(old) else block + "\n\n" + old)
+          PY
+            gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/new.md"
+            gh release upload "$GITHUB_REF_NAME" -- * --clobber
+          else
+            # --notes is prepended to the generated notes.
+            gh release create "$GITHUB_REF_NAME" --verify-tag "${pre[@]}" \
+              --title "agent-arena ${VERSION}" --generate-notes --notes "$(cat "$notes")" -- *
+          fi

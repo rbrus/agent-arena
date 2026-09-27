@@ -1,0 +1,459 @@
+{
+  "report_version": "1.0",
+  "run": {
+    "run_id": "run_DJN8J5B18V4JHB5X76J7NGSMG0",
+    "mode": "local",
+    "started_at": "2026-09-26T13:51:51.891Z",
+    "finished_at": "2026-09-26T13:51:51.903Z",
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "spec": {
+      "scenario_id": "latency",
+      "scenario_version": "1.2.0",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://in-process.invalid/ref:naive",
+        "label": "in-process reference ref:naive"
+      },
+      "labels": {
+        "arena.network_policy": "in-process"
+      }
+    },
+    "target_ownership": {
+      "loopback": true,
+      "attested": false
+    }
+  },
+  "engine": {
+    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_scope": "core",
+    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "version": "arena@2.0.0"
+  },
+  "scenario": {
+    "scenario_id": "latency",
+    "version": "1.2.0",
+    "failure_mode_id": "observation-latency",
+    "oracles": [
+      {
+        "oracle_id": "latency.stale_strike_rate",
+        "title": "Strikes the current cell, not the stale observation",
+        "primary": true,
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/latency.md#stale_strike_rate"
+      },
+      {
+        "oracle_id": "latency.chased_observed_cell",
+        "title": "Share of strikes at the stale observed cell",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/latency.md#chased_observed_cell"
+      },
+      {
+        "oracle_id": "latency.outcome",
+        "title": "Encounter outcome",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning",
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/latency.md#outcome"
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "title": "Stays within the tier budget",
+        "level": "episode",
+        "basis": "attested",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "title": "Submits legal, protocol-conformant actions",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+      },
+      {
+        "oracle_id": "shared.participation",
+        "title": "Issues at least one non-trivial action (holding still is not a pass)",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "title": "The episode re-simulates to its own hash",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+      }
+    ]
+  },
+  "budget_limits": {
+    "tier": "core",
+    "soft_deadline_ms": 1500,
+    "hard_deadline_ms": 3000,
+    "hard_miss_forfeit": 3,
+    "token_allowance": 240,
+    "tick_cap": 120,
+    "max_orders_per_unit": 1,
+    "max_inbound_frame_bytes": 8192
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "seed": 20260720,
+      "scenario_id": "latency",
+      "mode": "squad",
+      "seat": "squad",
+      "status": "completed",
+      "outcome": "wipe",
+      "outcome_reason": "squad_wiped",
+      "terminal_tick": 100,
+      "replay_hash": "sha256:42989e45c735b1238861e4c8dff3273f148c69f989c12a9337e000cb55c5802a",
+      "replay_ref": "report.episode-0.replay.json",
+      "trajectory_class": "sha256:748b5586634d486abc6ccf3cf61a25af77ec5eb1634855be400874b7f0de8d86",
+      "blinding_key": "d6593dbf9da5065f9f691b1a37cac268ba30301296c671a6342a55fe1ca6b7dc",
+      "budget": {
+        "tier": "core",
+        "decisions": 100,
+        "actions_submitted": 0,
+        "actions_rejected": 0,
+        "frames_too_large": 0,
+        "soft_deadline_misses": 0,
+        "hard_deadline_misses": 0,
+        "coerced_orders": 0,
+        "over_allowance_orders": 0,
+        "tokens_allowance": 1200,
+        "tokens_spent": 402,
+        "within_budget": true
+      },
+      "oracles": [
+        {
+          "oracle_id": "latency.stale_strike_rate",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "error",
+          "basis": "resim",
+          "measures": {
+            "stale_rate": 1,
+            "bar_attacks": 19,
+            "m0_stale": 1,
+            "m1_stale": 1,
+            "m2_stale": 1,
+            "m3_stale": 1,
+            "m4_stale": 1
+          },
+          "thresholds": {
+            "pass_max": 0.1,
+            "warning_max": 0.5,
+            "min_bar_attacks": 4
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:42989e45c735b1238861e4c8dff3273f148c69f989c12a9337e000cb55c5802a",
+            "ticks": [
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58
+            ],
+            "code": "struck_stale_cell",
+            "message": "100% of m0's strikes on the bar hit a cell that was no longer exposed."
+          }
+        },
+        {
+          "oracle_id": "latency.chased_observed_cell",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "chased_fraction": 1,
+            "bar_attacks": 19
+          },
+          "thresholds": {
+            "note_min": 0.5
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:42989e45c735b1238861e4c8dff3273f148c69f989c12a9337e000cb55c5802a",
+            "ticks": [
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58
+            ],
+            "code": "chased_stale_readout",
+            "message": "100% of m0's bar strikes landed exactly on the stale readout."
+          }
+        },
+        {
+          "oracle_id": "latency.outcome",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "warning",
+          "basis": "resim",
+          "measures": {
+            "terminal_tick": 100,
+            "boss_hp": 210
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:42989e45c735b1238861e4c8dff3273f148c69f989c12a9337e000cb55c5802a",
+            "ticks": [
+              99
+            ],
+            "code": "episode_wipe",
+            "message": "The encounter ended in wipe at tick 100."
+          }
+        },
+        {
+          "oracle_id": "shared.budget_violation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "tokens_spent": 402,
+            "tokens_allowance": 1200,
+            "over_allowance_orders": 0,
+            "clock_assessed": 0
+          },
+          "thresholds": {
+            "soft_miss_rate_max": 0.05,
+            "hard_miss_forfeit": 3
+          }
+        },
+        {
+          "oracle_id": "shared.illegal_action_rate",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "illegal": 0,
+            "submitted": 258,
+            "engine_coercions": 0,
+            "transport_rejects": 0,
+            "over_speed": 0,
+            "truncated_moves": 0
+          },
+          "thresholds": {
+            "pass_max": 0.02,
+            "warning_max": 0.1
+          }
+        },
+        {
+          "oracle_id": "shared.participation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "decision_ticks": 100,
+            "nontrivial_actions": 224,
+            "active_ticks": 100,
+            "trivial_actions": 34,
+            "moves": 55,
+            "attacks": 169,
+            "revives": 0,
+            "pings": 0
+          },
+          "thresholds": {
+            "nontrivial_actions_min": 1
+          }
+        },
+        {
+          "oracle_id": "harness.replay_integrity",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "ticks": 100
+          }
+        }
+      ],
+      "duration_ms": 8,
+      "seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:f86b367f7cf4a4b0f20bc3f25ad6e54e03cbea1bf9d60d6ebd5afd7b9aacfdab"
+          }
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:69a672523d8170c99b82d2ca56c5ac374fbb7d3e3887acacb237a7bd4cd21db2"
+          }
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:9921ec12de59c01a2f61f98306834b466e89e21d786d36c9bb13f86d4a19403c"
+          }
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:8f298fe9dd4a375fcbfcddf7fd4692154681cf0ad5247aae9854d28cbc8ded8e"
+          }
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:1d576911b1ff258a52e844bc6be2c481d6d8f6ec8cb8094ec819df3d6ccc9785"
+          }
+        }
+      ]
+    }
+  ],
+  "run_oracles": [],
+  "summary": {
+    "verdict": "fail",
+    "episodes_total": 1,
+    "episodes_completed": 1,
+    "episodes_aborted": 0,
+    "effective_episodes": 1,
+    "outcomes": {
+      "wipe": 1
+    },
+    "oracles": [
+      {
+        "oracle_id": "latency.stale_strike_rate",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "error": 1
+        }
+      },
+      {
+        "oracle_id": "latency.chased_observed_cell",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "note": 1
+        }
+      },
+      {
+        "oracle_id": "latency.outcome",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "warning": 1
+        }
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.participation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      }
+    ],
+    "within_budget_episodes": 1
+  },
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+  },
+  "not_assessed": []
+}

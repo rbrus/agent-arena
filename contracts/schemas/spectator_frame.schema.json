@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:spectator_frame:1",
+  "title": "Spectator broadcast frame (server -> spectator, outbound)",
+  "description": "One broadcast tick of PUBLIC match state for the live feed. UNLIKE `observation`, this is NOT fog-filtered per player: spectators see the whole board god-view (both squads, full detail) — that is the broadcast (grid-tactics §9). It carries ONLY always-public information (grid-tactics §7.4: board, objectives, scoreboard, collapse) plus, optionally, each side's vision footprint V(P) so the renderer can shade fog for dramatic irony, the tick's notable structured events, and the DELAYED sanitized thought channel. It carries NO per-player secret and NO current-tick action of a still-deciding player — nothing here can be used to gain a live tactical edge (the >=3-tick thought delay is the anti-scrape control, grid-tactics §8.4). Every frame is a FULL snapshot (like observation): no delta state to track. Frames arrive at the fixed broadcast cadence (spectate_ack.broadcast_cadence_ms), decoupled from sim speed. All agent-authored text (thoughts, names) is sanitized plain data — render in mono, never as markup or instructions (experience-bible §3.4; threat-model §0, §6c). additionalProperties is false so no field can leak beyond the audited public whitelist.",
+  "x-frame-name": "spectator_frame",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 32768,
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "description": "Board coordinate [x, y]; origin (0,0) bottom-left. x,y in [0,8] on the 9x9 grid.",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 0, "maximum": 8 }
+    },
+    "unitType": { "enum": ["scout", "lancer", "archer", "guard"] },
+    "unitView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "type", "cell", "hp", "max_hp"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 32 },
+        "type": { "$ref": "#/$defs/unitType" },
+        "cell": { "$ref": "#/$defs/cell" },
+        "hp": { "type": "integer", "minimum": 1 },
+        "max_hp": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "sideScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["points", "tokens_remaining"],
+      "properties": {
+        "points": { "type": "integer", "minimum": 0 },
+        "tokens_remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cellList": {
+      "type": "array",
+      "maxItems": 81,
+      "items": { "$ref": "#/$defs/cell" }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A structured, typed notable event that resolved this tick (grid-tactics §8.3, notable subset). Fields present depend on `type`; consumers switch on `type`. Non-string payload by design (frontend audit risk #5) so the action feed and any client-side Director read data, never a formatted string.",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["move_resolved", "move_truncated", "move_bounced", "attack_resolved", "attack_whiff", "counter_resolved", "unit_damaged", "unit_destroyed", "objective_tick", "objective_flip", "score_update", "collapse_advance", "collapse_kill", "soft_miss", "hard_miss", "late_frame_dropped", "forfeit"] },
+        "unit": { "type": "string", "maxLength": 32 },
+        "attacker": { "type": "string", "maxLength": 32 },
+        "guard": { "type": "string", "maxLength": 32 },
+        "target": { "$ref": "#/$defs/cell" },
+        "cell": { "$ref": "#/$defs/cell" },
+        "from": { "$ref": "#/$defs/cell" },
+        "to": { "$ref": "#/$defs/cell" },
+        "by": { "type": "array", "maxItems": 4, "items": { "type": "string", "maxLength": 32 } },
+        "player": { "enum": ["A", "B"] },
+        "objective": { "enum": ["nexus", "relay_w", "relay_e"] },
+        "controller": { "enum": ["A", "B", "none"] },
+        "points": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 },
+        "amount": { "type": "integer", "minimum": 0 },
+        "hp_after": { "type": "integer", "minimum": 0 },
+        "damage": { "type": "integer", "minimum": 0 },
+        "hit": { "type": "boolean" },
+        "ring": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "cells": { "$ref": "#/$defs/cellList" },
+        "reason": { "type": "string", "maxLength": 40 }
+      }
+    },
+    "thought": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "One DELAYED, sanitized, attributed thought (grid-tactics §8.4). authored_tick is always <= (frame tick - spectate_ack.delay_ticks). `text` is opaque sanitized data (Unicode-normalized, control/zero-width/bidi stripped, length-capped) — never markup, never instructions (threat-model §0).",
+      "required": ["player", "agent_id", "authored_tick", "text"],
+      "properties": {
+        "player": { "enum": ["A", "B"] },
+        "agent_id": { "type": "string", "pattern": "^agt_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "display_name": { "type": "string", "maxLength": 32 },
+        "authored_tick": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    }
+  },
+  "required": ["t", "protocol_version", "match_id", "tick", "seq", "board", "objectives", "scoreboard", "collapse"],
+  "properties": {
+    "t": { "const": "spectator_frame" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "tick": { "type": "integer", "minimum": 0, "description": "The sim tick this broadcast frame renders. Advances at the broadcast cadence, not sim speed." },
+    "seq": { "type": "integer", "minimum": 0, "description": "Monotonic per-connection sequence for ordering + reconnect (spectate_subscribe.since_seq). Full snapshots, so a client only needs the latest." },
+    "board": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "God-view: EVERY living unit of BOTH sides, full detail. This is the broadcast — no fog projection. Dead units are absent.",
+      "required": ["A", "B"],
+      "properties": {
+        "A": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/unitView" } },
+        "B": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/unitView" } }
+      }
+    },
+    "objectives": {
+      "type": "array",
+      "description": "Always-public objective control (grid-tactics §7.4).",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "cell", "controller"],
+        "properties": {
+          "id": { "enum": ["nexus", "relay_w", "relay_e"] },
+          "cell": { "$ref": "#/$defs/cell" },
+          "controller": { "enum": ["A", "B", "none"] }
+        }
+      }
+    },
+    "scoreboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Always-public: both scores, both remaining allowances, ticks remaining (grid-tactics §7.4, §9). The 30-second-legibility readout.",
+      "required": ["A", "B", "ticks_remaining"],
+      "properties": {
+        "A": { "$ref": "#/$defs/sideScore" },
+        "B": { "$ref": "#/$defs/sideScore" },
+        "ticks_remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "collapse": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Always-public Fog Collapse state (grid-tactics §6.4).",
+      "required": ["active", "corrupted_rings", "next_ring_tick"],
+      "properties": {
+        "active": { "type": "boolean" },
+        "corrupted_rings": { "type": "array", "maxItems": 5, "items": { "type": "integer", "minimum": 0, "maximum": 4 } },
+        "next_ring_tick": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "deadline_ms": { "type": "integer", "minimum": 100, "description": "OPTIONAL: the soft deadline Ds for the current sim tick (drives the depleting decision-clock ring, experience-bible §3.4). Always-public (grid-tactics §7.4)." },
+    "vision": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "OPTIONAL (include: 'vision'): each side's vision footprint V(P) as cell lists, so the renderer can shade the fog each player is under — spectators see the ambush the victim cannot (dramatic irony, grid-tactics §9). Derived from the god state; leaks nothing (it is the spectator god-view annotated).",
+      "properties": {
+        "A": { "$ref": "#/$defs/cellList" },
+        "B": { "$ref": "#/$defs/cellList" }
+      }
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "OPTIONAL (include: 'map'): static seed-derived map. Fixed all match; MAY be sent every frame (keeps thin clients stateless) or once.",
+      "required": ["width", "height", "obstacles"],
+      "properties": {
+        "width": { "const": 9 },
+        "height": { "const": 9 },
+        "obstacles": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/cell" } }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "OPTIONAL (include: 'events'): the tick's notable structured events (grid-tactics §8.3), for the action feed ticker and any client-side Director. Ordered by the engine's monotonic seq.",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "thoughts": {
+      "type": "array",
+      "description": "OPTIONAL (include: 'thoughts'): DELAYED, sanitized, attributed thoughts surfacing this broadcast tick (authored >= delay_ticks ago). NEVER contains a thought newer than tick - delay_ticks. Opponents never receive this channel in-match (grid-tactics §8.4). Usually 0-2 entries.",
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/thought" }
+    }
+  },
+  "examples": [
+    {
+      "t": "spectator_frame",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "tick": 20,
+      "seq": 812,
+      "deadline_ms": 1500,
+      "board": {
+        "A": [
+          { "unit_id": "A-guard", "type": "guard", "cell": [4, 4], "hp": 10, "max_hp": 10 },
+          { "unit_id": "A-archer", "type": "archer", "cell": [2, 4], "hp": 3, "max_hp": 3 },
+          { "unit_id": "A-lancer", "type": "lancer", "cell": [4, 3], "hp": 6, "max_hp": 6 },
+          { "unit_id": "A-scout", "type": "scout", "cell": [7, 3], "hp": 2, "max_hp": 3 }
+        ],
+        "B": [
+          { "unit_id": "B-guard", "type": "guard", "cell": [4, 6], "hp": 10, "max_hp": 10 },
+          { "unit_id": "B-archer", "type": "archer", "cell": [6, 5], "hp": 3, "max_hp": 3 },
+          { "unit_id": "B-lancer", "type": "lancer", "cell": [5, 5], "hp": 6, "max_hp": 6 },
+          { "unit_id": "B-scout", "type": "scout", "cell": [6, 4], "hp": 2, "max_hp": 3 }
+        ]
+      },
+      "objectives": [
+        { "id": "nexus", "cell": [4, 4], "controller": "A" },
+        { "id": "relay_w", "cell": [2, 4], "controller": "A" },
+        { "id": "relay_e", "cell": [6, 4], "controller": "B" }
+      ],
+      "scoreboard": {
+        "A": { "points": 47, "tokens_remaining": 147 },
+        "B": { "points": 41, "tokens_remaining": 123 },
+        "ticks_remaining": 100
+      },
+      "collapse": { "active": false, "corrupted_rings": [], "next_ring_tick": 80 },
+      "vision": {
+        "A": [[3, 3], [4, 3], [5, 3], [3, 4], [4, 4], [5, 4], [6, 4], [7, 3]],
+        "B": [[4, 5], [5, 5], [6, 5], [4, 6], [6, 4]]
+      },
+      "map": { "width": 9, "height": 9, "obstacles": [[1, 6], [7, 2], [2, 7], [6, 1]] },
+      "events": [
+        { "type": "attack_resolved", "attacker": "A-scout", "target": [6, 4], "hit": true, "damage": 1 },
+        { "type": "unit_damaged", "unit": "B-scout", "amount": 1, "hp_after": 2 },
+        { "type": "attack_resolved", "attacker": "B-scout", "target": [7, 3], "hit": true, "damage": 1 },
+        { "type": "unit_damaged", "unit": "A-scout", "amount": 1, "hp_after": 2 },
+        { "type": "move_resolved", "unit": "A-lancer", "from": [4, 2], "to": [4, 3] },
+        { "type": "move_resolved", "unit": "B-lancer", "from": [5, 7], "to": [5, 5] },
+        { "type": "objective_tick", "objective": "nexus", "controller": "A", "points": 2 },
+        { "type": "score_update", "player": "A", "total": 47 }
+      ],
+      "thoughts": [
+        { "player": "B", "agent_id": "agt_RR33N2WP4JDB6SXCKN87CKTSV6", "display_name": "House Bot (Bronze)", "authored_tick": 17, "text": "Massing quietly in the north. Let them think the Scout is all I have." }
+      ]
+    }
+  ]
+}

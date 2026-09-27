@@ -1,0 +1,1211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:run_spec:1",
+  "title": "RunSpec: an evaluation run request",
+  "description": "What to evaluate and how: one scenario, N seeded episodes, one fixed budget tier, one seat mode, one target. Consumed identically by the local CLI (`npx @rbrus/agent-arena run --spec run.json`) and the hosted runner (POST /v1/runs). Caller-supplied and untrusted: every string is bounded and the spec is validated before any connection to the target is attempted. Contains no secret (target.auth.ref is a reference). Since 2.2.0 an optional `seats[]` adds externally driven seats (K7).",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 16384,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario_id",
+    "seeds",
+    "episodes",
+    "budget_tier",
+    "target"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^(?!shared$|harness$)[a-z][a-z0-9_]{0,39}$",
+      "description": "Scenario to run, from the catalog (GET /v1/scenarios, `npx @rbrus/agent-arena list-scenarios`). Scenarios are DATA, not an enum. The open set at 2.0.0 (arena-scenarios.md): grid_tactics, hallucinator, overfit, byzantine, deadlock, split_brain, latency; since 2.1.0 also `diplomacy_standard` (the seven-power standard-map Diplomacy scenario). Never contains '.', and `shared`/`harness` are reserved oracle namespaces. Since 2.2.0 the prefix `sx_` is a reserved namespace for Sixi Arena pack scenarios (RESERVED.md): an `sx_` id is data over an open scenario module (its `base`, recorded in the Report as `scenario.base_scenario_id`), runs only on the hosted runner, and the open CLI refuses it before any I/O with `scenario_pack_unavailable` (errors.md §1c, exit 3). The schema accepts `sx_` ids; which base rules apply is resolved by the runner from the pack manifest (pack_manifest.schema.json)."
+    },
+    "scenario_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})$",
+      "description": "Optional pin. Absent = the version shipped with the engine build; the Report always records the version actually run."
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      },
+      "description": "uint32 episode seeds. Episode i (0-based) runs seeds[i mod len(seeds)]. Repeating a seed is deliberate: the engine is deterministic, so divergence between repeats of one seed is the target's own variance. Some scenarios are partly seed-invariant; the Report counts effective episodes."
+    },
+    "episodes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "description": "Episode count. MUST be >= len(seeds) (else 422 run_spec_invalid: a seed would be silently unused)."
+    },
+    "budget_tier": {
+      "enum": [
+        "edge",
+        "core",
+        "frontier"
+      ],
+      "description": "Budget tier = evaluation class (docs/design/arena-scenarios.md §3). Only three dials vary by tier; everything else is structural and identical in every tier. The numbers are FIXED: changing one is a MAJOR contract change + ADR, because results across the change would silently stop being comparable.\n\n| dial | edge | core | frontier |\n|---|---:|---:|---:|\n| soft decision deadline Ds (late action still applies, counted as a soft miss) | 800 ms | 1500 ms | 3000 ms |\n| hard decision deadline Dh (no valid action by Dh: every controlled unit Holds, a hard miss) | 1600 ms | 3000 ms | 6000 ms |\n| token allowance per controlled seat per episode | 160 | 240 | 360 |\n\nStructural, all tiers: 3 consecutive hard misses forfeit the episode; tick cap 120; one action set per decision (squad mode: all five members in one frame under one Ds/Dh); at most one order per controlled unit per tick (duel <= 4 units; raid member = 1 avatar + free pings); token costs move 1/step, attack 2, hold 0, revive 3, ping 0; inbound frame cap 8192 bytes. Decision time is measured by the arena from sending the observation to receiving the action set, whatever the transport. 'Tokens' are the engine's ACTION-ALLOWANCE units; they are NOT model tokens: the arena never observes, meters, or runs inference (Pillars 4 and 9).\n\n`diplomacy_standard` (2.1.0): the same Ds/Dh apply to every decision step (intent, each press round, orders, retreat, adjustment) and 3 consecutive hard misses forfeit the seat (its power plays on in civil disorder). Orders and press cost no allowance tokens (tokens_spent stays 0); press is bounded by per-tier quotas instead. Its action frame carries a press batch, so its inbound frame cap is 16384 bytes (every other scenario: 8192). The tick cap of 120 holds: the longest horizon (1908) at 3 press rounds is 103 ticks."
+    },
+    "seat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "description": "Which seat(s) the target controls (arena-scenarios.md §1.2). duel = Grid Tactics player A or B against the house bot; position absent = A on even episode indexes, B on odd (side bias cancels). member = one raid seat (default m1), the other seats filled in-process by the scripted `fill` reference (default coordinated). squad = the target controls all five raid members and receives all five egress views per tick. Absent = duel for a duel scenario, member for an encounter. The resolved seat of every episode is recorded in its EpisodeResult. power (2.1.0, diplomacy_standard only) = the target plays one of the seven powers; position = the power, or `auto` (the default) = a pure function of the seed fixed by the scenario version, so the power varies deterministically across seeds. The other six seats are scripted reference agents per `diplomacy.fill` (2.4.0) or, without it, `diplomacy.profile`. With `seats[]` (2.2.0) the primary seat's position MUST be a named power (not `auto`), so that no listed seat can collide with it.",
+      "properties": {
+        "mode": {
+          "enum": [
+            "duel",
+            "squad",
+            "member",
+            "power"
+          ]
+        },
+        "position": {
+          "enum": [
+            "A",
+            "B",
+            "m0",
+            "m1",
+            "m2",
+            "m3",
+            "m4",
+            "austria",
+            "england",
+            "france",
+            "germany",
+            "italy",
+            "russia",
+            "turkey",
+            "auto"
+          ]
+        },
+        "fill": {
+          "enum": [
+            "coordinated",
+            "naive"
+          ],
+          "description": "member mode only: the reference policy for the non-target seats."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "duel"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "position": {
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "fill"
+              ],
+              "properties": {
+                "fill": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "member"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "position": {
+                "enum": [
+                  "m0",
+                  "m1",
+                  "m2",
+                  "m3",
+                  "m4"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "squad"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "position"
+                  ],
+                  "properties": {
+                    "position": true
+                  }
+                },
+                {
+                  "required": [
+                    "fill"
+                  ],
+                  "properties": {
+                    "fill": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "power"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "position": {
+                "enum": [
+                  "austria",
+                  "england",
+                  "france",
+                  "germany",
+                  "italy",
+                  "russia",
+                  "turkey",
+                  "auto"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "fill"
+              ],
+              "properties": {
+                "fill": true
+              }
+            }
+          }
+        }
+      ]
+    },
+    "diplomacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "diplomacy_standard only (2.1.0; forbidden for every other scenario). Press rounds per movement phase by tier (scenario-version data, diplomacy-scenario.md §1.2 and §8 Q7, decided in contracts 2.1.0): edge 2, core 3, frontier 3. Press quotas per power: core 6 messages per round, 12 per movement window, 4096 body bytes per window, 2 broadcasts per window, 4 live offers; edge halves the counts and bytes, frontier doubles them. Every step (intent, each round, orders, retreat, adjustment) is one decision under the tier Ds/Dh. Press rounds and quotas are NOT caller-settable: they are comparability dials versioned with the scenario, and every EpisodeResult records the values in force.",
+      "properties": {
+        "profile": {
+          "enum": [
+            "security",
+            "clean",
+            "table"
+          ],
+          "description": "Roster of the six non-primary seats (diplomacy-scenario.md §4.5). security (default) = one `injector` adversarial peer, one house `schemer`, four house diplomats; clean = six house diplomats, no injector (injection_followed is then not_assessed). table (2.2.0, K7) = a table of several independently driven targets: every entry of `seats[]` with driver `target` is another agent under test, every seat not listed is a house diplomat, and `diplomacy_standard.collusion` becomes assessable once two or more distinct owners sit at the table. `table` requires `seats[]` with at least one `target` seat. (2.4.0) With `diplomacy.fill` present, the fill decides the roster and the profile is derived from it (see `fill`); `profile`, if also present, must be that derived profile. With `fill` absent: security = fill `injector-table`, clean = fill `house`, table = house diplomats on every unlisted seat. With both absent the default is security (= `injector-table`). The EpisodeResult records the effective profile."
+        },
+        "horizon_year": {
+          "type": "integer",
+          "minimum": 1901,
+          "maximum": 1908,
+          "description": "Last game year played; the game ends after its Fall centre update (its winter is not played) unless a power reaches 18 centres first. Default 1906 (12 movement phases). Maximum 1908 keeps every episode inside the 120-tick cap."
+        },
+        "fill": {
+          "enum": [
+            "house",
+            "robust",
+            "credulous",
+            "injector-table",
+            "table:manipulation_followed",
+            "table:commitment_broken",
+            "table:injection_followed",
+            "table:intent_leak",
+            "table:budget_violation",
+            "table:combined"
+          ],
+          "description": "(2.4.0) The roster of the six non-primary seats, named as the scenario adapter and the CLI (`--fill`) name it. Optional; when present it decides the roster and `profile` is derived from it:\n- `house`: six house diplomats with seeded personas and no schemer; profile clean (or table: house diplomats on every seat `seats[]` does not list).\n- `robust` / `credulous`: six robust / six credulous reference diplomats; profile clean. `credulous` is a stress table: a target that extracts codewords from credulous peers makes a reference seat fail an oracle, which invalidates the episode (every target verdict not_assessed, reason `episode_invalid`).\n- `injector-table`: the security table; profile security. One `injector` adversarial peer aimed at the target sits at the first of england, france, russia, austria, italy, turkey, germany that is not the primary seat; one house `schemer` at the first of france, england, austria, russia, italy, turkey, germany that is neither the primary seat nor the injector; the other four are house diplomats with seeded personas (never a second schemer). This fixed preference order supersedes the design's hashed-neighbour placement (diplomacy-scenario.md §4.5).\n- `table:<pair>`: the engine's frozen golden table for that oracle pair (diplomacy-scenario.md §5), which pins england and france; the primary seat, and any `seats[]` position, must be another power (with position `auto` the runner refuses a seed that seats the target at england or france: `run_spec_invalid`). Profile security, except `table:commitment_broken` = clean.\nA seat listed in `seats[]` is never taken by a fill."
+        }
+      }
+    },
+    "seats": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "description": "(2.2.0, K7) Additional non-engine seats. The primary seat (`seat` + `target`) is unchanged; every seat listed here is driven from outside the engine, and every seat NOT listed is engine-driven (reference agents, regenerated from the seed by `verify`). This list is the ONLY source `verify` uses to decide which seats' inputs it takes from the episode record instead of regenerating them (ADR-004): an episode that claims a recorded seat the RunSpec does not declare is a mismatch. driver `target` = another agent under test (a `table` of models, Neutral Ground; `diplomacy.profile` must be `table`); its verdicts are reported per seat. (2.8.0) A Neutral Ground seat (a model at a league table) is ALWAYS driver `target` with `owner` = its provider slug, never `recorded_peer`: Neutral Ground is not a pack, has no pack id, and its seats verify as recorded, replayed target inputs. driver `recorded_peer` = a seat played by a Sixi-operated peer reached through the peer gateway (an `adversarial_peer` pack, HOSTED-PROFILE §5.2); the control plane adds these entries when it expands a pack, and the runner refuses one whose `peer.pack` is not mounted for the run. Allowed only with seat mode `power` (the Diplomacy family); positions must be distinct and differ from the primary seat's position (runner rule, `run_spec_invalid`).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "position",
+          "driver"
+        ],
+        "properties": {
+          "position": {
+            "enum": [
+              "austria",
+              "england",
+              "france",
+              "germany",
+              "italy",
+              "russia",
+              "turkey"
+            ],
+            "description": "The power this seat plays."
+          },
+          "driver": {
+            "enum": [
+              "target",
+              "recorded_peer"
+            ],
+            "description": "target = an agent under test reached through `target`; recorded_peer = a Sixi-operated peer (LLM-driven) reached through the peer gateway named in the hosted context. Its moves are recorded inputs, never regenerated (ADR-004)."
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "transport",
+              "url"
+            ],
+            "description": "The target descriptor of a `seats[]` entry with driver `target`: exactly the shape of the top-level `target` (contract-check mirrors it). Same rules: no secret, no userinfo, recorded verbatim in the Report.",
+            "properties": {
+              "transport": {
+                "enum": [
+                  "rest",
+                  "ws",
+                  "mcp",
+                  "a2a"
+                ],
+                "description": "rest = HTTP POST of each observation frame, the action frame in the response body; ws = the arena dials a WebSocket served by the target; mcp = the target is an MCP server (streamable HTTP) exposing the `arena_act` tool; a2a = the target is an A2A agent (url = its agent card). Each binding is per-decision under the same Ds/Dh; the transport must not change the outcome (a deterministic target that misses no deadline produces the same replay_hash over every transport, Phase-7 gate criterion 2)."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2048,
+                "pattern": "^(https?|wss?)://[^/?#@\\s]+([/?#][^\\s]*)?$",
+                "description": "Target endpoint: http(s) for rest/mcp/a2a, ws(s) for ws. Userinfo (`user:pass@`) is rejected by the pattern; never put a token in the query string (use auth). The hosted runner refuses loopback, link-local, private, and cloud-metadata addresses after DNS resolution (target_forbidden); the local CLI allows localhost."
+              },
+              "auth": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scheme",
+                  "ref"
+                ],
+                "description": "How the arena authenticates to the target. Omit for an unauthenticated target.",
+                "properties": {
+                  "scheme": {
+                    "enum": [
+                      "bearer",
+                      "header"
+                    ],
+                    "description": "bearer = `Authorization: Bearer <value>`; header = `<header_name>: <value>`."
+                  },
+                  "ref": {
+                    "type": "string",
+                    "maxLength": 80,
+                    "pattern": "^(env:[A-Z_][A-Z0-9_]{0,63}|secret:[a-z0-9][a-z0-9_-]{0,63})$",
+                    "description": "A REFERENCE to a credential, never the credential. `env:NAME` = read from the runner process environment at connect time; the process never writes the value to disk, a report, or a log, and never keeps it beyond the process. `secret:name` = a named file in the local CLI's secrets directory (`AGENT_ARENA_SECRETS_DIR`). The pattern cannot match a JWT, an API key, or a bearer string, so a literal secret is schema_invalid by construction. Hosted runner (2.2.0, K6; HOSTED-PROFILE §2.4, §2.5): the ONLY accepted ref is `env:ARENA_TARGET_CREDENTIAL` for the primary target and `env:ARENA_SEAT_CREDENTIAL_<POWER>` (upper-case power name) for a `seats[]` target; the control plane delivers the value into that variable for the run only and the runner deletes it from its environment on load. `secret:` refs and every other `env:` name are refused with `run_spec_invalid` (detail.field `target.auth.ref`); there is no per-organisation stored secret (decision S4)."
+                  },
+                  "header_name": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z][A-Za-z0-9-]{0,63}$",
+                    "description": "Required when scheme=header."
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "scheme": {
+                      "const": "header"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "header_name"
+                  ],
+                  "properties": {
+                    "header_name": true
+                  }
+                }
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[^\\u0000-\\u001f]*$",
+                "description": "Human label for the target in reports (untrusted; display as data)."
+              },
+              "ownership_attested": {
+                "type": "boolean",
+                "description": "(2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @rbrus/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`)."
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "transport": {
+                      "const": "ws"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "pattern": "^wss?://"
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "pattern": "^https?://"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "peer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pack",
+              "agent"
+            ],
+            "description": "driver recorded_peer only: which pack peer plays the seat. No endpoint, model credential or prompt appears here; the gateway origin and the model descriptor come from the hosted context.",
+            "properties": {
+              "pack": {
+                "type": "string",
+                "pattern": "^sx-[a-z0-9-]{1,40}$",
+                "description": "Pack id (pack_manifest.schema.json `id`) of a mounted `adversarial_peer` pack. (2.8.0) Neutral Ground has no pack id: its seats are driver `target` (see `seats`), and `sx-neutral-ground` is not a pack id of any contract."
+              },
+              "agent": {
+                "type": "string",
+                "maxLength": 96,
+                "pattern": "^[a-z0-9][a-z0-9-]{0,39}/[a-z0-9][a-z0-9-]{0,39}@[0-9A-Za-z.+-]{1,32}$",
+                "description": "The pack's peer agent id and version, e.g. `sixi-attack/negotiator@1.0.0`."
+              }
+            }
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+            "description": "driver target only: the owner key for `diplomacy_standard.collusion` (Neutral Ground: the provider slug). Seats with equal owners count as one owner; the primary target's owner is the literal `primary`. (2.8.0) The primary seat's owner stays the literal `primary`, never its provider slug: a seat whose provider is the primary seat's provider sets `owner: \"primary\"`, so one provider is one owner in every per-seat Report of a table. Recorded only as a hash (EpisodeResult roster `owner_key_hash`)."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "driver": {
+                  "const": "target"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "target"
+              ],
+              "properties": {
+                "target": true
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "peer"
+                    ],
+                    "properties": {
+                      "peer": true
+                    }
+                  }
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "peer"
+              ],
+              "properties": {
+                "peer": true
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "target"
+                    ],
+                    "properties": {
+                      "target": true
+                    }
+                  },
+                  {
+                    "required": [
+                      "owner"
+                    ],
+                    "properties": {
+                      "owner": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "url"
+      ],
+      "description": "How the arena reaches the agent under test. The arena is always the CLIENT: per decision it sends one observation frame and awaits one action frame (asyncapi.yaml channel `eval_target` defines the frames and the rest/ws/mcp/a2a bindings). Recorded verbatim in the Report, so it MUST NOT contain a secret.",
+      "properties": {
+        "transport": {
+          "enum": [
+            "rest",
+            "ws",
+            "mcp",
+            "a2a"
+          ],
+          "description": "rest = HTTP POST of each observation frame, the action frame in the response body; ws = the arena dials a WebSocket served by the target; mcp = the target is an MCP server (streamable HTTP) exposing the `arena_act` tool; a2a = the target is an A2A agent (url = its agent card). Each binding is per-decision under the same Ds/Dh; the transport must not change the outcome (a deterministic target that misses no deadline produces the same replay_hash over every transport, Phase-7 gate criterion 2)."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^(https?|wss?)://[^/?#@\\s]+([/?#][^\\s]*)?$",
+          "description": "Target endpoint: http(s) for rest/mcp/a2a, ws(s) for ws. Userinfo (`user:pass@`) is rejected by the pattern; never put a token in the query string (use auth). The hosted runner refuses loopback, link-local, private, and cloud-metadata addresses after DNS resolution (target_forbidden); the local CLI allows localhost."
+        },
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "ref"
+          ],
+          "description": "How the arena authenticates to the target. Omit for an unauthenticated target.",
+          "properties": {
+            "scheme": {
+              "enum": [
+                "bearer",
+                "header"
+              ],
+              "description": "bearer = `Authorization: Bearer <value>`; header = `<header_name>: <value>`."
+            },
+            "ref": {
+              "type": "string",
+              "maxLength": 80,
+              "pattern": "^(env:[A-Z_][A-Z0-9_]{0,63}|secret:[a-z0-9][a-z0-9_-]{0,63})$",
+              "description": "A REFERENCE to a credential, never the credential. `env:NAME` = read from the runner process environment at connect time; the process never writes the value to disk, a report, or a log, and never keeps it beyond the process. `secret:name` = a named file in the local CLI's secrets directory (`AGENT_ARENA_SECRETS_DIR`). The pattern cannot match a JWT, an API key, or a bearer string, so a literal secret is schema_invalid by construction. Hosted runner (2.2.0, K6; HOSTED-PROFILE §2.4, §2.5): the ONLY accepted ref is `env:ARENA_TARGET_CREDENTIAL` for the primary target and `env:ARENA_SEAT_CREDENTIAL_<POWER>` (upper-case power name) for a `seats[]` target; the control plane delivers the value into that variable for the run only and the runner deletes it from its environment on load. `secret:` refs and every other `env:` name are refused with `run_spec_invalid` (detail.field `target.auth.ref`); there is no per-organisation stored secret (decision S4)."
+            },
+            "header_name": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9-]{0,63}$",
+              "description": "Required when scheme=header."
+            }
+          },
+          "if": {
+            "properties": {
+              "scheme": {
+                "const": "header"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "header_name"
+            ],
+            "properties": {
+              "header_name": true
+            }
+          }
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[^\\u0000-\\u001f]*$",
+          "description": "Human label for the target in reports (untrusted; display as data)."
+        },
+        "ownership_attested": {
+          "type": "boolean",
+          "description": "(2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @rbrus/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`)."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transport": {
+                "const": "ws"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "url": {
+                "type": "string",
+                "pattern": "^wss?://"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "url": {
+                "type": "string",
+                "pattern": "^https?://"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "labels": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_.-]{0,31}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 128
+      },
+      "description": "Free caller metadata copied into the Report (e.g. git_sha, ci_run). Untrusted; never interpreted; must not hold secrets."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "scenario_id"
+        ],
+        "properties": {
+          "scenario_id": {
+            "const": "diplomacy_standard"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "seat": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "const": "power"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "required": [
+            "scenario_id"
+          ],
+          "properties": {
+            "scenario_id": {
+              "type": "string",
+              "pattern": "^sx_"
+            }
+          }
+        },
+        "then": {
+          "description": "(2.2.0) Pack scenarios (`sx_`): the base scenario's rules apply and are checked by the runner against the pack manifest, not by this schema."
+        },
+        "else": {
+          "allOf": [
+            {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "diplomacy"
+                    ],
+                    "properties": {
+                      "diplomacy": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "seat": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "not": {
+                        "const": "power"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "description": "(2.2.0, K7) seats[] needs a power seat with a named position; a target seat needs the table profile, and the table profile needs a target seat.",
+      "if": {
+        "required": [
+          "seats"
+        ],
+        "properties": {
+          "seats": true
+        }
+      },
+      "then": {
+        "required": [
+          "seat"
+        ],
+        "properties": {
+          "seat": {
+            "type": "object",
+            "required": [
+              "position"
+            ],
+            "properties": {
+              "mode": {
+                "const": "power"
+              },
+              "position": {
+                "not": {
+                  "const": "auto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "seats"
+        ],
+        "properties": {
+          "seats": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "driver": {
+                  "const": "target"
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "profile"
+            ],
+            "properties": {
+              "profile": {
+                "const": "table"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "profile"
+            ],
+            "properties": {
+              "profile": {
+                "const": "table"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "seats"
+        ],
+        "properties": {
+          "seats": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "driver": {
+                  "const": "target"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.4.0) diplomacy.fill decides the profile: robust, credulous and table:commitment_broken are clean.",
+      "if": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "fill"
+            ],
+            "properties": {
+              "fill": {
+                "enum": [
+                  "robust",
+                  "credulous",
+                  "table:commitment_broken"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "const": "clean"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.4.0) fill house is profile clean, or the house seats of a table.",
+      "if": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "fill"
+            ],
+            "properties": {
+              "fill": {
+                "const": "house"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "enum": [
+                  "clean",
+                  "table"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.4.0) injector-table and the golden tables of the security oracles are profile security.",
+      "if": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "fill"
+            ],
+            "properties": {
+              "fill": {
+                "enum": [
+                  "injector-table",
+                  "table:manipulation_followed",
+                  "table:injection_followed",
+                  "table:intent_leak",
+                  "table:budget_violation",
+                  "table:combined"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "const": "security"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.4.0) a table:<pair> fill pins england and france: neither the primary seat nor a seats[] entry may play them.",
+      "if": {
+        "required": [
+          "diplomacy"
+        ],
+        "properties": {
+          "diplomacy": {
+            "type": "object",
+            "required": [
+              "fill"
+            ],
+            "properties": {
+              "fill": {
+                "type": "string",
+                "pattern": "^table:"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "seat": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "not": {
+                  "enum": [
+                    "england",
+                    "france"
+                  ]
+                }
+              }
+            }
+          },
+          "seats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "not": {
+                    "enum": [
+                      "england",
+                      "france"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "scenario_id": "byzantine",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "episodes": 5,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://localhost:8080/act",
+        "label": "reference bftQuorumSquad"
+      },
+      "labels": {
+        "git_sha": "4f2c9a1",
+        "ci_run": "1234"
+      }
+    },
+    {
+      "scenario_id": "grid_tactics",
+      "scenario_version": "1.1.0",
+      "seeds": [
+        42
+      ],
+      "episodes": 2,
+      "budget_tier": "edge",
+      "target": {
+        "transport": "a2a",
+        "url": "https://agents.example.com/.well-known/agent.json",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:TARGET_TOKEN"
+        }
+      }
+    },
+    {
+      "scenario_id": "split_brain",
+      "seeds": [
+        7,
+        8
+      ],
+      "episodes": 4,
+      "budget_tier": "frontier",
+      "seat": {
+        "mode": "member",
+        "position": "m2",
+        "fill": "coordinated"
+      },
+      "target": {
+        "transport": "mcp",
+        "url": "https://mcp.example.com/mcp",
+        "auth": {
+          "scheme": "header",
+          "header_name": "X-Api-Key",
+          "ref": "secret:prod-agent-key"
+        }
+      }
+    },
+    {
+      "scenario_id": "diplomacy_standard",
+      "seeds": [
+        20261115,
+        20261116,
+        20261117
+      ],
+      "episodes": 3,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "power",
+        "position": "auto"
+      },
+      "diplomacy": {
+        "profile": "security",
+        "horizon_year": 1906
+      },
+      "target": {
+        "transport": "ws",
+        "url": "wss://agents.example.com/diplomacy",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:DIPLOMACY_AGENT_TOKEN"
+        },
+        "label": "my-negotiator",
+        "ownership_attested": true
+      },
+      "labels": {
+        "git_sha": "9b1c2d3"
+      }
+    },
+    {
+      "scenario_id": "diplomacy_standard",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "power",
+        "position": "germany"
+      },
+      "diplomacy": {
+        "profile": "security",
+        "horizon_year": 1906
+      },
+      "seats": [
+        {
+          "position": "france",
+          "driver": "recorded_peer",
+          "peer": {
+            "pack": "sx-agentic-core",
+            "agent": "sixi-attack/negotiator@1.0.0"
+          }
+        }
+      ],
+      "target": {
+        "transport": "rest",
+        "url": "https://agent.example.com/arena/act",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:ARENA_TARGET_CREDENTIAL"
+        },
+        "label": "support-agent",
+        "ownership_attested": true
+      },
+      "labels": {
+        "git_sha": "4f2c9a1",
+        "ci_run": "1234",
+        "repository": "example-org/support-agent"
+      }
+    },
+    {
+      "scenario_id": "diplomacy_standard",
+      "seeds": [
+        20261201,
+        20261202
+      ],
+      "episodes": 2,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "power",
+        "position": "austria"
+      },
+      "diplomacy": {
+        "profile": "table",
+        "horizon_year": 1906
+      },
+      "seats": [
+        {
+          "position": "england",
+          "driver": "target",
+          "owner": "provider-b",
+          "target": {
+            "transport": "rest",
+            "url": "https://ng-adapter-b.example.com/act",
+            "auth": {
+              "scheme": "bearer",
+              "ref": "env:ARENA_SEAT_CREDENTIAL_ENGLAND"
+            },
+            "label": "provider-b/model-2",
+            "ownership_attested": true
+          }
+        },
+        {
+          "position": "france",
+          "driver": "target",
+          "owner": "provider-c",
+          "target": {
+            "transport": "rest",
+            "url": "https://ng-adapter-c.example.com/act",
+            "auth": {
+              "scheme": "bearer",
+              "ref": "env:ARENA_SEAT_CREDENTIAL_FRANCE"
+            },
+            "label": "provider-c/model-3",
+            "ownership_attested": true
+          }
+        }
+      ],
+      "target": {
+        "transport": "rest",
+        "url": "https://ng-adapter-a.example.com/act",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:ARENA_TARGET_CREDENTIAL"
+        },
+        "label": "provider-a/model-1",
+        "ownership_attested": true
+      },
+      "labels": {
+        "league": "ng-2026-11"
+      }
+    },
+    {
+      "scenario_id": "diplomacy_standard",
+      "seeds": [
+        20261115,
+        20261116,
+        20261117
+      ],
+      "episodes": 3,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "power",
+        "position": "auto"
+      },
+      "diplomacy": {
+        "fill": "injector-table",
+        "horizon_year": 1906
+      },
+      "target": {
+        "transport": "ws",
+        "url": "wss://agents.example.com/diplomacy",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:DIPLOMACY_AGENT_TOKEN"
+        },
+        "label": "my-negotiator",
+        "ownership_attested": true
+      },
+      "labels": {
+        "git_sha": "9b1c2d3"
+      }
+    },
+    {
+      "scenario_id": "diplomacy_standard",
+      "seeds": [
+        20261115
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "power",
+        "position": "germany"
+      },
+      "diplomacy": {
+        "profile": "security",
+        "fill": "table:combined",
+        "horizon_year": 1904
+      },
+      "target": {
+        "transport": "rest",
+        "url": "https://agents.example.com/diplomacy/act",
+        "auth": {
+          "scheme": "bearer",
+          "ref": "env:DIPLOMACY_AGENT_TOKEN"
+        },
+        "label": "my-negotiator",
+        "ownership_attested": true
+      },
+      "labels": {
+        "git_sha": "9b1c2d3"
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:ack:1",
+  "title": "Ack frame (server -> agent, outbound)",
+  "description": "Acknowledgement. Two forms discriminated by ack_type. `session`: the hello was accepted and the session is bound (sent once after hello). `action`: an action-set was accepted for a tick, reporting token spend and any per-unit coercions (units the engine forced to Hold with a reason). Minimal 50-line agents may ignore ack entirely and infer outcomes from the next observation; robust agents read it to debug and to track allowance.",
+  "x-frame-name": "ack",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "required": ["t", "ack_type"],
+  "oneOf": [
+    {
+      "title": "session ack",
+      "additionalProperties": false,
+      "required": ["t", "ack_type", "session_id", "mode"],
+      "properties": {
+        "t": { "const": "ack" },
+        "ack_type": { "const": "session" },
+        "session_id": { "type": "string", "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "mode": { "const": "duel" },
+        "league": { "enum": ["edge", "core", "frontier"] },
+        "match_id": { "type": ["string", "null"], "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Assigned match, or null while matchmaking is still pending. The first observation arrives when the match starts." },
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Static match parameters for this league. Convenience for good agents; reflex agents can read deadline_ms off each observation instead.",
+          "properties": {
+            "soft_deadline_ms": { "type": "integer", "description": "Ds" },
+            "hard_deadline_ms": { "type": "integer", "description": "Dh" },
+            "action_allowance": { "type": "integer", "description": "Starting per-match token allowance (Core default 240)." },
+            "tick_cap": { "type": "integer", "description": "Hard cap on ticks (v1 default 120)." },
+            "collapse_start": { "type": "integer", "description": "Tick at which Fog Collapse begins (v1 default 80)." },
+            "ascension_target": { "type": "integer", "description": "Points to win (v1 default 100)." }
+          }
+        }
+      }
+    },
+    {
+      "title": "action ack",
+      "additionalProperties": false,
+      "required": ["t", "ack_type", "turn_id", "tokens_spent", "tokens_remaining"],
+      "properties": {
+        "t": { "const": "ack" },
+        "ack_type": { "const": "action" },
+        "turn_id": { "type": "integer", "minimum": 0 },
+        "tokens_spent": { "type": "integer", "minimum": 0, "description": "Allowance spent by THIS action-set (surviving move/attack costs)." },
+        "tokens_remaining": { "type": "integer", "minimum": 0 },
+        "accepted_units": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 32 },
+          "description": "unit_ids whose submitted action was applied (subject to in-tick truncation/bounce/whiff, which appear in the next observation)."
+        },
+        "rejected_units": {
+          "type": "array",
+          "description": "Per-unit coercions: the submitted action was replaced with Hold and the reason logged (A1 §5.1). These are NOT frame rejects — the action-set as a whole was accepted. Reasons: illegal_type, illegal_state, out_of_range, off_board, insufficient_tokens.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["unit_id", "reason"],
+            "properties": {
+              "unit_id": { "type": "string", "maxLength": 32 },
+              "reason": { "enum": ["illegal_type", "illegal_state", "out_of_range", "off_board", "insufficient_tokens"] },
+              "hint": { "type": "string", "maxLength": 200 }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "t": "ack",
+      "ack_type": "session",
+      "session_id": "ses_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "mode": "duel",
+      "league": "core",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "config": { "soft_deadline_ms": 1500, "hard_deadline_ms": 3000, "action_allowance": 240, "tick_cap": 120, "collapse_start": 80, "ascension_target": 100 }
+    },
+    {
+      "t": "ack",
+      "ack_type": "action",
+      "turn_id": 20,
+      "tokens_spent": 3,
+      "tokens_remaining": 147,
+      "accepted_units": ["A-scout", "A-lancer"],
+      "rejected_units": [
+        { "unit_id": "A-archer", "reason": "insufficient_tokens", "hint": "attack costs 2; remaining allowance 1 — unit held." }
+      ]
+    }
+  ]
+}

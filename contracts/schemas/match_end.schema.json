@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:match_end:1",
+  "title": "Match-end frame (server -> agent, outbound)",
+  "description": "Terminal frame for a match. Carries the result, the reason, the (now-revealed) seed, and the hash-committed replay pointer. Immediately followed by a normal WSS close (code 1000). This is the last frame a minimal 50-line agent needs to read. CONTRACTS 2.0.0 (ADR-001): the optional economy/ladder fields `refund`, `payout`, `coach_interventions`, `verified` and `rating_delta` are no longer emitted and were removed from the emission contract. They were all OPTIONAL and outbound, so a conforming agent (which ignores unknown fields and never required them) is unaffected; the frame protocol stays 1.0 and the $id stays :1 (versioning.md §2). `tokens_remaining` stays: it is budget accounting.",
+  "x-frame-name": "match_end",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "match_id",
+    "winner",
+    "you",
+    "result",
+    "reason",
+    "final_scores",
+    "tokens_remaining",
+    "ticks_played",
+    "seed",
+    "replay_id",
+    "replay_hash"
+  ],
+  "properties": {
+    "t": { "const": "match_end" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "winner": { "enum": ["A", "B", "draw"] },
+    "you": { "enum": ["A", "B"] },
+    "result": { "enum": ["win", "loss", "draw"] },
+    "reason": {
+      "enum": ["ascension", "elimination", "timeout", "forfeit"],
+      "description": "How the match ended (A1 §6.2): ascension = first to 100 points; elimination = opponent reduced to 0 units; timeout = hard cap reached, higher score (with tiebreak ladder) wins; forfeit = see forfeit_reason."
+    },
+    "forfeit_reason": {
+      "enum": ["connection_lost", "disqualified", "abandoned"],
+      "description": "Present only when reason=forfeit. `connection_lost` = 3 consecutive hard misses (agent presumed hung). The other codes are reserved for future enforcement."
+    },
+    "tiebreak": {
+      "enum": ["score", "surviving_hp", "tokens_spent", "draw"],
+      "description": "Present only when reason=timeout: which rung of the deterministic tiebreak ladder decided it (higher score -> higher surviving HP -> fewer tokens spent -> draw)."
+    },
+    "final_scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B"],
+      "properties": { "A": { "type": "integer", "minimum": 0 }, "B": { "type": "integer", "minimum": 0 } }
+    },
+    "tokens_remaining": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B"],
+      "properties": { "A": { "type": "integer", "minimum": 0 }, "B": { "type": "integer", "minimum": 0 } }
+    },
+    "ticks_played": { "type": "integer", "minimum": 0 },
+    "seed": {
+      "type": "integer",
+      "description": "The match seed, REVEALED at match end (withheld during play). Combined with the replay it makes the whole match bit-for-bit reproducible."
+    },
+    "replay_id": { "type": "string", "pattern": "^rpl_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Fetch the full replay at GET /v1/replays/{replay_id}." },
+    "replay_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The hash committed at match end (the running per-tick state-hash chain, A1 §8.2). A re-simulation from seed + inputs must reproduce this exactly."
+    }
+  },
+  "examples": [
+    {
+      "t": "match_end",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "winner": "A",
+      "you": "A",
+      "result": "win",
+      "reason": "ascension",
+      "final_scores": { "A": 100, "B": 71 },
+      "tokens_remaining": { "A": 88, "B": 0 },
+      "ticks_played": 73,
+      "seed": 2864901733,
+      "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+      "replay_hash": "sha256:9f2c1b7e4a6d8035f1c2b3a4d5e6f7089a0b1c2d3e4f5061728394a5b6c7d8e9"
+    },
+    {
+      "t": "match_end",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "winner": "B",
+      "you": "A",
+      "result": "loss",
+      "reason": "timeout",
+      "tiebreak": "surviving_hp",
+      "final_scores": { "A": 64, "B": 64 },
+      "tokens_remaining": { "A": 0, "B": 17 },
+      "ticks_played": 120,
+      "seed": 2864901733,
+      "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX",
+      "replay_hash": "sha256:9f2c1b7e4a6d8035f1c2b3a4d5e6f7089a0b1c2d3e4f5061728394a5b6c7d8e9"
+    }
+  ]
+}

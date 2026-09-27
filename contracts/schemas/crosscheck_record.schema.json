@@ -1,0 +1,1366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:crosscheck_record:1",
+  "title": "Cross-check record: hosted runner versus open CLI, per image digest",
+  "description": "(2.2.0) The signed result of the `arena-crosscheck` job (HOSTED-PROFILE §2.8, Phase 9 gate criterion 1) for one image digest: for the same RunSpecs and seeds, the hosted runner (leg H) and the open CLI as npm package (O1), binary (O2) and image (O3) produce identical replay hashes, outcomes, terminal ticks, trajectory classes, evaluation hashes, statuses and abort reasons against the pinned reference targets; leg V re-verifies every hosted report offline. Published at `crosscheck/<index digest>.json` and cited by every evidence report for that digest. Only a hosted-scope record (2.5.0 `scope` absent or `hosted`) with job verdict `pass` allows a digest to be promoted; a `scope: local` record never does, and no evidence report cites one. Signed with the arena report key using the same canonical form as the Report (signing.md §2), payload type `application/vnd.sixi.arena-crosscheck+json`.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4194304,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_version",
+    "image_digest",
+    "tool_version",
+    "engine_build_hash",
+    "trigger",
+    "legs",
+    "cells",
+    "leg_v",
+    "job_verdict",
+    "started_at",
+    "finished_at",
+    "signing"
+  ],
+  "properties": {
+    "record_version": {
+      "const": "1.0"
+    },
+    "image_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "platform_manifest",
+        "platform"
+      ],
+      "description": "The runner image, pinned by digest, never a tag (HOSTED-PROFILE §2.2). (2.6.0) The runner proves which image it is from the job-template variable ARENA_IMAGE_DIGEST = \"<index>,<platform manifest>\" (signing.md §3.1): both digests here MUST be listed in it and `platform` MUST be the running platform, else hosted_context_invalid (detail.field `/image_digest/index`, `/image_digest/platform_manifest`, `/image_digest/platform`, or `/image_digest` when the variable is absent or malformed).",
+      "properties": {
+        "index": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The multi-arch image index digest (ghcr.io/rbrus/agent-arena@<index>), exactly as release.yml records and sandbox verify.sh prints as IMAGE_DIGEST."
+        },
+        "platform_manifest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The platform manifest digest actually run."
+        },
+        "platform": {
+          "enum": [
+            "linux/amd64",
+            "linux/arm64"
+          ]
+        }
+      }
+    },
+    "tool_version": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z.+-]{1,64}$",
+      "description": "The one tool version all of H, O1, O2 and O3 ran."
+    },
+    "engine_build_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The one engine build all legs ran."
+    },
+    "trigger": {
+      "enum": [
+        "pre_promotion",
+        "nightly",
+        "config_change"
+      ]
+    },
+    "spec_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repo",
+        "ref",
+        "digest"
+      ],
+      "description": "The committed RunSpecs both legs read.",
+      "properties": {
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{1,39}/[a-z0-9._-]{1,100}$"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "sha256 over the committed RunSpec files (crosscheck/specs/*.json), sorted by path."
+        }
+      }
+    },
+    "legs": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "H",
+          "O1",
+          "O2",
+          "O3",
+          "A"
+        ]
+      },
+      "description": "The legs that ran. A hosted-scope record needs H and at least one open leg for any verdict other than fail; a local-scope record (2.5.0) has no H."
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cell_id",
+          "block",
+          "scenario_id",
+          "budget_tier",
+          "seat_mode",
+          "transport",
+          "reference_target",
+          "seed",
+          "episode_index",
+          "legs",
+          "verdict",
+          "retries"
+        ],
+        "description": "One cell of the cross-check matrix: one (block, scenario, tier, seat, transport, reference target, seed, episode) compared across legs.",
+        "properties": {
+          "cell_id": {
+            "type": "string",
+            "pattern": "^X[1-9]-[0-9]{1,5}$"
+          },
+          "block": {
+            "enum": [
+              "X1",
+              "X2",
+              "X3"
+            ],
+            "description": "Matrix block (HOSTED-PROFILE §2.8): X1 every open scenario x its reference pair, X2 transport invariance, X3 Diplomacy."
+          },
+          "scenario_id": {
+            "type": "string",
+            "pattern": "^(?!shared$|harness$|sx_)[a-z][a-z0-9_]{0,39}$",
+            "description": "Open scenarios only: the cross-check is public."
+          },
+          "budget_tier": {
+            "enum": [
+              "edge",
+              "core",
+              "frontier"
+            ]
+          },
+          "seat_mode": {
+            "enum": [
+              "duel",
+              "member",
+              "squad",
+              "power"
+            ]
+          },
+          "seat_position": {
+            "enum": [
+              "A",
+              "B",
+              "m0",
+              "m1",
+              "m2",
+              "m3",
+              "m4",
+              "austria",
+              "england",
+              "france",
+              "germany",
+              "italy",
+              "russia",
+              "turkey",
+              "auto"
+            ]
+          },
+          "fill": {
+            "enum": [
+              "coordinated",
+              "naive"
+            ]
+          },
+          "transport": {
+            "enum": [
+              "rest",
+              "ws",
+              "mcp",
+              "a2a"
+            ]
+          },
+          "reference_target": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9:-]{0,39}(@[0-9a-f]{7,40})?$",
+            "description": "The pinned reference agent served as the target (serve-reference), e.g. robust-diplomat@4f2c9a1."
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "episode_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999
+          },
+          "legs": {
+            "type": "object",
+            "additionalProperties": false,
+            "minProperties": 1,
+            "properties": {
+              "H": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "replay_hash",
+                  "outcome",
+                  "terminal_tick",
+                  "trajectory_class",
+                  "deadline_miss",
+                  "target_abort"
+                ],
+                "description": "What one leg produced for the cell's episode. Only the compared fields; wall-clock fields are ignored. `transcript_hash` is deliberately absent: the hosted leg uses a per-episode secret (K4), so it is checked by leg V, not across legs.",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "completed",
+                      "aborted"
+                    ]
+                  },
+                  "abort_reason": {
+                    "enum": [
+                      "target_unreachable",
+                      "target_auth_failed",
+                      "target_protocol_error",
+                      "wall_clock_exceeded",
+                      "harness_error"
+                    ]
+                  },
+                  "replay_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "win",
+                      "loss",
+                      "draw",
+                      "clear",
+                      "wipe",
+                      "timeout",
+                      "forfeit",
+                      "aborted",
+                      "solo",
+                      "survived",
+                      "eliminated"
+                    ]
+                  },
+                  "terminal_tick": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
+                  },
+                  "trajectory_class": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "evaluation_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "deadline_miss": {
+                    "type": "boolean",
+                    "description": "The leg recorded a soft or hard deadline miss in this episode."
+                  },
+                  "target_abort": {
+                    "type": "boolean",
+                    "description": "The leg aborted the episode with a target_* reason."
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "abort_reason"
+                      ],
+                      "properties": {
+                        "abort_reason": true,
+                        "outcome": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "else": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "abort_reason"
+                            ],
+                            "properties": {
+                              "abort_reason": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "O1": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "replay_hash",
+                  "outcome",
+                  "terminal_tick",
+                  "trajectory_class",
+                  "deadline_miss",
+                  "target_abort"
+                ],
+                "description": "What one leg produced for the cell's episode. Only the compared fields; wall-clock fields are ignored. `transcript_hash` is deliberately absent: the hosted leg uses a per-episode secret (K4), so it is checked by leg V, not across legs.",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "completed",
+                      "aborted"
+                    ]
+                  },
+                  "abort_reason": {
+                    "enum": [
+                      "target_unreachable",
+                      "target_auth_failed",
+                      "target_protocol_error",
+                      "wall_clock_exceeded",
+                      "harness_error"
+                    ]
+                  },
+                  "replay_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "win",
+                      "loss",
+                      "draw",
+                      "clear",
+                      "wipe",
+                      "timeout",
+                      "forfeit",
+                      "aborted",
+                      "solo",
+                      "survived",
+                      "eliminated"
+                    ]
+                  },
+                  "terminal_tick": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
+                  },
+                  "trajectory_class": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "evaluation_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "deadline_miss": {
+                    "type": "boolean",
+                    "description": "The leg recorded a soft or hard deadline miss in this episode."
+                  },
+                  "target_abort": {
+                    "type": "boolean",
+                    "description": "The leg aborted the episode with a target_* reason."
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "abort_reason"
+                      ],
+                      "properties": {
+                        "abort_reason": true,
+                        "outcome": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "else": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "abort_reason"
+                            ],
+                            "properties": {
+                              "abort_reason": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "O2": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "replay_hash",
+                  "outcome",
+                  "terminal_tick",
+                  "trajectory_class",
+                  "deadline_miss",
+                  "target_abort"
+                ],
+                "description": "What one leg produced for the cell's episode. Only the compared fields; wall-clock fields are ignored. `transcript_hash` is deliberately absent: the hosted leg uses a per-episode secret (K4), so it is checked by leg V, not across legs.",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "completed",
+                      "aborted"
+                    ]
+                  },
+                  "abort_reason": {
+                    "enum": [
+                      "target_unreachable",
+                      "target_auth_failed",
+                      "target_protocol_error",
+                      "wall_clock_exceeded",
+                      "harness_error"
+                    ]
+                  },
+                  "replay_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "win",
+                      "loss",
+                      "draw",
+                      "clear",
+                      "wipe",
+                      "timeout",
+                      "forfeit",
+                      "aborted",
+                      "solo",
+                      "survived",
+                      "eliminated"
+                    ]
+                  },
+                  "terminal_tick": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
+                  },
+                  "trajectory_class": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "evaluation_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "deadline_miss": {
+                    "type": "boolean",
+                    "description": "The leg recorded a soft or hard deadline miss in this episode."
+                  },
+                  "target_abort": {
+                    "type": "boolean",
+                    "description": "The leg aborted the episode with a target_* reason."
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "abort_reason"
+                      ],
+                      "properties": {
+                        "abort_reason": true,
+                        "outcome": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "else": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "abort_reason"
+                            ],
+                            "properties": {
+                              "abort_reason": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "O3": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "replay_hash",
+                  "outcome",
+                  "terminal_tick",
+                  "trajectory_class",
+                  "deadline_miss",
+                  "target_abort"
+                ],
+                "description": "What one leg produced for the cell's episode. Only the compared fields; wall-clock fields are ignored. `transcript_hash` is deliberately absent: the hosted leg uses a per-episode secret (K4), so it is checked by leg V, not across legs.",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "completed",
+                      "aborted"
+                    ]
+                  },
+                  "abort_reason": {
+                    "enum": [
+                      "target_unreachable",
+                      "target_auth_failed",
+                      "target_protocol_error",
+                      "wall_clock_exceeded",
+                      "harness_error"
+                    ]
+                  },
+                  "replay_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "win",
+                      "loss",
+                      "draw",
+                      "clear",
+                      "wipe",
+                      "timeout",
+                      "forfeit",
+                      "aborted",
+                      "solo",
+                      "survived",
+                      "eliminated"
+                    ]
+                  },
+                  "terminal_tick": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
+                  },
+                  "trajectory_class": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "evaluation_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "deadline_miss": {
+                    "type": "boolean",
+                    "description": "The leg recorded a soft or hard deadline miss in this episode."
+                  },
+                  "target_abort": {
+                    "type": "boolean",
+                    "description": "The leg aborted the episode with a target_* reason."
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "abort_reason"
+                      ],
+                      "properties": {
+                        "abort_reason": true,
+                        "outcome": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "else": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "abort_reason"
+                            ],
+                            "properties": {
+                              "abort_reason": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "A": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "replay_hash",
+                  "outcome",
+                  "terminal_tick"
+                ],
+                "description": "(2.5.0, relaxed) Leg A is the FROZEN ANCHOR, not a run: `anchors.ts` freezes only the replay hash, the outcome and the terminal tick, so only those three are required. `trajectory_class` and `evaluation_hash` are compared when the anchor carries them. `status` is `completed` when present (a frozen anchor never aborted), and `deadline_miss` and `target_abort` are accepted for 2.2.0 records but mean nothing for an anchor. The cell compares every leg's fields to the anchor's fields that are present. `anchor_id` names the frozen anchor.",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "completed",
+                      "aborted"
+                    ]
+                  },
+                  "abort_reason": {
+                    "enum": [
+                      "target_unreachable",
+                      "target_auth_failed",
+                      "target_protocol_error",
+                      "wall_clock_exceeded",
+                      "harness_error"
+                    ]
+                  },
+                  "replay_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "win",
+                      "loss",
+                      "draw",
+                      "clear",
+                      "wipe",
+                      "timeout",
+                      "forfeit",
+                      "aborted",
+                      "solo",
+                      "survived",
+                      "eliminated"
+                    ]
+                  },
+                  "terminal_tick": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
+                  },
+                  "trajectory_class": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "evaluation_hash": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "deadline_miss": {
+                    "type": "boolean",
+                    "description": "The leg recorded a soft or hard deadline miss in this episode."
+                  },
+                  "target_abort": {
+                    "type": "boolean",
+                    "description": "The leg aborted the episode with a target_* reason."
+                  },
+                  "anchor_id": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "pattern": "^[a-z][a-z0-9_]{0,39}/(edge|core|frontier)/seed/(0|[1-9][0-9]{0,9})(/[a-z0-9][a-z0-9_.:@-]{0,39}){2,12}$",
+                    "description": "(2.5.0, optional; 2.7.0: pattern made precise, maxLength raised from 80 to 128 so the Diplomacy anchors fit) The frozen anchor's name in `anchors.ts` as a slug: the name lower-cased, each run of characters outside `[a-z0-9_.:@-]` replaced by one `/`, leading and trailing `/` removed. Every anchor name starts `<scenario> <tier> seed <seed>` and then names the seating and the reference policy, so an id reads `<scenario>/<tier>/seed/<seed>/<seating…>/<policy>[/<qualifier>…]`: for example `byzantine/core/seed/1/squad/naive/gate` (a gate-seed row), `deadlock/edge/seed/20260720/member/m1/coordinated`, `grid_tactics/core/seed/20260720/a/reflex/vs/silver`, or `diplomacy_standard/core/seed/20261115/germany/robust/fill/engine/horizon/1904/engine/golden`. The seat and the policy are part of the id, so the anchors of a coordinated and a naive fill at the same scenario, tier and seed never share one. (Until 2.7.0 the example was `byzantine/core/squad/20260720`, which no runner wrote and which could not tell the two apart.)"
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "abort_reason"
+                      ],
+                      "properties": {
+                        "abort_reason": true,
+                        "outcome": {
+                          "const": "aborted"
+                        }
+                      }
+                    },
+                    "else": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "abort_reason"
+                            ],
+                            "properties": {
+                              "abort_reason": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "description": "Per-leg results for the cell, keyed by leg id (H hosted, O1 npm, O2 binary, O3 image run locally, A frozen anchors when one exists)."
+          },
+          "verdict": {
+            "enum": [
+              "match",
+              "environmental",
+              "divergent",
+              "missing"
+            ],
+            "description": "match = every compared field equal across H, O1, O2, O3 (and the anchor where one exists); environmental = they differ and a leg recorded a deadline miss or a target_* abort (inputs legitimately differ; retried up to 2 times); divergent = they differ with no miss and no abort (job fail); missing = a leg produced no episode."
+          },
+          "retries": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "missing_legs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "H",
+                "O1",
+                "O2",
+                "O3",
+                "A"
+              ]
+            }
+          },
+          "missing_cause": {
+            "enum": [
+              "harness_error",
+              "other"
+            ],
+            "description": "missing cells: harness_error makes the job fail, anything else inconclusive."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "verdict": {
+                  "const": "missing"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "missing_legs",
+                "missing_cause"
+              ],
+              "properties": {
+                "missing_legs": true,
+                "missing_cause": true
+              }
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "missing_legs"
+                    ],
+                    "properties": {
+                      "missing_legs": true
+                    }
+                  },
+                  {
+                    "required": [
+                      "missing_cause"
+                    ],
+                    "properties": {
+                      "missing_cause": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "description": "Every compared cell. A record with no cells proves nothing and is invalid."
+    },
+    "leg_v": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reports_verified",
+        "reports_total",
+        "verify_exit_codes",
+        "signatures_valid"
+      ],
+      "description": "Leg V: open-CLI `verify` of every hosted report with no network, plus the DSSE check against the published JWKS. Any exit code other than 0, or an invalid signature, makes the job fail.",
+      "properties": {
+        "reports_verified": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "reports_total": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "verify_exit_codes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "0": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            },
+            "1": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            },
+            "2": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            },
+            "3": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          },
+          "description": "Count of hosted reports per `verify` exit code (0 verified, 1 mismatch, 2 unverifiable, 3 unsupported engine)."
+        },
+        "signatures_valid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "job_verdict": {
+      "enum": [
+        "pass",
+        "inconclusive",
+        "fail"
+      ],
+      "description": "pass = every cell match and leg V clean (the digest may be promoted); inconclusive = environmental or non-harness missing cells remain after retries (not promoted); fail = a divergent cell, a harness_error missing cell, or a leg V failure (release blocker, or an admission hold on a deployed digest). (2.5.0) A pass promotes a digest only in a hosted-scope record; a local-scope pass says the open legs and the anchors agree. Before 2.5.0 a clean local run had to end `inconclusive`, which remains valid for a record without `scope`."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "signing_key_id",
+        "canonicalization",
+        "payload_type",
+        "excluded",
+        "signature"
+      ],
+      "description": "Ed25519 over PAE(payload_type, JCS(record without /signing/signature)) (signing.md §2).",
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "signing_key_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+        },
+        "canonicalization": {
+          "const": "jcs-rfc8785"
+        },
+        "payload_type": {
+          "const": "application/vnd.sixi.arena-crosscheck+json"
+        },
+        "excluded": {
+          "const": [
+            "/signing/signature"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{86}==$"
+        }
+      }
+    },
+    "scope": {
+      "enum": [
+        "hosted",
+        "local"
+      ],
+      "description": "(2.5.0, optional; absent = hosted) hosted = the record covers the hosted leg H, and only such a record can promote a digest or be cited by an evidence report. local = the job was run without the hosted leg, for example a release check of O1, O2 and O3 against the anchors. H is then not among `legs`, leg V has nothing to verify (`reports_total` 0), and `job_verdict: pass` means the open legs agree with each other and with the anchors, never that a hosted digest may be promoted."
+    }
+  },
+  "allOf": [
+    {
+      "description": "A passing record: every cell matched and leg V is clean.",
+      "if": {
+        "properties": {
+          "job_verdict": {
+            "const": "pass"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cells": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "verdict": {
+                  "const": "match"
+                }
+              }
+            }
+          },
+          "leg_v": {
+            "type": "object",
+            "properties": {
+              "signatures_valid": {
+                "const": true
+              },
+              "verify_exit_codes": {
+                "type": "object",
+                "properties": {
+                  "1": {
+                    "const": 0
+                  },
+                  "2": {
+                    "const": 0
+                  },
+                  "3": {
+                    "const": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.5.0) A passing hosted-scope record (scope absent or hosted) includes the hosted leg H.",
+      "if": {
+        "required": [
+          "job_verdict"
+        ],
+        "properties": {
+          "job_verdict": {
+            "const": "pass"
+          },
+          "scope": {
+            "const": "hosted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "legs": {
+            "type": "array",
+            "contains": {
+              "const": "H"
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "(2.5.0) A local-scope record never includes H, and leg V verified no hosted report.",
+      "if": {
+        "required": [
+          "scope"
+        ],
+        "properties": {
+          "scope": {
+            "const": "local"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "legs": {
+            "type": "array",
+            "not": {
+              "contains": {
+                "const": "H"
+              }
+            }
+          },
+          "leg_v": {
+            "type": "object",
+            "properties": {
+              "reports_total": {
+                "const": 0
+              },
+              "reports_verified": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "A divergent cell always fails the job.",
+      "if": {
+        "properties": {
+          "cells": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "verdict": {
+                  "const": "divergent"
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "job_verdict": {
+            "const": "fail"
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "record_version": "1.0",
+      "image_digest": {
+        "index": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b",
+        "platform_manifest": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582",
+        "platform": "linux/amd64"
+      },
+      "tool_version": "0.3.0",
+      "engine_build_hash": "sha256:5e7a9c1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c",
+      "trigger": "pre_promotion",
+      "spec_set": {
+        "repo": "rbrus/agent-arena",
+        "ref": "9b1c2d3",
+        "digest": "sha256:118aa78ecc969291dbb35b7288a0854f8e8602a189a8947d4a71f628e6387178"
+      },
+      "legs": [
+        "H",
+        "O1",
+        "O2",
+        "O3",
+        "A"
+      ],
+      "cells": [
+        {
+          "cell_id": "X1-1",
+          "block": "X1",
+          "scenario_id": "byzantine",
+          "budget_tier": "core",
+          "seat_mode": "squad",
+          "fill": "coordinated",
+          "transport": "rest",
+          "reference_target": "ref:bftquorumsquad@4f2c9a1",
+          "seed": 20260720,
+          "episode_index": 0,
+          "legs": {
+            "H": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O1": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O2": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O3": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "A": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            }
+          },
+          "verdict": "match",
+          "retries": 0
+        },
+        {
+          "cell_id": "X3-1",
+          "block": "X3",
+          "scenario_id": "diplomacy_standard",
+          "budget_tier": "core",
+          "seat_mode": "power",
+          "seat_position": "auto",
+          "transport": "rest",
+          "reference_target": "credulous-diplomat@4f2c9a1",
+          "seed": 20261115,
+          "episode_index": 0,
+          "legs": {
+            "H": {
+              "status": "completed",
+              "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+              "outcome": "survived",
+              "terminal_tick": 77,
+              "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+              "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O1": {
+              "status": "completed",
+              "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+              "outcome": "survived",
+              "terminal_tick": 77,
+              "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+              "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O2": {
+              "status": "completed",
+              "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+              "outcome": "survived",
+              "terminal_tick": 77,
+              "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+              "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "O3": {
+              "status": "completed",
+              "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+              "outcome": "survived",
+              "terminal_tick": 77,
+              "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+              "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+              "deadline_miss": false,
+              "target_abort": false
+            }
+          },
+          "verdict": "match",
+          "retries": 0
+        }
+      ],
+      "leg_v": {
+        "reports_verified": 2,
+        "reports_total": 2,
+        "verify_exit_codes": {
+          "0": 2,
+          "1": 0,
+          "2": 0,
+          "3": 0
+        },
+        "signatures_valid": true
+      },
+      "job_verdict": "pass",
+      "started_at": "2026-11-01T02:00:00Z",
+      "finished_at": "2026-11-01T02:41:10Z",
+      "signing": {
+        "algorithm": "ed25519",
+        "signing_key_id": "sixi-arena-ed25519-20261101",
+        "canonicalization": "jcs-rfc8785",
+        "payload_type": "application/vnd.sixi.arena-crosscheck+json",
+        "excluded": [
+          "/signing/signature"
+        ],
+        "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000=="
+      }
+    },
+    {
+      "record_version": "1.0",
+      "image_digest": {
+        "index": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b",
+        "platform_manifest": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582",
+        "platform": "linux/amd64"
+      },
+      "tool_version": "0.3.0",
+      "engine_build_hash": "sha256:5e7a9c1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c",
+      "trigger": "config_change",
+      "spec_set": {
+        "repo": "rbrus/agent-arena",
+        "ref": "9b1c2d3",
+        "digest": "sha256:118aa78ecc969291dbb35b7288a0854f8e8602a189a8947d4a71f628e6387178"
+      },
+      "legs": [
+        "O1",
+        "A"
+      ],
+      "cells": [
+        {
+          "cell_id": "X1-1",
+          "block": "X1",
+          "scenario_id": "byzantine",
+          "budget_tier": "core",
+          "seat_mode": "squad",
+          "fill": "coordinated",
+          "transport": "rest",
+          "reference_target": "ref:bftquorumsquad@4f2c9a1",
+          "seed": 20260720,
+          "episode_index": 0,
+          "legs": {
+            "O1": {
+              "status": "completed",
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "trajectory_class": "sha256:111edad7b462e0c6700c8eea2ae9f209effc1b55728799396293d9295d956631",
+              "deadline_miss": false,
+              "target_abort": false
+            },
+            "A": {
+              "replay_hash": "sha256:08b19e9ba81221aa5d7894fc7d33e269cea5799888d22a361c44d07a50a1ab55",
+              "outcome": "clear",
+              "terminal_tick": 64,
+              "anchor_id": "byzantine/core/seed/20260720/squad/coordinated"
+            }
+          },
+          "verdict": "match",
+          "retries": 0
+        },
+        {
+          "cell_id": "X3-1",
+          "block": "X3",
+          "scenario_id": "diplomacy_standard",
+          "budget_tier": "core",
+          "seat_mode": "power",
+          "seat_position": "auto",
+          "transport": "rest",
+          "reference_target": "credulous-diplomat@4f2c9a1",
+          "seed": 20261115,
+          "episode_index": 0,
+          "legs": {
+            "O1": {
+              "status": "completed",
+              "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+              "outcome": "survived",
+              "terminal_tick": 77,
+              "trajectory_class": "sha256:e1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+              "evaluation_hash": "sha256:c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6",
+              "deadline_miss": false,
+              "target_abort": false
+            }
+          },
+          "verdict": "match",
+          "retries": 0
+        }
+      ],
+      "leg_v": {
+        "reports_verified": 0,
+        "reports_total": 0,
+        "verify_exit_codes": {},
+        "signatures_valid": true
+      },
+      "job_verdict": "pass",
+      "started_at": "2026-11-01T02:00:00Z",
+      "finished_at": "2026-11-01T02:41:10Z",
+      "signing": {
+        "algorithm": "ed25519",
+        "signing_key_id": "sixi-arena-ed25519-20261101",
+        "canonicalization": "jcs-rfc8785",
+        "payload_type": "application/vnd.sixi.arena-crosscheck+json",
+        "excluded": [
+          "/signing/signature"
+        ],
+        "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000=="
+      },
+      "scope": "local"
+    }
+  ]
+}

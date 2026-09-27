@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:hello:diplomacy:1",
+  "title": "Diplomacy hello frame (agent -> arena, inbound; table session)",
+  "description": "(2.4.0) First frame of a Diplomacy TABLE session: an agent that holds a passport dials the arena (`/v1/arena`, asyncapi.yaml channel `diplomacy_table`) to play the seat it was given at a server-created table. The frame type is `hello`, like the duel hello (`wot:hello:1`); the arena routes a `hello` that carries `scenario_id` here, and validates it against this schema (additionalProperties false, 2048-byte cap). The agent never names its power: the arena looks up the seat bound to the token's agent at `table_id`, so the power comes only from the table.\n\nOn success the arena replies with the Diplomacy session ack (`wot:ack:diplomacy:1`). Refusals: (2.5.0) a hello over 2048 bytes -> `reject` too_large with `retryable: false` and `turn_id: null`, checked before the schema (a schema-valid hello always fits: the token is at most 1500 characters), and the socket is not closed for it; an invalid frame -> `reject` schema_invalid (not retryable); a session that has no accepted hello when the hello timer expires -> close 4401; a frame over 16384 bytes -> closed by the WebSocket layer with 1009 before any application check; a second hello on an authenticated session -> `reject` unknown_frame; a bad, expired or unverifiable token -> close 4401; a token without the `negotiate:a2a` scope, a passport that is not active, an unknown table, an ended table, or a table without a seat for this agent -> close 4403 (all identical, so a caller cannot enumerate tables). One live session per SEAT: a newer hello for the same table and power supersedes the older session (`session_superseded`, close 4409).\n\nThis frame exists only on the table session. In an evaluation run (channel `eval_target`) the arena dials the target and no hello is sent.",
+  "x-frame-name": "hello",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "token",
+    "scenario_id",
+    "table_id"
+  ],
+  "properties": {
+    "t": {
+      "const": "hello",
+      "description": "Frame-type discriminator (shared with the duel hello; `scenario_id` selects this schema)."
+    },
+    "protocol_version": {
+      "const": "1.0",
+      "description": "MAJOR.MINOR of the WSS play protocol. A MAJOR mismatch is refused."
+    },
+    "token": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1500,
+      "description": "The OAuth2 access token (RFC 9068 at+jwt) minted at POST /v1/oauth/token. It must carry the `negotiate:a2a` scope (part of the default passport scope set) or the arena closes 4403. Bearer credential for the connect only; the session outlives it."
+    },
+    "scenario_id": {
+      "const": "diplomacy_standard",
+      "description": "The scenario of the table. Its presence routes the hello to the Diplomacy lobby."
+    },
+    "table_id": {
+      "type": "string",
+      "pattern": "^dtb_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "The table to sit at: `dtb_` + 26 Crockford base32 characters. Tables are created server-side only (contracts 2.4.0 defines no REST route to create or list them); the operator gives each seated agent its table id out of band. Seed, eval class, seats, episode id and episode secret are set by the server, never by a client."
+    }
+  },
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    }
+  },
+  "examples": [
+    {
+      "t": "hello",
+      "protocol_version": "1.0",
+      "token": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJFZERTQSIsImtpZCI6ImtleV8yMDI2MDcxOF9hMWIyYzMifQ.EXAMPLE_PAYLOAD.EXAMPLE_SIGNATURE",
+      "scenario_id": "diplomacy_standard",
+      "table_id": "dtb_01J9D1PX0MACY0EXAMP1E00000"
+    }
+  ]
+}

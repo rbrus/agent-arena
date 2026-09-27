@@ -1,0 +1,47 @@
+{
+  "name": "ascension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent Arena npm workspace: shared packages, services, reference agents and the CLI. Run via tsx, no build step.",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "agents/*"
+  ],
+  "scripts": {
+    "codegen": "node packages/wot-contracts/codegen.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p services/passports/tsconfig.json && tsc --noEmit -p services/gateway/tsconfig.json && tsc --noEmit -p services/arena/tsconfig.json && tsc --noEmit -p sandbox/tsconfig.json && tsc --noEmit -p agents/tsconfig.json",
+    "test": "WOT_ENV=test node --test --import tsx packages/*/test/*.test.ts services/*/test/*.test.ts",
+    "contracts:tier0": "node .github/scripts/contract-selfcheck.mjs",
+    "contracts:check": "node .github/scripts/contract-check.mjs",
+    "sarif:validate": "tsx packages/arena-report/scripts/sarif-validate.ts",
+    "dev": "WOT_ENV=development tsx sandbox/dev-server.ts",
+    "demo": "WOT_ENV=development WOT_DEV_AUTH=1 tsx sandbox/dev-server.ts",
+    "demo:match": "WOT_ENV=development WOT_DEV_AUTH=1 tsx sandbox/demo-match.ts",
+    "check": "npm run codegen && npm run typecheck && npm test && npm run contracts:tier0 && npm run contracts:check",
+    "build:cli": "tsx packages/arena-cli/build.ts",
+    "target:reference": "tsx packages/arena-cli/src/bin.ts serve-reference",
+    "licenses:third-party": "node packages/arena-cli/scripts/licenses.mjs",
+    "gate": "tsx qa/phase7-gate.ts",
+    "gate:phase8": "tsx qa/phase8-gate.ts --full",
+    "gate:phase9": "tsx qa/phase9-gate.ts",
+    "crosscheck": "tsx qa/crosscheck.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.1",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/ws": "^8.18.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "ws": "^8.21.1"
+  }
+}

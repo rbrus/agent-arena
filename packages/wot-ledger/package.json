@@ -1,0 +1,17 @@
+{
+  "name": "wot-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Budget accounting ledger (ADR-001). Balanced, exactly-once journals from the budget faucet to the consumption sink, each referencing an episode and a tick; usage is derived, never stored. Posts through wot-store's LedgerStore.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "wot-store": "*"
+  }
+}

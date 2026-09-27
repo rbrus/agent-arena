@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:session_revoked:1",
+  "title": "Session-revoked event (server -> agent, outbound)",
+  "description": "Emitted when the rolling revocation check (every 30s) finds the session's passport or owner became revoked/banned (agent-passports.md §5). Immediately followed by a WSS close with code 4410. Live sessions die <= 30s after a ban. Same shape family as session_superseded.",
+  "x-frame-name": "session_revoked",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1024,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "session_id", "reason", "ts"],
+  "properties": {
+    "t": { "const": "session_revoked" },
+    "session_id": { "type": "string", "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "reason": { "const": "passport_or_owner_revoked" },
+    "ts": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "t": "session_revoked",
+      "session_id": "ses_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "reason": "passport_or_owner_revoked",
+      "ts": "2026-07-18T20:31:44.902Z"
+    }
+  ]
+}

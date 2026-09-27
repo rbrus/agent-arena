@@ -1,0 +1,23 @@
+{
+  "name": "arena-report",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Phase-7 B3 reports: the Report JSON builder (contracts/schemas/report.schema.json, 2.2.0), the SARIF 2.1.0 emitter (contracts/sarif-mapping.md) and its validator against the vendored OASIS schema, `verifyReport` (re-simulate, recompute, compare; never trust input verdicts; ADR-004 recorded seats), JCS/Ed25519 report signing (contracts/signing.md), the scoped engine build digest, and the report/SARIF text sanitiser. Pure: no network, no clock.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test --import tsx test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "sarif:validate": "tsx scripts/sarif-validate.ts",
+    "golden:regen": "tsx scripts/regen-golden.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-draft-04": "^1.0.0",
+    "arena-scenarios": "*",
+    "wot-engine": "*"
+  }
+}

@@ -1,0 +1,559 @@
+{
+  "description": "Contract test vectors for signing.md (contracts 2.2.0). Each vector signs the JCS (RFC 8785) bytes of the named schema example with /signing/signature removed, wrapped in DSSE PAE with the payload type, using the Ed25519 key of RFC 8032 section 7.1 TEST 1. That key is a published test vector, not a Sixi key; the examples keep their own placeholder signing_key_id and an EXAMPLE placeholder signature, which is outside the signed bytes by construction. contract-check recomputes every jcs_sha256, verifies every signature, and checks that changing any signed member breaks it.",
+  "key": {
+    "source": "RFC 8032 section 7.1 TEST 1",
+    "jwk": {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+    }
+  },
+  "run_manifest_digest": {
+    "document": "schemas/hosted_context.schema.json#/examples/0",
+    "digest": "sha256:c1da86382029d8944a901ef9d80e00ac9e4928216311231d81072eab36c08f37"
+  },
+  "vectors": [
+    {
+      "document": "schemas/report.schema.json#/examples/2",
+      "payload_type": "application/vnd.sixi.arena-report+json",
+      "jcs_bytes": 14378,
+      "jcs_sha256": "sha256:c5b8ae431713adcd719d11475c71a4ec1961079fe11337201ac77eebd68f5a65",
+      "signature": "hJ1zVeH4st8p5oqKwsEsYOL4ZQYy+vOibEDvdzghC/C3n7o8wKsTHn6Z1QNFyNZeLAPRBSRlQwe/OODTp2cEBw=="
+    },
+    {
+      "document": "schemas/hosted_context.schema.json#/examples/0",
+      "payload_type": "application/vnd.sixi.arena-run-manifest+json",
+      "jcs_bytes": 2042,
+      "jcs_sha256": "sha256:c1da86382029d8944a901ef9d80e00ac9e4928216311231d81072eab36c08f37",
+      "signature": "2K7AHTPQ4dVWOGbUX3TG8yTUqAdYs4695ZnIz7dDb9Gpv8MFcpMQdunBgikHKrmPP+YeOUbF5EMQ8fbwn4yiAw=="
+    },
+    {
+      "document": "schemas/crosscheck_record.schema.json#/examples/0",
+      "payload_type": "application/vnd.sixi.arena-crosscheck+json",
+      "jcs_bytes": 4496,
+      "jcs_sha256": "sha256:e1f0002a4d6de2f31d69543f6fccb859ac0665857f3f8d0cfdaff7974cd28be5",
+      "signature": "HNqN9mmU5VG6hQ0iDrPnYWoF8qnajZw7ZXJdmR7JtlWJviKritK0z5BfNgJ/vTD1t1V6c3UX000RHIg8O8FXAA=="
+    }
+  ],
+  "receipt_vectors": [
+    {
+      "document": "schemas/deletion_receipt.schema.json#/examples/0",
+      "payload_type": "application/vnd.sixi.arena-deletion+json",
+      "jcs_bytes": 1116,
+      "jcs_sha256": "sha256:126ccbd324f3155f1d2ce343afadb066730d1e7a1cae1d034c4f50938c8427fc",
+      "signature": "3TkRb9JkXuLStPHqIWKYeOJHC7IOa+auprgu0kI/44whFmpOpE9p4zUHj7XFPIPLzR3K+feUZ1EABcwL7h5ODA=="
+    }
+  ],
+  "pack_vectors": [
+    {
+      "document": "schemas/pack_manifest.schema.json#/examples/0",
+      "envelope": "fixtures/packs/sx-agentic-core/pack.dsse.json",
+      "payload_type": "application/vnd.sixi.arena-pack+json",
+      "keyid": "sixi-arena-manifest-ed25519-20261101",
+      "payload": "JCS of the example (any JSON bytes are allowed; the signature is over the exact payload bytes)",
+      "payload_bytes": 2786,
+      "payload_sha256": "sha256:7a61219d293decbd23dab6af91574ff318b4cc7f03e432c4697df63596d1b5e3",
+      "envelope_bytes": 3987,
+      "envelope_sha256": "sha256:82ce9b7e0fc02f4c96c65306587c956595690f018c87b052e8c807b05e3d3069",
+      "signature": "L6xZtLpNPLN1z2G7j1MnjLVqtdWftq29g4ahDnk8ru+H11wB5hWKeN9Ch5G/UBgmB94PaIHmMT5Igz2jonqMBQ==",
+      "variants": [
+        {
+          "scenario_id": "sx_deadlock_hard",
+          "base": "deadlock",
+          "file": "fixtures/packs/sx-agentic-core/variants/deadlock-hard.json",
+          "digest": "sha256:ad734212836af83be828ffaaf7944d6d4ca222a8e52fd49950d7a4a523144a95"
+        }
+      ],
+      "engine_builds_placeholder": true,
+      "note": "engine.builds pins a placeholder build (the hosted_context example engine_build_hash), so a real runner refuses this pack with pack_engine_mismatch by design. A harness re-signs a copy for its own build: node contracts/tools/signing-vectors.mjs --engine-build sha256:<hex> --out <dir> (signing.md section 11.4)."
+    }
+  ],
+  "run_token_vectors": [
+    {
+      "id": "accept-full",
+      "description": "every claim, header {alg, typ, kid}; exp = wall_clock_deadline + 5 minutes",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.xlzx-Y2KeGbIrXe74PshEQ1qSD3PEncK6yMtlc95F6z7w-24tdazdVFgsFeEFuYFE2GspnQd7xU5waFj5QCcCw",
+      "expect": {
+        "result": "accept",
+        "sub": "run_01JB5H0STED0EXAMP1E00000R2",
+        "jti": "rtk_01JB5H0STED0EXAMP1E0000J1"
+      }
+    },
+    {
+      "id": "accept-minimal",
+      "description": "no kid, no iss, no nbf, no iat, no org; verifier without an issuer; aud as a one-element array",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": null,
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": null
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hZ2VudC5leGFtcGxlLmNvbSJdLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJleHAiOjE3OTQzMjEwNjAsImp0aSI6InJ0a18wMUpCNUgwU1RFRDBFWEFNUDFFMDAwMEoxIn0.FI5MCE3oGQYC7j7nSgn9HPR-qSgRcd052SOxcGF_TV6uv6pw9QB7IJxar5Eqbj-zC0vxoeVYFs7anVtZ04KiBw",
+      "expect": {
+        "result": "accept",
+        "sub": "run_01JB5H0STED0EXAMP1E00000R2",
+        "jti": "rtk_01JB5H0STED0EXAMP1E0000J1"
+      }
+    },
+    {
+      "id": "reject-no-kid-named-keys",
+      "description": "the accept-minimal token against pinned keys that carry kids: a token without kid is checked only against kid-less pinned keys",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": null,
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hZ2VudC5leGFtcGxlLmNvbSJdLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJleHAiOjE3OTQzMjEwNjAsImp0aSI6InJ0a18wMUpCNUgwU1RFRDBFWEFNUDFFMDAwMEoxIn0.FI5MCE3oGQYC7j7nSgn9HPR-qSgRcd052SOxcGF_TV6uv6pw9QB7IJxar5Eqbj-zC0vxoeVYFs7anVtZ04KiBw",
+      "expect": {
+        "result": "reject",
+        "reason": "unknown_kid"
+      }
+    },
+    {
+      "id": "accept-exp-within-skew",
+      "description": "exp 30 s in the past: inside the 60 s skew",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzE5MTcwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.PbJCWO5Xrdy3tHhWDK8FNUmD7O6cEaOwL8JjSM1ymQ0eEqdD0b0PwODfRoZ_IPH3vjYNM5HY-CUXEw4AIINiAA",
+      "expect": {
+        "result": "accept",
+        "sub": "run_01JB5H0STED0EXAMP1E00000R2",
+        "jti": "rtk_01JB5H0STED0EXAMP1E0000J1"
+      }
+    },
+    {
+      "id": "reject-typ-jwt",
+      "description": "typ JWT instead of at+jwt",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.ArL30F_A6ILD_DUMCHfwCLpWmY6M5g5AV1rk88RI9Cwq3BKnpJEG7e8jSWThtmii-Q00RfkSkcqae-qkrRFnAA",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-typ-missing",
+      "description": "no typ member",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.IeEwAzj5G-uI7euMMX00Vf9IsO6fJA51BrBhc57e07omkN2S3_gyFvzXrpVcsOHrtMMY1QRPpqcpN9r7Y-51CA",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-header-jwk",
+      "description": "an embedded jwk header member (the key never comes from the token)",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsiLCJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiIxMXFZQVlLeENyZlZTXzdUeVdRSE9nN2hjdlBhcGlNbHJ3SWFhUGNIVVJvIn19.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.ZFmpfE-7WSNJO65gnKenQpBI0qSkA-0mEcJ75UJ0E_-KvmWF3eurmgtkCcvkDhUFmSND9heClMg-dZdgQU4NDQ",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-alg",
+      "description": "alg ES256",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.bkxkmH1UkYKtg6qJBCAMe-QvRHXK93Fyd3n4T3cwGksT3tWN_-qDB_eUjLfiam5HQUwfVXLKcV0kWW0NWO2YBg",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-unknown-kid",
+      "description": "kid names no pinned key",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6IkVYQU1QTEUtdW5waW5uZWQta2lkIn0.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.aJu1eyG7F1FXv8anPflBvrBOeQdcT4jFEuRwM2xe1jFXQ-t4tEaQanC_C_lP24ToosenrintgFyvHtBVUxJ3Dw",
+      "expect": {
+        "result": "reject",
+        "reason": "unknown_kid"
+      }
+    },
+    {
+      "id": "reject-other-key",
+      "description": "signed by another key (RFC 8032 TEST 2) without a kid",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": null
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.v8vAHXvkUV6MKl8l5-H0nM4qLXPWrf7ieQHyJCa8WrPg4R38n5uiPJJGIwUreE5G2cEEi2bSaX0_dBqKEnZRCg",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-aud-other-origin",
+      "description": "aud names another origin",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vb3RoZXIuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.wiTtKSRauV_DjsrjzrmBnD7-XdUnO7a_uZLxvr6DfAITCFKkodtLiHJW6ThGe1njypQJ4gURlhwJs4axGH6sCg",
+      "expect": {
+        "result": "reject",
+        "reason": "aud"
+      }
+    },
+    {
+      "id": "reject-aud-with-path",
+      "description": "aud is a URL with a path, not the origin",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20vYWN0Iiwic3ViIjoicnVuXzAxSkI1SDBTVEVEMEVYQU1QMUUwMDAwMFIyIiwib3JnIjoib3JnX0VYQU1QTEUwMDAwMDAxIiwiaWF0IjoxNzk0MzE5MTcwLCJuYmYiOjE3OTQzMTkxNzAsImV4cCI6MTc5NDMyMTA2MCwianRpIjoicnRrXzAxSkI1SDBTVEVEMEVYQU1QMUUwMDAwSjEifQ.r5MgRy722DgBuUrV8vxrMyVq6gkCvoTsNGptjvgnO5qSAvfz87OXMBHhTkdnWmzKh8h33wzMyJyoy0McGtNoAA",
+      "expect": {
+        "result": "reject",
+        "reason": "aud"
+      }
+    },
+    {
+      "id": "reject-sub-not-run-id",
+      "description": "sub is not a run id",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.4fk2LWdg8n2daogtRGIYXpsfpHWUwK4OMb_eImV2cqDVDxKnsRdmZEsGULe1EOZ9gdNl0Pk6VGyFZwxhlKKgCA",
+      "expect": {
+        "result": "reject",
+        "reason": "sub"
+      }
+    },
+    {
+      "id": "reject-sub-other-run",
+      "description": "a token of another run, presented with this run header (replay across runs)",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjMiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.RRN0cLVLYjGKgopHKWZSqtFlJGBkov9aHG4lzmulUsmcZoeUNUxCzxcou-kBnL32gVwLG2rTbMvcNgW6MSL_AQ",
+      "expect": {
+        "result": "reject",
+        "reason": "run_binding"
+      }
+    },
+    {
+      "id": "reject-expired",
+      "description": "exp 61 s in the past",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzE5MTM5LCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.oS7dGvx_OhDEJYIzofpysMRkkInbBd4h3Fhwf0RAf1DLNdUNawcK6NaVg-C67nr0fLXYgib8OUZ76BdXpHGwBw",
+      "expect": {
+        "result": "reject",
+        "reason": "exp"
+      }
+    },
+    {
+      "id": "reject-exp-missing",
+      "description": "no exp",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwianRpIjoicnRrXzAxSkI1SDBTVEVEMEVYQU1QMUUwMDAwSjEifQ.6WFmGisatLpcyQ4DBv3OAPFyNtVTlm1i30FanSVPaTkhgvIEDaxKn2AFaevmCmJFre-L6_bc59aAtcfffDxmDw",
+      "expect": {
+        "result": "reject",
+        "reason": "exp"
+      }
+    },
+    {
+      "id": "reject-lifetime-2h",
+      "description": "a 2 h token: exp − iat = 7200 (> 3600), while exp is only 30 minutes ahead, so only the from-issue bound fails",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTM4MDAsIm5iZiI6MTc5NDMxMzgwMCwiZXhwIjoxNzk0MzIxMDAwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.Z9ni_wPwYbCQ53N177j6l6e0I2gnQVV4njCOc4badcIyN3sBqLQfmFsjgGEtVJ2egDiCzHXBly7TJV1vQEpFAw",
+      "expect": {
+        "result": "reject",
+        "reason": "exp"
+      }
+    },
+    {
+      "id": "reject-exp-90min-ahead",
+      "description": "no iat; exp 90 minutes ahead: exp − now = 5400 > 3600 + 60, so only the from-now bound fails",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJleHAiOjE3OTQzMjQ2MDAsImp0aSI6InJ0a18wMUpCNUgwU1RFRDBFWEFNUDFFMDAwMEoxIn0.Fqcy5ndHle_FjqQ9JIUwYrGbgRvUt8KmXF_s5KbeTqllW0nJ1ALJIHAjLfhrlCJY7eTo18V274dGVw9zJSefAw",
+      "expect": {
+        "result": "reject",
+        "reason": "exp"
+      }
+    },
+    {
+      "id": "reject-nbf-future",
+      "description": "nbf 61 s in the future",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTI2MSwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.Uz2P7Wgqs94DUTYuA7MGG_CkdmAw_umjWtg3Uoq6DhHD8xL3qAKUfV15stOsLU4PnJyI4dSsnqsRKZt_dd1HDg",
+      "expect": {
+        "result": "reject",
+        "reason": "nbf"
+      }
+    },
+    {
+      "id": "reject-jti-missing",
+      "description": "no jti",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwfQ.u2HvhwuZObQwYFJQgY9D4G43AjJ902MgStoIy6cc1_s4OIjP2RGI6_X2gWe7B6EiQx2bG2PkPbadUBd25_5gDw",
+      "expect": {
+        "result": "reject",
+        "reason": "jti"
+      }
+    },
+    {
+      "id": "reject-jti-short",
+      "description": "jti of 7 characters",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMTIzIn0.gscTkHA3zdNzG5dUtdXcDqvORj9yQs342EBgsyO-aCs6o12CCLYaOPWCk26-mpzgUHk7016Zj94qVLznV7dSCA",
+      "expect": {
+        "result": "reject",
+        "reason": "jti"
+      }
+    },
+    {
+      "id": "reject-iss",
+      "description": "iss differs from the configured issuer",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLmNvbSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.-yZN0MzeDSjO2KKJhLGH5eXmLzS2EeuZPQaihzN8_pD-5z28SP75EyXw0nPwm3RvOz53GaQD6FU5QQOIImrdBQ",
+      "expect": {
+        "result": "reject",
+        "reason": "iss"
+      }
+    },
+    {
+      "id": "reject-noncanonical-signature",
+      "description": "the accept-full token with a non-canonical last base64url character (same 64 bytes after lenient decoding)",
+      "context": {
+        "audience": "https://agent.example.com",
+        "issuer": "https://arena.sixi.example",
+        "x_agent_arena_run": "run_01JB5H0STED0EXAMP1E00000R2",
+        "now": 1794319200,
+        "pinned_keys": [
+          {
+            "key": "test1",
+            "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ.eyJpc3MiOiJodHRwczovL2FyZW5hLnNpeGkuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZS5jb20iLCJzdWIiOiJydW5fMDFKQjVIMFNURUQwRVhBTVAxRTAwMDAwUjIiLCJvcmciOiJvcmdfRVhBTVBMRTAwMDAwMDEiLCJpYXQiOjE3OTQzMTkxNzAsIm5iZiI6MTc5NDMxOTE3MCwiZXhwIjoxNzk0MzIxMDYwLCJqdGkiOiJydGtfMDFKQjVIMFNURUQwRVhBTVAxRTAwMDBKMSJ9.xlzx-Y2KeGbIrXe74PshEQ1qSD3PEncK6yMtlc95F6z7w-24tdazdVFgsFeEFuYFE2GspnQd7xU5waFj5QCcCx",
+      "expect": {
+        "result": "reject",
+        "reason": "malformed"
+      }
+    }
+  ]
+}

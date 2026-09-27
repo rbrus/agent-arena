@@ -1,0 +1,3969 @@
+{
+  "scenarioId": "overfit",
+  "scenarioVersion": "1.2.0",
+  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "seed": 20260720,
+  "tier": "core",
+  "mode": "squad",
+  "targetSeat": "squad",
+  "seats": [
+    {
+      "seat": "squad",
+      "controls": [
+        "m0",
+        "m1",
+        "m2",
+        "m3",
+        "m4"
+      ],
+      "role": "target",
+      "policyRef": "driver:ref:diverseSquad"
+    }
+  ],
+  "inputs": [
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "N",
+            "N"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N",
+            "E"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "W",
+            "W"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "W",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "E",
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "N",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "W",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "move",
+          "steps": [
+            "E",
+            "S"
+          ]
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "W",
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "E",
+            "S"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "revive",
+          "target_member": "m2"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "revive",
+          "target_member": "m2"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            2,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "hold"
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "revive",
+          "target_member": "m0"
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "hold"
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "hold"
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "move",
+          "steps": [
+            "N"
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            5,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    },
+    {
+      "m0": [
+        {
+          "unit_id": "m0-guard",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m1": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "attack",
+          "target": [
+            3,
+            7
+          ]
+        }
+      ],
+      "m2": [
+        {
+          "unit_id": "m2-lancer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m3": [
+        {
+          "unit_id": "m3-archer",
+          "verb": "attack",
+          "target": [
+            4,
+            7
+          ]
+        }
+      ],
+      "m4": [
+        {
+          "unit_id": "m4-scout",
+          "verb": "hold"
+        }
+      ]
+    }
+  ],
+  "timing": [
+    {
+      "event": "decision",
+      "tick": 0,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 1,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 2,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 3,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 4,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 5,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 6,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 7,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 8,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 9,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 10,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 11,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 12,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 13,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 14,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 15,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 16,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 17,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 18,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 19,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 20,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 21,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 22,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 23,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 24,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 25,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 26,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 27,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 28,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 29,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 30,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 31,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 32,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 33,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 34,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 35,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 36,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 37,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 38,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 39,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 40,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 41,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 42,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 43,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 44,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 45,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 46,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 47,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 48,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 49,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 50,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 51,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 52,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 53,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 54,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 55,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 56,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 57,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 58,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 59,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 60,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 61,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 62,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 63,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 64,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 65,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 66,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 67,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 68,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 69,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 70,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 71,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 72,
+      "seat": "squad",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    }
+  ],
+  "adapterCoercions": [],
+  "blindingKey": "7cfd8a3ea8894fbf592a487538b212f99f41a3d74a24096d1741c057f0bd5ebc",
+  "perTickHashes": [
+    "sha256:b741d0d8b67d1eb2209f464f2e539af1267a3ca2aa3b5a067fd2506bca7d39e9",
+    "sha256:dc97ea254487351c043dd97cd8375b8390f7efab81cb8109bcc64d5fff9919f1",
+    "sha256:4f8f1a3973f3d4af3b8778aad4fa3b02043f29cf5efd52f57a9b23f0e2560845",
+    "sha256:5f72052ad84417afe6330515c13c659fed267a411bae758a5cc96ba49c9dcbda",
+    "sha256:4aaae944a21cac3a2a99651f6ff51f15411d71566cc1b2c751fc0da7199f007f",
+    "sha256:7076fc15a7a2d64273d42cd7f580a3acc5b8e76d39d877f4c889dde42887a14d",
+    "sha256:abd84b8a8f8d39f7b6377fb98d1365dcfe47c070050bc680f62c010e4d922d75",
+    "sha256:64b5f7ad95e1b9cd06a3a7c32e7f26c130c5ac3241647d67d738b936e612b0c4",
+    "sha256:904f277791fdef8ce1f2130dcb65a84a84c2eef4722b2c05862d9b7b4e5b40f3",
+    "sha256:dce30ec1a0b361d1a4c072cb11a26d218de6e9d734298c8427c7c7b9d8515960",
+    "sha256:822a68f94156ed1cb95ab7f2c4532d5378efd41e0115e3ef7479afe446c0b4d1",
+    "sha256:41f871674264f5a9e02d7b92f6cbb1e20f0702361038714c5a1627740d625dd4",
+    "sha256:3089cd543b2636295284cf75bc9c6685f9248b8d5d49b73a3fc3c3948efb7201",
+    "sha256:7bd192b8ba49f1bd155e23cca7c3b96ee8fe54081b858d7fc6909ac2d900b4ab",
+    "sha256:ff2e793741fe0ce2c70eca86de8103afcde5dfdd27f535b7cd8428b9c089166f",
+    "sha256:1679dffff0bad30714f9d3bb718bec4fb2cc97ba86245114cebd686073b60772",
+    "sha256:31906b571756204eedd2fcf13c308f5ebfa58255d0293efc6a497eaf7612761f",
+    "sha256:00f14620f07c7490f57e58f31bb12316f4b8d15ce6280fc8895a65e6fb5fd7f4",
+    "sha256:2088f7f427da579ee52271b652eb7c75ea65882760c53ab6508294799d0718a0",
+    "sha256:6fb66267576e1b880912cc088cf3a6a081d6d8b3790f0a0a5db9245fcdfcd097",
+    "sha256:c724ad60c1f5b3d5913053b4703053137298bb2469288498d090aa773d5d68b5",
+    "sha256:4aab8ac49ab0d4b4b2c8748658fe95bd0369e379e9c1eedcb7be4f45c21b7eb8",
+    "sha256:0a35f4532737aaa0f33cc0cc450d772fe7c87d3d0b8427d933a9a0821611b4af",
+    "sha256:9e7693696d462764dec7c0015d2c577343a0170d8544f561bd4034654506970d",
+    "sha256:ce88c6a89b6bafe59db234fe32512121ec51e3571dabea71101ef35297161a83",
+    "sha256:29017c9380e3fd98d6f2f2ae8d1da20b9a87431b6c7f03f977918c55c0c07de3",
+    "sha256:5b2a501da69bd90c436aa8c29a820dc7908dcbcf4a53452b12adf5333b4405f8",
+    "sha256:2426875e69eab53d3ccc79d71f2a7408c72ddf4d04c65d8b47dfec001ebbf49f",
+    "sha256:a4e3f7a3410d78520a592d007d9416897a0e01e4421b5e73a2ba1b88302516f5",
+    "sha256:0a9b284b999dd9c42b8a9aaab849c064963ea7da0bca022227cef061d334c41f",
+    "sha256:b01891f742fdefed2eb625626fec2e5ffefb5a5cbc66c293518fafaecef17563",
+    "sha256:03b0bf138811ec6c56262a11886bf79fbb5668f0f1abc7ac9f567e5cd0251257",
+    "sha256:0ca6ec924ca0e24aa0bd7163e78702bdd914a0df65534439c77223ce76c1d070",
+    "sha256:17204db8e7b41754bbb98230f7b9c9742816c93a6a1c42dd8566e5c3b6eebaef",
+    "sha256:b24583c97bb571b86ae6390662a500451664da862e3106365b95abc38c183640",
+    "sha256:39a827d44c59e9cbae8da69be8a4614dbefc83991fb2916d808ccfb423258cf1",
+    "sha256:26b6b995a6695c40a9f3776d4ba34326924648d449128858ae81ac2405bb959a",
+    "sha256:9d5864df741065776e0153723bb25451d7d4f746bd0c35cc52b36e7e88a76e9a",
+    "sha256:dd9bbff75835687572c01e77310a7df412c25d4224fa93a41419127941eb4d11",
+    "sha256:3ea56cf747d3250301de7c7c8c19db0e6dd677383397e7f7c09f2ab94c26dfa2",
+    "sha256:cb30e900407e26d79a93237ece0a62d26fa6a084d9bdb30770b7554f04872588",
+    "sha256:1605dc20cad7c38a27efcc4200be724a4a9856b87d8ecd2ae4b376fa228c5ec7",
+    "sha256:c932118d1716c7bb8e0aeac1b70adeb5bd8fb3d97cfc3c99045881d006a298e9",
+    "sha256:4a84e2560acdefa30f55b9e841f130127326c474901c5021ec32f728fcb3e9e4",
+    "sha256:77fcfa3c454a3b36d55f9cf06c568171c7458ff0572a969623b828869443fa0c",
+    "sha256:3047e98886978270d3c61be1e6640ef69c3e7620a51f8873de2d383f27004b28",
+    "sha256:c85f23963bcfb05aafd604aec895a95f30f800fb09638f9546d1130406f10d00",
+    "sha256:198aa2002ffbca3ab86a651ce76d730f2f4ffceb8c0b2d06fd535c3217844815",
+    "sha256:364e5fcb9d051dc79eca3ec5d565a346a2bd9ad503a906f615fdd13a492f47e2",
+    "sha256:52dd77437302002f9f05525985414fe849df4c03329fde23cd60d104a34fe5e6",
+    "sha256:39e43422a46762013c964a090fe71a72ccf5ae473296bdf20e56e8608f030c21",
+    "sha256:400ecf3abf00f4c5ad6f805db9a938f6c4b2a6f264fb21ad6fde508de0cbb4ce",
+    "sha256:2ec3dc0fd1c433e2447733061376e0ffc0d114f23c4611e8207679e97d01bec8",
+    "sha256:9affeb59c860f8cfa12afcab02053b71988b7fcbd16d3ef18ee23f6c74823465",
+    "sha256:e4a8bf23a5aa4ab3bf51eaf358e6d74c297d0168c585fcadafdd8d1e93f31610",
+    "sha256:7a42b134f064574c06eebf7c3bbbeca0b616d673e4e36abadc451ec0bd271c84",
+    "sha256:8b47cf329a66eabca57bb7fd170550879edf25c0f32305850ec42d280078c59f",
+    "sha256:be040262d8586b3efee81bf244320890af18f9c57507284a616cb94cea626654",
+    "sha256:430528ded26293ff104e99b83f5db82366bd9b3652dfc911b19f662ddba09790",
+    "sha256:db56aa38baa61a9febb6eddfdf6d02f6defe1c5f47de2f234f74edbb5d5a3513",
+    "sha256:170441046082399b3a6035710fa654e8360ca160879b785a8ab57f3d411a9d88",
+    "sha256:2f80d17e7682c78211ffc5176bc0aa4b050374a1958416c46af8545856c971a1",
+    "sha256:611bc4b0c69ce00d21a824c972cb065aaafe163fe018dcc9fa8bafdafe148b11",
+    "sha256:a8fa710bbac8185cf82bca1c0657277ad940f0e721bce301176f4238426c13a3",
+    "sha256:03732ccc5523578a10e4635c0e14c1556729478e9bbbb8a5cdefc0e10a2f5dad",
+    "sha256:596d26789e93d723babb61522022f6e076c9efb6496e573431849637780c58a1",
+    "sha256:e9d92db141edf6c52953169e1994b17571cb157584870535a4f3a0a99f89a23c",
+    "sha256:b028860f2b7db1ec547148536397618431650c63c375c856711752c0935efc4d",
+    "sha256:35b1536d376e78bbcfaf5d6b26af08b686ed0152d0efe82ef40b18c2bb74c13f",
+    "sha256:b1c27af41c41744193cc7a0d8c2dc8b3fcd9e7ed1e3423e4db944a0b6b5feac9",
+    "sha256:e46e8420ad017a1b3ca0932b6a9f3d69172a1625e422041e266dc920d2f6f9f7",
+    "sha256:d439991108edaea02d14971fe3257a8324530c41f5e6d8c14c8ec41279f5c3fc",
+    "sha256:7a28ec395dd568f02990a215034476d1ea74d5c20c2a6bf26398b7e2bbc14482"
+  ],
+  "replayHash": "sha256:731ccfcd4ed56a23c712c23f4f62cea7d453f0e31f911b5c70ade782666be076",
+  "terminal": {
+    "outcome": "clear",
+    "reason": "boss_defeated",
+    "ticks": 73
+  },
+  "trajectoryClass": "sha256:2290f30ce2949738a3f04cbac7014a9ceddd6b165361347bb098a069017b8d0f"
+}

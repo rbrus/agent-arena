@@ -1,0 +1,23 @@
+{
+  "name": "wot-passports",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Passports service: OAuth2 client-credentials token issuer + Agent Passport lifecycle (register/rotate/revoke) + JWKS. Factory receives the shared stores.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test --import tsx test/*.test.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jose": "^5.9.6",
+    "wot-auth": "*",
+    "wot-store": "*"
+  }
+}

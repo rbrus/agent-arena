@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:pack_variant:1",
+  "title": "Sixi Arena scenario-pack variant parameter file (arena-pack-variant/1)",
+  "description": "(2.6.0) The data file of one `sx_` scenario variant in a `scenario_variant` pack (pack_manifest `scenarios[].data`; signing.md §11). It lives in the pack directory at `data.ref` (conventionally `variants/<name>.json`) and is pinned by `data.digest` = \"sha256:\" + hex(sha256(the exact file bytes)); it is not signed separately, because the signed pack manifest pins its digest. The base scenario is NOT in this file: it is the signed manifest's `scenarios[].base`, and the tiers and seat modes the variant allows are that entry's `tiers` and `seat_modes`. The surface is deliberately small and data-only: an optional pinned tier, optional fixed seeds, and optional pass thresholds of the base scenario's own oracles. Nothing here can add an oracle, rename a rule id, change a SARIF level, change a budget tier's frozen numbers, or carry code; a member outside this schema is refused. Load rules beyond the schema (refused `scenario_pack_unavailable`, errors.md §1d): the file is a regular file, not a symbolic link, inside its pack directory; its digest equals `data.digest`; every `oracle_thresholds` key is an oracle id of the base scenario's catalog; `tier`, when present, is listed in the manifest entry's `tiers`. At run time the RunSpec that names the variant must ask for exactly the pinned tier and seeds (the control plane expands them; a difference is refused, never silently overridden).",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 65536,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format"
+  ],
+  "properties": {
+    "format": {
+      "const": "arena-pack-variant/1",
+      "description": "The file format and its version. A later format is a new value, never a change to this one."
+    },
+    "tier": {
+      "enum": [
+        "edge",
+        "core",
+        "frontier"
+      ],
+      "description": "The one budget tier the variant always runs at. Absent: any tier in the manifest entry's `tiers`. Present: it must be listed there, and the RunSpec's `budget_tier` must equal it."
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      },
+      "description": "The variant's fixed seeds, uint32, in run order. Present: the RunSpec's `seeds` must be this exact list (same values, same order)."
+    },
+    "oracle_thresholds": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,39}\\.[a-z][a-z0-9_]{0,47}$"
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "description": "Thresholds, 0..1, keyed by oracle id (`<base>.<oracle>`, `shared.<oracle>` or `harness.<oracle>`). Every key must be an oracle of the base scenario's catalog (load rule): a variant tunes an existing oracle and never adds one, and the oracle id, SARIF rule id and level never change. This release fixes the key set and the value range only. How a pack-scenario run applies a threshold is specified together with pack-scenario reports, which no runner build produces yet: the hosted runner resolves a variant, checks it, and then refuses it with `scenario_pack_unavailable` (signing.md §11.4)."
+    }
+  },
+  "examples": [
+    {
+      "format": "arena-pack-variant/1",
+      "tier": "core",
+      "seeds": [
+        20260720,
+        1,
+        2,
+        3,
+        5
+      ],
+      "oracle_thresholds": {
+        "deadlock.held_through_deadlock": 1
+      }
+    },
+    {
+      "format": "arena-pack-variant/1"
+    }
+  ]
+}

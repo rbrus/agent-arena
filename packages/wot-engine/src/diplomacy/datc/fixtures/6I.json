@@ -1,0 +1,248 @@
+{
+ "datc_version": "3.0",
+ "section": "6.I",
+ "cases": [
+  {
+   "id": "6.I.1",
+   "title": "Too many build orders",
+   "status": "standard",
+   "rules": [
+    "4.D.4"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "transcription_notes": "Germany may build one: it owns Berlin, Kiel and Munich and has armies in Berlin and Silesia.",
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "A", "at": "sil" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "ber": "germany",
+     "kie": "germany",
+     "mun": "germany"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "B A war", "result": "illegal", "reason": "build_not_home" },
+       { "o": "B A kie", "result": "success" },
+       { "o": "B A mun", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "A", "at": "sil" },
+       { "power": "germany", "type": "A", "at": "kie" }
+      ],
+      "dislodged_after": [],
+      "phase_after": "S1902M"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.2",
+   "title": "Fleets cannot be build in land areas",
+   "status": "standard",
+   "rules": [
+    "4.C.4"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "mos": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "B F mos", "result": "illegal", "reason": "build_fleet_inland" }
+      ]
+     },
+     "expect": {
+      "units_after": [],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.3",
+   "title": "Supply center must be empty for building",
+   "status": "standard",
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "ber": "germany",
+     "kie": "germany"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "B A ber", "result": "illegal", "reason": "build_occupied" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.4",
+   "title": "Both coasts must be empty for building",
+   "status": "standard",
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "F", "at": "stp/sc" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia",
+     "mos": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "B A stp/nc", "result": "illegal", "reason": "build_occupied" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "stp/sc" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.5",
+   "title": "Building in home supply center that is not owned",
+   "status": "standard",
+   "requires": [
+    "adjustment"
+   ],
+   "transcription_notes": "Germany owns Kiel and Munich; Russia owns Berlin (captured in Fall, then vacated).",
+   "setup": {
+    "phase": "W1901A",
+    "units": [],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "kie": "germany",
+     "mun": "germany",
+     "ber": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "B A ber", "result": "illegal", "reason": "build_not_owned" }
+      ]
+     },
+     "expect": {
+      "units_after": [],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.6",
+   "title": "Building in owned supply center that is not a home supply center",
+   "status": "standard",
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "war": "germany"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "B A war", "result": "illegal", "reason": "build_not_home" }
+      ]
+     },
+     "expect": {
+      "units_after": [],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.I.7",
+   "title": "Only one build in a home supply center",
+   "status": "standard",
+   "rules": [
+    "4.D.5"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "mos": "russia",
+     "stp": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "B A mos", "result": "success" },
+       { "o": "B A mos", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "mos" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  }
+ ]
+}

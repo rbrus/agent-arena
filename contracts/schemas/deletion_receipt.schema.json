@@ -1,0 +1,504 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:deletion_receipt:1",
+  "title": "Deletion receipt (Sixi Arena hosted profile)",
+  "description": "(2.5.0, SIXI-INTEGRATION.md OQ-11) The signed statement that the hosted control plane deleted a customer's arena data for one deletion request (HOSTED-PROFILE §4.3: delete a run, a scan, data before a date, or the whole organisation). It is issued once, when the primary-storage deletion has completed (`purged_at`), and served with the deletion's state at `GET /api/arena/deletions/{deletion_id}` (a Sixi surface, not in openapi.yaml). It states what was deleted, when, and what is retained and why. Backups age out by `backups_purged_by`, and the audit and transparency logs are kept, holding ids and digests only. Signed with the report key (the report kid namespace, signing.md §9) over PAE(`application/vnd.sixi.arena-deletion+json`, JCS(receipt without /signing/signature)). It can hold no customer content by construction: no origin, no target, no label, no RunSpec and no credential. Every string is patterned, and the organisation appears only as the opaque `org_ref`. It is a record of an operation, not a statement about any regime: no field or example of it names a regulation or claims conformity.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_version",
+    "deletion_id",
+    "org_ref",
+    "region",
+    "scope",
+    "trigger",
+    "requested_at",
+    "purged_at",
+    "backups_purged_by",
+    "backup_horizon",
+    "deleted",
+    "retained",
+    "retention_policy_ref",
+    "signing"
+  ],
+  "properties": {
+    "receipt_version": {
+      "const": "1.0"
+    },
+    "deletion_id": {
+      "type": "string",
+      "pattern": "^del_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "The deletion request id (`del_` + 26 Crockford base32 characters; random, never derived from the org or a time). The 202 response of the delete request returns it."
+    },
+    "org_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$",
+      "description": "Opaque organisation reference. Never a name."
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "europe-central2",
+        "europe-north1",
+        "europe-north2",
+        "europe-southwest1",
+        "europe-west1",
+        "europe-west10",
+        "europe-west12",
+        "europe-west3",
+        "europe-west4",
+        "europe-west6",
+        "europe-west8",
+        "europe-west9"
+      ],
+      "description": "The processing region (default europe-west6). (2.9.0) An explicit list of Google Cloud regions, not a pattern: the regions in EU member states plus europe-west6 (Zürich, Switzerland), the same list the Sixi control plane enforces at startup. `europe-west2` (London, not in the EU) and every region outside the EU and Switzerland are refused. No fallback region exists (HOSTED-PROFILE §4.1). A region is added to this list on purpose, as a contract MINOR, in every copy at once (hosted_context, report run.hosted, evidence_report producer and scope, deletion_receipt; signing.md §3.2 rule M9)."
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "description": "What the request asked to delete. run = one run; scan = every run of one scan; data_before = every run of the organisation that finished before `before`; org = every arena datum of the organisation (account erasure).",
+      "properties": {
+        "kind": {
+          "enum": [
+            "run",
+            "scan",
+            "data_before",
+            "org"
+          ]
+        },
+        "run_id": {
+          "type": "string",
+          "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$",
+          "description": "The contract run id; 128 bits of randomness, never derived from the org, the origin or a time."
+        },
+        "scan_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$",
+          "description": "The scan this run belongs to (one scan = |scenarios| x |tiers| runs)."
+        },
+        "before": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 35,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$",
+          "description": "data_before only: runs that finished strictly before this instant."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "run"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "run_id"
+            ],
+            "properties": {
+              "run_id": true
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "scan_id"
+                  ],
+                  "properties": {
+                    "scan_id": true
+                  }
+                },
+                {
+                  "required": [
+                    "before"
+                  ],
+                  "properties": {
+                    "before": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "scan"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "scan_id"
+            ],
+            "properties": {
+              "scan_id": true
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "run_id"
+                  ],
+                  "properties": {
+                    "run_id": true
+                  }
+                },
+                {
+                  "required": [
+                    "before"
+                  ],
+                  "properties": {
+                    "before": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "data_before"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "before"
+            ],
+            "properties": {
+              "before": true
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "run_id"
+                  ],
+                  "properties": {
+                    "run_id": true
+                  }
+                },
+                {
+                  "required": [
+                    "scan_id"
+                  ],
+                  "properties": {
+                    "scan_id": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "org"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "run_id"
+                  ],
+                  "properties": {
+                    "run_id": true
+                  }
+                },
+                {
+                  "required": [
+                    "scan_id"
+                  ],
+                  "properties": {
+                    "scan_id": true
+                  }
+                },
+                {
+                  "required": [
+                    "before"
+                  ],
+                  "properties": {
+                    "before": true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "trigger": {
+      "enum": [
+        "api_request",
+        "account_erasure"
+      ],
+      "description": "api_request = a DELETE on the arena routes (scope `arena:delete` or a session); account_erasure = the account-erasure flow (scope kind org). Expiry by the retention horizon issues no receipt."
+    },
+    "runs_deleted": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000,
+      "description": "(optional) How many runs the scope matched."
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 35,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$",
+      "description": "When the deletion request was accepted."
+    },
+    "purged_at": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 35,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$",
+      "description": "When the deletion from primary storage (objects and database rows) completed. Not before requested_at."
+    },
+    "backups_purged_by": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 35,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$",
+      "description": "The latest instant by which every copy has aged out of bucket soft delete, point-in-time recovery and database backups: purged_at plus the backup horizon. After it no copy exists anywhere in the service."
+    },
+    "backup_horizon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "soft_delete_days",
+        "pitr_days",
+        "backup_days"
+      ],
+      "description": "The horizons that bound backups_purged_by (HOSTED-PROFILE §4.3, threat-model-hosted.md §6.3).",
+      "properties": {
+        "soft_delete_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "pitr_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "backup_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14
+        }
+      }
+    },
+    "deleted": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "description": "The data classes deleted from primary storage, in the listed enum order, each with the count of objects and rows removed (0 when the scope held none of that class). Every class the scope could hold is listed, 0 included, so an absent class is never ambiguous.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "class",
+          "count"
+        ],
+        "properties": {
+          "class": {
+            "enum": [
+              "transcripts",
+              "episode_records",
+              "replays",
+              "reports",
+              "sarif",
+              "evidence",
+              "bundles",
+              "run_manifests",
+              "run_rows"
+            ],
+            "description": "transcripts = episode records holding target text; episode_records = the other episode records; replays; reports (report.json and its envelope); sarif; evidence (evidence.md / evidence.json); bundles; run_manifests (the signed hosted contexts); run_rows = the run's database rows (arena_runs, manifests, deliveries)."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          }
+        }
+      }
+    },
+    "retained": {
+      "type": "array",
+      "maxItems": 4,
+      "uniqueItems": true,
+      "description": "What the deletion deliberately does NOT remove, and for how long. It is always listed, and is empty only if nothing is retained.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "class",
+          "reason"
+        ],
+        "properties": {
+          "class": {
+            "enum": [
+              "audit_log",
+              "transparency_log"
+            ],
+            "description": "audit_log = the audit rows of the run and of this deletion (actor ids, actions, digests; never a credential or a request body); transparency_log = append-only entries holding report digests and key ids."
+          },
+          "reason": {
+            "enum": [
+              "security_audit",
+              "append_only_integrity"
+            ]
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650,
+            "description": "Absent = kept for the life of the log (transparency_log)."
+          }
+        }
+      }
+    },
+    "retention_policy_ref": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,40}@[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "The retention policy in force for the organisation's plan, as `<policy id>@<effective date>` (e.g. `arena-retention-team@2026-11-01`). It names the published policy text; this receipt does not restate it."
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "signing_key_id",
+        "canonicalization",
+        "payload_type",
+        "excluded",
+        "signature"
+      ],
+      "description": "Ed25519 over PAE(payload_type, JCS(receipt without /signing/signature)) with the report key (signing.md §2, §9).",
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "signing_key_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+          "description": "A report-key id (the same kid namespace as report signing keys, never the run-manifest namespace)."
+        },
+        "canonicalization": {
+          "const": "jcs-rfc8785"
+        },
+        "payload_type": {
+          "const": "application/vnd.sixi.arena-deletion+json"
+        },
+        "excluded": {
+          "const": [
+            "/signing/signature"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{86}==$"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "receipt_version": "1.0",
+      "deletion_id": "del_01JB5H0STED0EXAMP1E00000D1",
+      "org_ref": "org_EXAMPLE0000001",
+      "region": "europe-west6",
+      "scope": {
+        "kind": "scan",
+        "scan_id": "scn_EXAMPLE000001"
+      },
+      "trigger": "api_request",
+      "runs_deleted": 2,
+      "requested_at": "2026-12-01T09:00:00Z",
+      "purged_at": "2026-12-01T09:00:04Z",
+      "backups_purged_by": "2026-12-15T09:00:04Z",
+      "backup_horizon": {
+        "soft_delete_days": 7,
+        "pitr_days": 7,
+        "backup_days": 14
+      },
+      "deleted": [
+        {
+          "class": "transcripts",
+          "count": 2
+        },
+        {
+          "class": "episode_records",
+          "count": 2
+        },
+        {
+          "class": "replays",
+          "count": 2
+        },
+        {
+          "class": "reports",
+          "count": 4
+        },
+        {
+          "class": "sarif",
+          "count": 2
+        },
+        {
+          "class": "evidence",
+          "count": 2
+        },
+        {
+          "class": "bundles",
+          "count": 2
+        },
+        {
+          "class": "run_manifests",
+          "count": 2
+        },
+        {
+          "class": "run_rows",
+          "count": 6
+        }
+      ],
+      "retained": [
+        {
+          "class": "audit_log",
+          "reason": "security_audit",
+          "retention_days": 730
+        },
+        {
+          "class": "transparency_log",
+          "reason": "append_only_integrity"
+        }
+      ],
+      "retention_policy_ref": "arena-retention-team@2026-11-01",
+      "signing": {
+        "algorithm": "ed25519",
+        "signing_key_id": "sixi-arena-ed25519-20261101",
+        "canonicalization": "jcs-rfc8785",
+        "payload_type": "application/vnd.sixi.arena-deletion+json",
+        "excluded": [
+          "/signing/signature"
+        ],
+        "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000=="
+      }
+    }
+  ]
+}

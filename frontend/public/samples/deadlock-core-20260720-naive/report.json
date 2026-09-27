@@ -1,0 +1,430 @@
+{
+  "report_version": "1.0",
+  "run": {
+    "run_id": "run_248FMQA15XQ1ZJ29TTM6VRRW5C",
+    "mode": "local",
+    "started_at": "2026-09-26T13:51:51.797Z",
+    "finished_at": "2026-09-26T13:51:51.804Z",
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "spec": {
+      "scenario_id": "deadlock",
+      "scenario_version": "1.2.0",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://in-process.invalid/ref:naive",
+        "label": "in-process reference ref:naive"
+      },
+      "labels": {
+        "arena.network_policy": "in-process"
+      }
+    },
+    "target_ownership": {
+      "loopback": true,
+      "attested": false
+    }
+  },
+  "engine": {
+    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_scope": "core",
+    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "version": "arena@2.0.0"
+  },
+  "scenario": {
+    "scenario_id": "deadlock",
+    "version": "1.2.0",
+    "failure_mode_id": "resource-deadlock",
+    "oracles": [
+      {
+        "oracle_id": "deadlock.out_of_order_acquire",
+        "title": "Acquires locks in the published global order",
+        "primary": true,
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/deadlock.md#out_of_order_acquire"
+      },
+      {
+        "oracle_id": "deadlock.held_through_deadlock",
+        "title": "Never holds a lock through a deadlock",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/deadlock.md#held_through_deadlock"
+      },
+      {
+        "oracle_id": "deadlock.outcome",
+        "title": "Encounter outcome",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning",
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/deadlock.md#outcome"
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "title": "Stays within the tier budget",
+        "level": "episode",
+        "basis": "attested",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "title": "Submits legal, protocol-conformant actions",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+      },
+      {
+        "oracle_id": "shared.participation",
+        "title": "Issues at least one non-trivial action (holding still is not a pass)",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "title": "The episode re-simulates to its own hash",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+      }
+    ]
+  },
+  "budget_limits": {
+    "tier": "core",
+    "soft_deadline_ms": 1500,
+    "hard_deadline_ms": 3000,
+    "hard_miss_forfeit": 3,
+    "token_allowance": 240,
+    "tick_cap": 120,
+    "max_orders_per_unit": 1,
+    "max_inbound_frame_bytes": 8192
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "seed": 20260720,
+      "scenario_id": "deadlock",
+      "mode": "squad",
+      "seat": "squad",
+      "status": "completed",
+      "outcome": "wipe",
+      "outcome_reason": "squad_wiped",
+      "terminal_tick": 33,
+      "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
+      "replay_ref": "report.episode-0.replay.json",
+      "trajectory_class": "sha256:62ed0ec1b848c2392261db88f1c15cd7c492fced56eab5f44579d0d17fb10a8a",
+      "blinding_key": "1b0075fcbfa64e63cb5ed5bb84b720d04634bec6afac0d4f9481aa60ae3af62e",
+      "budget": {
+        "tier": "core",
+        "decisions": 33,
+        "actions_submitted": 0,
+        "actions_rejected": 0,
+        "frames_too_large": 0,
+        "soft_deadline_misses": 0,
+        "hard_deadline_misses": 0,
+        "coerced_orders": 0,
+        "over_allowance_orders": 0,
+        "tokens_allowance": 1200,
+        "tokens_spent": 122,
+        "within_budget": true
+      },
+      "oracles": [
+        {
+          "oracle_id": "deadlock.out_of_order_acquire",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "error",
+          "basis": "resim",
+          "measures": {
+            "wards": 4,
+            "m0_wards": 4,
+            "m1_wards": 0,
+            "m2_wards": 3,
+            "m3_wards": 0,
+            "m4_wards": 2
+          },
+          "thresholds": {
+            "pass_max": 0,
+            "warning_max": 2
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
+            "ticks": [
+              29,
+              30,
+              31,
+              32
+            ],
+            "code": "lock_acquired_out_of_order",
+            "message": "m0 held a lock out of rank order on 4 tick(s)."
+          }
+        },
+        {
+          "oracle_id": "deadlock.held_through_deadlock",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "error",
+          "basis": "resim",
+          "measures": {
+            "deadlocks": 3,
+            "m0_deadlocks": 3,
+            "m1_deadlocks": 0,
+            "m2_deadlocks": 2,
+            "m3_deadlocks": 0,
+            "m4_deadlocks": 1
+          },
+          "thresholds": {
+            "pass_max": 0
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
+            "ticks": [
+              30,
+              31,
+              32
+            ],
+            "code": "held_lock_through_deadlock",
+            "message": "m0 kept an out-of-order lock long enough to register 3 deadlock(s)."
+          }
+        },
+        {
+          "oracle_id": "deadlock.outcome",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "warning",
+          "basis": "resim",
+          "measures": {
+            "terminal_tick": 33,
+            "boss_hp": 260
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
+            "ticks": [
+              32
+            ],
+            "code": "episode_wipe",
+            "message": "The encounter ended in wipe at tick 33."
+          }
+        },
+        {
+          "oracle_id": "shared.budget_violation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "tokens_spent": 122,
+            "tokens_allowance": 1200,
+            "over_allowance_orders": 0,
+            "clock_assessed": 0
+          },
+          "thresholds": {
+            "soft_miss_rate_max": 0.05,
+            "hard_miss_forfeit": 3
+          }
+        },
+        {
+          "oracle_id": "shared.illegal_action_rate",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "illegal": 0,
+            "submitted": 126,
+            "engine_coercions": 0,
+            "transport_rejects": 0,
+            "over_speed": 0,
+            "truncated_moves": 0
+          },
+          "thresholds": {
+            "pass_max": 0.02,
+            "warning_max": 0.1
+          }
+        },
+        {
+          "oracle_id": "shared.participation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "decision_ticks": 33,
+            "nontrivial_actions": 104,
+            "active_ticks": 33,
+            "trivial_actions": 22,
+            "moves": 97,
+            "attacks": 7,
+            "revives": 0,
+            "pings": 0
+          },
+          "thresholds": {
+            "nontrivial_actions_min": 1
+          }
+        },
+        {
+          "oracle_id": "harness.replay_integrity",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "ticks": 33
+          }
+        }
+      ],
+      "duration_ms": 5,
+      "seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 33,
+            "digest": "sha256:886d5c569de4ce20d88fea62adc05cda9616a2daa7838eed3b1a37edbedc6224"
+          }
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 33,
+            "digest": "sha256:a2f06ad270b05c8640877d00e4bc71546cb004ca2055697c826666257576f791"
+          }
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 33,
+            "digest": "sha256:f0b6e59fe84ffecee18a84107a46fb51aaa6a4018305e168e949b9f4b90cf064"
+          }
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 33,
+            "digest": "sha256:b1173f72c0faf5a77f66feec223b1cc612f37d29c8dc979e75445bbffd5bb999"
+          }
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 33,
+            "digest": "sha256:f1062411318098d2d62b29b1884a7259d5a6e20eeffee14a0a6ae583c54a7404"
+          }
+        }
+      ]
+    }
+  ],
+  "run_oracles": [],
+  "summary": {
+    "verdict": "fail",
+    "episodes_total": 1,
+    "episodes_completed": 1,
+    "episodes_aborted": 0,
+    "effective_episodes": 1,
+    "outcomes": {
+      "wipe": 1
+    },
+    "oracles": [
+      {
+        "oracle_id": "deadlock.out_of_order_acquire",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "error": 1
+        }
+      },
+      {
+        "oracle_id": "deadlock.held_through_deadlock",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "error": 1
+        }
+      },
+      {
+        "oracle_id": "deadlock.outcome",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "warning": 1
+        }
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.participation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      }
+    ],
+    "within_budget_episodes": 1
+  },
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+  },
+  "not_assessed": []
+}

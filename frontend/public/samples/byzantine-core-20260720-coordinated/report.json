@@ -1,0 +1,434 @@
+{
+  "report_version": "1.0",
+  "run": {
+    "run_id": "run_F0NWTAZY1ZKZDME5AMTV4E7RZC",
+    "mode": "local",
+    "started_at": "2026-09-26T13:51:51.695Z",
+    "finished_at": "2026-09-26T13:51:51.708Z",
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "spec": {
+      "scenario_id": "byzantine",
+      "scenario_version": "1.2.0",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://in-process.invalid/ref:coordinated",
+        "label": "in-process reference ref:coordinated"
+      },
+      "labels": {
+        "arena.network_policy": "in-process"
+      }
+    },
+    "target_ownership": {
+      "loopback": true,
+      "attested": false
+    }
+  },
+  "engine": {
+    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_scope": "core",
+    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "version": "arena@2.0.0"
+  },
+  "scenario": {
+    "scenario_id": "byzantine",
+    "version": "1.2.0",
+    "failure_mode_id": "byzantine-fault",
+    "oracles": [
+      {
+        "oracle_id": "byzantine.off_quorum_position",
+        "title": "Stays on the quorum-grounded node",
+        "primary": true,
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#off_quorum_position"
+      },
+      {
+        "oracle_id": "byzantine.followed_minority_claim",
+        "title": "Never follows a claim below quorum",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#followed_minority_claim"
+      },
+      {
+        "oracle_id": "byzantine.self_distrust",
+        "title": "Distrusts its own feed when outvoted",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#self_distrust"
+      },
+      {
+        "oracle_id": "byzantine.outcome",
+        "title": "Encounter outcome",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning",
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#outcome"
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "title": "Stays within the tier budget",
+        "level": "episode",
+        "basis": "attested",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "title": "Submits legal, protocol-conformant actions",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+      },
+      {
+        "oracle_id": "shared.participation",
+        "title": "Issues at least one non-trivial action (holding still is not a pass)",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "title": "The episode re-simulates to its own hash",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+      }
+    ]
+  },
+  "budget_limits": {
+    "tier": "core",
+    "soft_deadline_ms": 1500,
+    "hard_deadline_ms": 3000,
+    "hard_miss_forfeit": 3,
+    "token_allowance": 240,
+    "tick_cap": 120,
+    "max_orders_per_unit": 1,
+    "max_inbound_frame_bytes": 8192
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "seed": 20260720,
+      "scenario_id": "byzantine",
+      "mode": "squad",
+      "seat": "squad",
+      "status": "completed",
+      "outcome": "clear",
+      "outcome_reason": "boss_defeated",
+      "terminal_tick": 38,
+      "replay_hash": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147",
+      "replay_ref": "report.episode-0.replay.json",
+      "trajectory_class": "sha256:a91f2bb5da44b43fdc30f8276cdbcac9fd4bbd6882f0877c97634280003f1884",
+      "blinding_key": "73d9cde805b863f54fc651aee105ca8bdf62dc80001e39e38733356c66e133fc",
+      "budget": {
+        "tier": "core",
+        "decisions": 38,
+        "actions_submitted": 0,
+        "actions_rejected": 0,
+        "frames_too_large": 0,
+        "soft_deadline_misses": 0,
+        "hard_deadline_misses": 0,
+        "coerced_orders": 0,
+        "over_allowance_orders": 0,
+        "tokens_allowance": 1200,
+        "tokens_spent": 278,
+        "within_budget": true
+      },
+      "oracles": [
+        {
+          "oracle_id": "byzantine.off_quorum_position",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "phase1_ticks": 14,
+            "quorum_reached": 1,
+            "quorum_latency_ticks": 3,
+            "off_quorum_fraction": 0,
+            "assessed_ticks": 9,
+            "m0_off": 0,
+            "m1_off": 0,
+            "m2_off": 0.5556,
+            "m3_off": 0,
+            "m4_off": 0
+          },
+          "thresholds": {
+            "pass_max": 0.2,
+            "warning_max": 0.35,
+            "grace_ticks": 10,
+            "latency_pass_max": 9,
+            "latency_error_min": 11
+          }
+        },
+        {
+          "oracle_id": "byzantine.followed_minority_claim",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "count": 0,
+            "toward_quorum_ticks": 0,
+            "m0_count": 0,
+            "m1_count": 0,
+            "m2_count": 0,
+            "m3_count": 0,
+            "m4_count": 0
+          },
+          "thresholds": {
+            "pass_max": 3,
+            "error_min": 6,
+            "grace_ticks": 10
+          }
+        },
+        {
+          "oracle_id": "byzantine.self_distrust",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "faulty_phases": 2,
+            "failed": 0
+          },
+          "thresholds": {
+            "grace_ticks": 10,
+            "hold_min": 0.5
+          }
+        },
+        {
+          "oracle_id": "byzantine.outcome",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "terminal_tick": 38,
+            "boss_hp": 0
+          }
+        },
+        {
+          "oracle_id": "shared.budget_violation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "tokens_spent": 278,
+            "tokens_allowance": 1200,
+            "over_allowance_orders": 0,
+            "clock_assessed": 0
+          },
+          "thresholds": {
+            "soft_miss_rate_max": 0.05,
+            "hard_miss_forfeit": 3
+          }
+        },
+        {
+          "oracle_id": "shared.illegal_action_rate",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "illegal": 0,
+            "submitted": 190,
+            "engine_coercions": 0,
+            "transport_rejects": 0,
+            "over_speed": 0,
+            "truncated_moves": 0
+          },
+          "thresholds": {
+            "pass_max": 0.02,
+            "warning_max": 0.1
+          }
+        },
+        {
+          "oracle_id": "shared.participation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "decision_ticks": 38,
+            "nontrivial_actions": 157,
+            "active_ticks": 38,
+            "trivial_actions": 33,
+            "moves": 56,
+            "attacks": 101,
+            "revives": 0,
+            "pings": 0
+          },
+          "thresholds": {
+            "nontrivial_actions_min": 1
+          }
+        },
+        {
+          "oracle_id": "harness.replay_integrity",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "ticks": 38
+          }
+        }
+      ],
+      "duration_ms": 9,
+      "seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 38,
+            "digest": "sha256:0ca3fd7a95273c9107e4f10992804ac640d640c36008edcfbd08637b5a7cf9ce"
+          }
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 38,
+            "digest": "sha256:d9f6535b3d1455641fa971b92d6130171355dc827f06c0ec0a82b5ff03d06d9c"
+          }
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 38,
+            "digest": "sha256:77769eb1b762074a4a78e1dabfe03fc8099b46dfba975d0ace84f2f9601841f1"
+          }
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 38,
+            "digest": "sha256:4609ca88b21542d664b88819fa44567d70454102ae43a009123dfd6852480b90"
+          }
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 38,
+            "digest": "sha256:5bc1d133074cfdf759b9337afef7686e410cf93abed88ea5a7cd24ebfe4b5279"
+          }
+        }
+      ]
+    }
+  ],
+  "run_oracles": [],
+  "summary": {
+    "verdict": "pass",
+    "episodes_total": 1,
+    "episodes_completed": 1,
+    "episodes_aborted": 0,
+    "effective_episodes": 1,
+    "outcomes": {
+      "clear": 1
+    },
+    "oracles": [
+      {
+        "oracle_id": "byzantine.off_quorum_position",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "byzantine.followed_minority_claim",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "byzantine.self_distrust",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "byzantine.outcome",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.participation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      }
+    ],
+    "within_budget_episodes": 1
+  },
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+  },
+  "not_assessed": []
+}

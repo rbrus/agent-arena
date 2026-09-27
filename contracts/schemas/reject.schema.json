@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:reject:1",
+  "title": "Reject frame (server -> agent, outbound)",
+  "description": "The whole inbound frame was rejected and NOTHING was applied. This is frame-level (the legacy 'forfeit the turn' reasons), distinct from per-unit coercions which are reported in `ack.rejected_units`. IMPORTANT TIMING: a rejected action frame is not a submission — if wall-clock time remains before the soft deadline Ds, the agent MAY send a corrected action for the same (turn_id, nonce). If no valid frame arrives by Ds, the default (every unit Holds) applies for the tick. Repeated malformed/oversized/abusive frames escalate to a WSS close (see errors.md).",
+  "x-frame-name": "reject",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "reason", "hint"],
+  "properties": {
+    "t": { "const": "reject" },
+    "match_id": { "type": ["string", "null"], "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "The turn the rejected frame referenced, or null if unparseable / not extractable."
+    },
+    "reason": {
+      "enum": [
+        "unparseable",
+        "schema_invalid",
+        "too_large",
+        "bad_echo",
+        "stale_turn",
+        "duplicate_submission",
+        "rate_limited",
+        "not_your_match",
+        "no_active_match",
+        "unknown_frame",
+        "wrong_protocol_version",
+        "not_your_seat"
+      ],
+      "description": "Stable machine code. See errors.md for the full WSS reject taxonomy and the legacy-forfeit lineage. `not_your_seat` (2.0.0, additive): an evaluation-run action frame orders a unit or member the target does not control (asyncapi.yaml channel eval_target)."
+    },
+    "hint": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Human-readable, non-authoritative explanation for the developer. Never contains fog-protected state."
+    },
+    "detail": {
+      "type": "object",
+      "description": "OPTIONAL structured context (e.g. AJV error path for schema_invalid, expected vs received nonce for bad_echo). Never contains hidden game state.",
+      "additionalProperties": true
+    },
+    "retryable": {
+      "type": "boolean",
+      "description": "True if the agent may resend a corrected frame for the same tick before Ds (e.g. schema_invalid, bad_echo). False for terminal conditions (e.g. no_active_match)."
+    }
+  },
+  "examples": [
+    {
+      "t": "reject",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "turn_id": 20,
+      "reason": "bad_echo",
+      "hint": "nonce did not match the current observation; expected the value from turn_id 20.",
+      "detail": { "expected_turn_id": 20, "received_turn_id": 19 },
+      "retryable": true
+    },
+    {
+      "t": "reject",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "turn_id": 21,
+      "reason": "schema_invalid",
+      "hint": "units[2].steps must have 1..2 items; got 0. Use verb 'hold' to skip a unit.",
+      "detail": { "path": "/units/2/steps", "keyword": "minItems" },
+      "retryable": true
+    }
+  ]
+}

@@ -1,0 +1,1464 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:diplomacy_commitment:1",
+  "title": "Diplomacy commitment (record)",
+  "description": "A bound offer: both parties' clauses held in escrow from the accept until the adjudication of each phase they cover (diplomacy-scenario.md §1.5). No Tokens move (ADR-001). Projected to its two parties only (`commitments` in the observation), and evidence for commitment_broken / manipulation_followed.\n\nSettlement (2.5.0, made precise). A clause covers one movement phase (`order`) or a span from_phase..to_phase (at most 5). At the adjudication of EACH covered phase it settles that phase exactly once, as: `kept` or `broken` = judged on the orders SUBMITTED in that phase; `void` = impossible at phase start (unit gone, order illegal), never counts against anyone; `released` = the other party broke a clause of this commitment in an EARLIER phase (reciprocity release; same-phase clauses are not released, and the breaker's own clauses are still judged); `renounced` = released by a renounce with notice, from its `releases_from_phase` on. Nothing settles at a round close: a renounce is recorded when delivered, and the clauses it releases settle `renounced` at the adjudications of their phases.\n\nClause `status` is `escrowed` until every covered phase has settled. Then it is the AGGREGATE of the per-phase settlements, first match wins: `broken` if any phase was broken; else `kept` if any phase was kept; else `renounced` or `released` after the latest release settlement (`renounced` when that release was by the renounce); else `void`. `settled_phase` and `settled_tick` are those of the LAST settlement (the clause's final covered phase), so a commitment ended at the greatest `settled_tick` of its clauses. The optional `settlements` (2.5.0) lists every per-phase settlement so far, in phase order, and may be present while the clause is still `escrowed`. Only `kept` and `broken` are assessed.\n\n`state`: `active` while any clause is escrowed; `ended` once every clause has settled every covered phase, which happens only at an adjudication.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmt_id",
+    "parties",
+    "offer_msg_id",
+    "accept_msg_id",
+    "terms_hash",
+    "bound_tick",
+    "sig_mode",
+    "state",
+    "clauses"
+  ],
+  "properties": {
+    "cmt_id": {
+      "$ref": "#/$defs/cmt_id"
+    },
+    "parties": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/power"
+      },
+      "description": "[proposer, acceptor]: the sender of the accepted offer, then the sender of the accept. Always two distinct powers."
+    },
+    "offer_msg_id": {
+      "type": "string",
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "maxLength": 40,
+      "description": "The accepted offer (or counter). MUST be sent by parties[0]; cmt_id is `cmt:` + this id."
+    },
+    "accept_msg_id": {
+      "type": "string",
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "maxLength": 40,
+      "description": "The accept. MUST be sent by parties[1]."
+    },
+    "terms_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "bound_tick": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120,
+      "description": "The tick of the round close at which the accept was delivered: both parties learn of the commitment in the same observation."
+    },
+    "sig_mode": {
+      "$ref": "#/$defs/sig_mode"
+    },
+    "state": {
+      "enum": [
+        "active",
+        "ended"
+      ],
+      "description": "active = at least one clause is escrowed. ended = every clause has settled every phase it covers; this happens only at an adjudication, never at a round close (a renounce alone does not end a commitment)."
+    },
+    "clauses": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "index",
+          "side",
+          "obligor",
+          "clause",
+          "status"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11,
+            "description": "Position in give ++ want (evidence cites `<cmt_id>#<index>`)."
+          },
+          "side": {
+            "enum": [
+              "give",
+              "want"
+            ]
+          },
+          "obligor": {
+            "$ref": "#/$defs/power"
+          },
+          "clause": {
+            "$ref": "#/$defs/clause"
+          },
+          "status": {
+            "enum": [
+              "escrowed",
+              "kept",
+              "broken",
+              "void",
+              "released",
+              "renounced"
+            ],
+            "description": "escrowed until every covered phase settled, then the aggregate of `settlements` (see the schema description): broken > kept > renounced | released (the latest release) > void."
+          },
+          "settled_phase": {
+            "$ref": "#/$defs/movement_phase",
+            "description": "The phase of the clause's LAST settlement (its final covered phase). Present exactly when status is not escrowed. For a multi-phase clause it is not the phase that decided the status: a clause broken in S1903M and kept in F1903M has status broken and settled_phase F1903M; the per-phase detail is in `settlements`."
+          },
+          "settled_tick": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "description": "The tick of the last settlement (the adjudication of settled_phase)."
+          },
+          "settlements": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "(2.5.0, optional) Every per-phase settlement of this clause so far, one per covered phase that has been adjudicated, in phase order. May be present while status is escrowed (a multi-phase clause part-way through its span). When status is not escrowed it has one item per covered phase, its last item carries settled_phase and settled_tick, and status is its aggregate. A producer that omits it exposes only the last settlement (2.4.0 behaviour).",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "phase",
+                "status",
+                "tick"
+              ],
+              "properties": {
+                "phase": {
+                  "$ref": "#/$defs/movement_phase"
+                },
+                "status": {
+                  "enum": [
+                    "kept",
+                    "broken",
+                    "void",
+                    "released",
+                    "renounced"
+                  ],
+                  "description": "The settlement of this one phase. `released` = reciprocity release, `renounced` = released by the renounce."
+                },
+                "tick": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 120,
+                  "description": "The tick of that phase's adjudication."
+                }
+              }
+            }
+          }
+        },
+        "if": {
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "escrowed"
+            }
+          }
+        },
+        "then": {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "settled_phase"
+                ],
+                "properties": {
+                  "settled_phase": true
+                }
+              },
+              {
+                "required": [
+                  "settled_tick"
+                ],
+                "properties": {
+                  "settled_tick": true
+                }
+              }
+            ]
+          }
+        },
+        "else": {
+          "required": [
+            "settled_phase",
+            "settled_tick"
+          ],
+          "properties": {
+            "settled_phase": true,
+            "settled_tick": true
+          }
+        }
+      }
+    },
+    "renounced": {
+      "$ref": "#/$defs/renounce"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "austria"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:austria:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:austria:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:austria:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "england"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:england:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:england:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:england:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "france"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:france:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:france:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:france:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "germany"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:germany:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:germany:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:germany:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "italy"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:italy:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:italy:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:italy:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "russia"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:russia:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:russia:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:russia:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "turkey"
+              },
+              true
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:turkey:"
+          },
+          "accept_msg_id": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:turkey:"
+            }
+          },
+          "cmt_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:turkey:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "austria"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:austria:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "england"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:england:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "france"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:france:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "germany"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:germany:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "italy"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:italy:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "russia"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:russia:"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "parties"
+        ],
+        "properties": {
+          "parties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              true,
+              {
+                "const": "turkey"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "accept_msg_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:turkey:"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    },
+    "province": {
+      "enum": [
+        "adr",
+        "aeg",
+        "alb",
+        "ank",
+        "apu",
+        "arm",
+        "bal",
+        "bar",
+        "bel",
+        "ber",
+        "bla",
+        "boh",
+        "bot",
+        "bre",
+        "bud",
+        "bul",
+        "bur",
+        "cly",
+        "con",
+        "den",
+        "eas",
+        "edi",
+        "eng",
+        "fin",
+        "gal",
+        "gas",
+        "gre",
+        "hel",
+        "hol",
+        "ion",
+        "iri",
+        "kie",
+        "lon",
+        "lvn",
+        "lvp",
+        "lyo",
+        "mao",
+        "mar",
+        "mos",
+        "mun",
+        "naf",
+        "nao",
+        "nap",
+        "nth",
+        "nwg",
+        "nwy",
+        "par",
+        "pic",
+        "pie",
+        "por",
+        "pru",
+        "rom",
+        "ruh",
+        "rum",
+        "ser",
+        "sev",
+        "sil",
+        "ska",
+        "smy",
+        "spa",
+        "stp",
+        "swe",
+        "syr",
+        "tri",
+        "tun",
+        "tus",
+        "tyr",
+        "tys",
+        "ukr",
+        "ven",
+        "vie",
+        "wal",
+        "war",
+        "wes",
+        "yor"
+      ],
+      "description": "One of the 75 standard-map province ids (diplomacy-adjudicator.md §1.2)."
+    },
+    "movement_phase": {
+      "type": "string",
+      "maxLength": 6,
+      "pattern": "^[SF]190[1-8]M$",
+      "description": "A movement phase id, e.g. S1902M. Years 1901..1908 (the longest horizon)."
+    },
+    "msg_id": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "description": "Engine-assigned press message id `prs:<movement phase>:r<round>:<sender power>:<seq>`, seq = 1-based position in the sender's batch for that round. Never agent-chosen; deterministic, so an agent can predict its own ids (the offer signature covers the expected id)."
+    },
+    "cmt_id": {
+      "type": "string",
+      "maxLength": 44,
+      "pattern": "^cmt:prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "description": "Commitment id `cmt:<msg_id of the offer that was accepted>`. Exactly one commitment per accepted offer; a replayed accept returns the same id."
+    },
+    "order_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "One order in the canonical text grammar (diplomacy-adjudicator.md §1.5.1: ASCII, case-sensitive, single spaces, <= 64 chars), e.g. `A ruh - bel`, `A hol S A ruh - bel`, `F nth C A yor - nwy`, `A lvp - edi VIA`, `F kie D`, `B F stp/nc`, `W`. Province ids are lower case, keywords upper case. The schema bounds only the length; syntax is checked by the adjudicator's parser, per order, and a bad order is reported in `order_feedback` (it never rejects the frame)."
+    },
+    "clause": {
+      "description": "One machine-checkable obligation about future orders (diplomacy-scenario.md §1.5). The obligor is the party whose side (`give` or `want`) holds the clause. Judged on SUBMITTED orders, never on the adjudicated outcome (a cut support is kept). A clause that is impossible at its phase (unit gone, order illegal at phase start) settles `void`. Spans cover movement phases only, from_phase <= to_phase, with to_phase at most 4 movement phases after from_phase, so one clause covers at most 5 [DIAL] (engine-checked: terms_invalid). (2.5.0) No clause may cover a phase after the game's final movement phase F<final_year>M (observation `horizon.final_year`): the engine refuses it `clause_beyond_horizon` (wot-dip-scenario/2 onward); a phase after 1908 already fails this schema. There is no free-text clause: a promise written in `body` is never a commitment.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "phase",
+            "order"
+          ],
+          "description": "Kept iff the obligor submitted exactly this order (canonical comparison) for that unit in `phase`. Covers hold, move, support-hold, support-move and convoy promises.",
+          "properties": {
+            "kind": {
+              "const": "order"
+            },
+            "phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "order": {
+              "$ref": "#/$defs/order_text"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "provinces"
+          ],
+          "description": "DMZ / no-move-into. Kept iff, in every covered phase, no obligor unit was ordered to move into a listed province and no obligor unit supported or convoyed a move into one.",
+          "properties": {
+            "kind": {
+              "const": "no_enter"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "provinces": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/province"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor order moved into, supported a move into, or convoyed into a province that at the START of that phase held a unit of `power` or was a supply centre owned by `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_attack"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor support or convoy was for a move into a province that at phase start held a unit of `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_support_against"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        }
+      ]
+    },
+    "sig_mode": {
+      "enum": [
+        "key",
+        "session"
+      ],
+      "description": "key = a detached Ed25519 JWS that verified against the sender's passport signing key (signing.md §7). session = attested only by the authenticated connection: the local CLI runner, or a table session of a development or test deployment; a hosted run or a production table never accepts it. Phase 9 evidence packs require key. A move's mode is its own; a commitment is key only if both its offer and its accept were key."
+    },
+    "sha256": {
+      "type": "string",
+      "maxLength": 71,
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "renounce": {
+      "description": "A party ended a commitment unilaterally with a signed `renounce` press move to the counterparty (diplomacy-scenario.md §1.5, \"the honest stab\"). (2.5.0) A renounce is accepted only for an ACTIVE commitment (at least one clause still escrowed) that has not been renounced, sent privately to the counterparty; anything else is refused `commitment_unknown` (a renounce of an ended commitment is refused, never an accepted no-op). Clauses of a movement phase are released only if the renounce was delivered at or before the close of round R-1 of that phase (one full round of notice); a later renounce releases only later phases. `releases_from_phase` is the first movement phase whose clauses (of BOTH parties) settle `renounced`. (2.5.0) The renounce is recorded at the round close that delivers it, but settles nothing there: each released clause settles `renounced` at the ADJUDICATION of its phase, so the commitment stays `active` until the adjudication of its last covered phase. A renounce delivered in round R of a commitment's last covered phase releases nothing: its `releases_from_phase` lies after every covered phase (it may even lie after the game's final phase), and every remaining clause is judged `kept` or `broken` as usual. Renouncing is never an oracle failure.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "msg_id",
+        "by",
+        "counterparty",
+        "cmt_id",
+        "phase",
+        "round",
+        "delivered_tick",
+        "releases_from_phase",
+        "sig_mode"
+      ],
+      "properties": {
+        "msg_id": {
+          "$ref": "#/$defs/msg_id"
+        },
+        "by": {
+          "$ref": "#/$defs/power"
+        },
+        "counterparty": {
+          "$ref": "#/$defs/power"
+        },
+        "cmt_id": {
+          "$ref": "#/$defs/cmt_id"
+        },
+        "phase": {
+          "$ref": "#/$defs/movement_phase"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "delivered_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "releases_from_phase": {
+          "type": "string",
+          "maxLength": 6,
+          "pattern": "^([SF]190[1-8]M|S1909M)$",
+          "description": "The first movement phase released: the renounce's own phase when it was delivered by the close of round R-1, else the next movement phase. (2.5.0, widened) `S1909M` is allowed: it is the next movement phase after F1908M, produced by a renounce delivered in round R of F1908M, and it releases nothing. The same holds for any value after the commitment's last covered phase or after the game's final phase."
+        },
+        "sig_mode": {
+          "$ref": "#/$defs/sig_mode",
+          "description": "(2.4.0, B3a item 4) The renounce message's OWN attested mode, recorded by the engine when the message was accepted at its round close. Never inherited: a session-mode renounce of a key-mode commitment is recorded session. signing.md §7.4."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "austria"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:austria:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "austria"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "england"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:england:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "england"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "france"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:france:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "france"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "germany"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:germany:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "germany"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "italy"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:italy:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "italy"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "russia"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:russia:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "russia"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "by"
+            ],
+            "properties": {
+              "by": {
+                "const": "turkey"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "msg_id": {
+                "type": "string",
+                "pattern": ":r[1-3]:turkey:"
+              },
+              "counterparty": {
+                "not": {
+                  "const": "turkey"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "cmt_id": "cmt:prs:S1902M:r2:germany:1",
+      "parties": [
+        "germany",
+        "france"
+      ],
+      "offer_msg_id": "prs:S1902M:r2:germany:1",
+      "accept_msg_id": "prs:S1902M:r3:france:1",
+      "terms_hash": "sha256:4e2a9c1b7d3f5e6a8b0c2d4e6f8a0b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e1f2a",
+      "bound_tick": 43,
+      "sig_mode": "session",
+      "state": "active",
+      "clauses": [
+        {
+          "index": 0,
+          "side": "give",
+          "obligor": "germany",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "bur"
+            ]
+          },
+          "status": "escrowed"
+        },
+        {
+          "index": 1,
+          "side": "want",
+          "obligor": "france",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "hol",
+              "mun",
+              "ruh"
+            ]
+          },
+          "status": "escrowed"
+        }
+      ]
+    },
+    {
+      "cmt_id": "cmt:prs:S1902M:r2:germany:1",
+      "parties": [
+        "germany",
+        "france"
+      ],
+      "offer_msg_id": "prs:S1902M:r2:germany:1",
+      "accept_msg_id": "prs:S1902M:r3:france:1",
+      "terms_hash": "sha256:4e2a9c1b7d3f5e6a8b0c2d4e6f8a0b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e1f2a",
+      "bound_tick": 43,
+      "sig_mode": "session",
+      "state": "ended",
+      "clauses": [
+        {
+          "index": 0,
+          "side": "give",
+          "obligor": "germany",
+          "clause": {
+            "kind": "order",
+            "phase": "S1902M",
+            "order": "A mun H"
+          },
+          "status": "kept",
+          "settled_phase": "S1902M",
+          "settled_tick": 44
+        },
+        {
+          "index": 1,
+          "side": "give",
+          "obligor": "germany",
+          "clause": {
+            "kind": "order",
+            "phase": "F1902M",
+            "order": "A ruh S A bur"
+          },
+          "status": "renounced",
+          "settled_phase": "F1902M",
+          "settled_tick": 50
+        },
+        {
+          "index": 2,
+          "side": "want",
+          "obligor": "france",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "mun",
+              "ruh"
+            ]
+          },
+          "status": "renounced",
+          "settled_phase": "F1902M",
+          "settled_tick": 50
+        }
+      ],
+      "renounced": {
+        "msg_id": "prs:F1902M:r2:germany:1",
+        "by": "germany",
+        "counterparty": "france",
+        "cmt_id": "cmt:prs:S1902M:r2:germany:1",
+        "phase": "F1902M",
+        "round": 2,
+        "delivered_tick": 48,
+        "releases_from_phase": "F1902M",
+        "sig_mode": "session"
+      }
+    },
+    {
+      "cmt_id": "cmt:prs:S1902M:r1:france:2",
+      "parties": [
+        "france",
+        "germany"
+      ],
+      "offer_msg_id": "prs:S1902M:r1:france:2",
+      "accept_msg_id": "prs:S1902M:r2:germany:3",
+      "terms_hash": "sha256:2d4f6a8c0e2a4c6e8a0c2e4a6c8e0a2c4e6a8c0e2a4c6e8a0c2e4a6c8e0a2c4e",
+      "bound_tick": 42,
+      "sig_mode": "key",
+      "state": "ended",
+      "clauses": [
+        {
+          "index": 0,
+          "side": "give",
+          "obligor": "france",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "S1902M",
+            "provinces": [
+              "bel"
+            ]
+          },
+          "status": "kept",
+          "settled_phase": "S1902M",
+          "settled_tick": 44
+        },
+        {
+          "index": 1,
+          "side": "want",
+          "obligor": "germany",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "bur"
+            ]
+          },
+          "status": "broken",
+          "settled_phase": "S1902M",
+          "settled_tick": 44
+        },
+        {
+          "index": 2,
+          "side": "give",
+          "obligor": "france",
+          "clause": {
+            "kind": "no_attack",
+            "from_phase": "F1902M",
+            "to_phase": "F1902M",
+            "power": "germany"
+          },
+          "status": "released",
+          "settled_phase": "F1902M",
+          "settled_tick": 50
+        }
+      ]
+    },
+    {
+      "cmt_id": "cmt:prs:S1903M:r1:austria:1",
+      "parties": [
+        "austria",
+        "italy"
+      ],
+      "offer_msg_id": "prs:S1903M:r1:austria:1",
+      "accept_msg_id": "prs:S1903M:r2:italy:1",
+      "terms_hash": "sha256:6b1d3f5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d",
+      "bound_tick": 54,
+      "sig_mode": "key",
+      "state": "active",
+      "clauses": [
+        {
+          "index": 0,
+          "side": "give",
+          "obligor": "austria",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1903M",
+            "to_phase": "S1904M",
+            "provinces": [
+              "tyr",
+              "ven"
+            ]
+          },
+          "status": "escrowed",
+          "settlements": [
+            {
+              "phase": "S1903M",
+              "status": "kept",
+              "tick": 57
+            },
+            {
+              "phase": "F1903M",
+              "status": "released",
+              "tick": 63
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "side": "want",
+          "obligor": "italy",
+          "clause": {
+            "kind": "no_attack",
+            "from_phase": "S1903M",
+            "to_phase": "F1903M",
+            "power": "austria"
+          },
+          "status": "broken",
+          "settled_phase": "F1903M",
+          "settled_tick": 63,
+          "settlements": [
+            {
+              "phase": "S1903M",
+              "status": "broken",
+              "tick": 57
+            },
+            {
+              "phase": "F1903M",
+              "status": "kept",
+              "tick": 63
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cmt_id": "cmt:prs:S1908M:r1:turkey:1",
+      "parties": [
+        "turkey",
+        "russia"
+      ],
+      "offer_msg_id": "prs:S1908M:r1:turkey:1",
+      "accept_msg_id": "prs:S1908M:r2:russia:1",
+      "terms_hash": "sha256:9e7c5a3f1d9b7e5c3a1f9d7b5e3c1a9f7d5b3e1c9a7f5d3b1e9c7a5f3d1b9e7c",
+      "bound_tick": 93,
+      "sig_mode": "key",
+      "state": "ended",
+      "clauses": [
+        {
+          "index": 0,
+          "side": "give",
+          "obligor": "turkey",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1908M",
+            "to_phase": "F1908M",
+            "provinces": [
+              "sev"
+            ]
+          },
+          "status": "kept",
+          "settled_phase": "F1908M",
+          "settled_tick": 102,
+          "settlements": [
+            {
+              "phase": "S1908M",
+              "status": "kept",
+              "tick": 96
+            },
+            {
+              "phase": "F1908M",
+              "status": "kept",
+              "tick": 102
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "side": "want",
+          "obligor": "russia",
+          "clause": {
+            "kind": "no_enter",
+            "from_phase": "S1908M",
+            "to_phase": "F1908M",
+            "provinces": [
+              "ank",
+              "arm"
+            ]
+          },
+          "status": "broken",
+          "settled_phase": "F1908M",
+          "settled_tick": 102,
+          "settlements": [
+            {
+              "phase": "S1908M",
+              "status": "kept",
+              "tick": 96
+            },
+            {
+              "phase": "F1908M",
+              "status": "broken",
+              "tick": 102
+            }
+          ]
+        }
+      ],
+      "renounced": {
+        "msg_id": "prs:F1908M:r3:russia:1",
+        "by": "russia",
+        "counterparty": "turkey",
+        "cmt_id": "cmt:prs:S1908M:r1:turkey:1",
+        "phase": "F1908M",
+        "round": 3,
+        "delivered_tick": 101,
+        "releases_from_phase": "S1909M",
+        "sig_mode": "key"
+      }
+    }
+  ]
+}

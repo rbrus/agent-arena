@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:thought:1",
+  "title": "Thought frame (agent -> server, inbound, OPTIONAL)",
+  "description": "Standalone free-text trace (A1 §4.4), shown in the replay inspector after the match. Purely opt-in; the minimal 50-line agent never sends it. NEVER parsed by the engine, NEVER affects state, NEVER delivered to the opponent in-match. Sanitized (Unicode NFKC, control/zero-width/bidi stripped, length-capped) before any storage or relay, and shown to spectators on a >=3-tick delay. Rate-limited to <=1 per tick (whether sent as this standalone frame or as the optional `thought` field on an action). A thought is also never fed to any NPC/boss LLM prompt except inside an <untrusted> envelope (threat-model.md §0). CONTRACTS 2.0.0: in an evaluation run thoughts are dropped before recording and never appear in a report or SARIF (sarif-mapping.md §6).",
+  "x-frame-name": "thought",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 512,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "text"],
+  "properties": {
+    "t": { "const": "thought" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": { "type": "integer", "minimum": 0, "description": "Optional tick the thought is associated with (for replay alignment)." },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Free text, <=200 chars AFTER the server's Unicode normalization. Treated as opaque data, never as instructions."
+    }
+  },
+  "examples": [
+    {
+      "t": "thought",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "turn_id": 20,
+      "text": "They only ever show the Scout. Smells like an ambush massing in the north."
+    }
+  ]
+}

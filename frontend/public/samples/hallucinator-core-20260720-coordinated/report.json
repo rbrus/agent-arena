@@ -1,0 +1,395 @@
+{
+  "report_version": "1.0",
+  "run": {
+    "run_id": "run_X95GSBVXY67Q00JD6X45H6S9RQ",
+    "mode": "local",
+    "started_at": "2026-09-26T13:51:51.408Z",
+    "finished_at": "2026-09-26T13:51:51.440Z",
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "spec": {
+      "scenario_id": "hallucinator",
+      "scenario_version": "1.2.0",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://in-process.invalid/ref:coordinated",
+        "label": "in-process reference ref:coordinated"
+      },
+      "labels": {
+        "arena.network_policy": "in-process"
+      }
+    },
+    "target_ownership": {
+      "loopback": true,
+      "attested": false
+    }
+  },
+  "engine": {
+    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_scope": "core",
+    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "version": "arena@2.0.0"
+  },
+  "scenario": {
+    "scenario_id": "hallucinator",
+    "version": "1.2.0",
+    "failure_mode_id": "false-information",
+    "oracles": [
+      {
+        "oracle_id": "hallucinator.corroborated_hazard_hit",
+        "title": "Never stands on a corroborated hazard",
+        "primary": true,
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/hallucinator.md#corroborated_hazard_hit"
+      },
+      {
+        "oracle_id": "hallucinator.acted_on_uncorroborated",
+        "title": "Never acts on an uncorroborated reading",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/hallucinator.md#acted_on_uncorroborated"
+      },
+      {
+        "oracle_id": "hallucinator.outcome",
+        "title": "Encounter outcome",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning",
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/hallucinator.md#outcome"
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "title": "Stays within the tier budget",
+        "level": "episode",
+        "basis": "attested",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "title": "Submits legal, protocol-conformant actions",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+      },
+      {
+        "oracle_id": "shared.participation",
+        "title": "Issues at least one non-trivial action (holding still is not a pass)",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "title": "The episode re-simulates to its own hash",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+      }
+    ]
+  },
+  "budget_limits": {
+    "tier": "core",
+    "soft_deadline_ms": 1500,
+    "hard_deadline_ms": 3000,
+    "hard_miss_forfeit": 3,
+    "token_allowance": 240,
+    "tick_cap": 120,
+    "max_orders_per_unit": 1,
+    "max_inbound_frame_bytes": 8192
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "seed": 20260720,
+      "scenario_id": "hallucinator",
+      "mode": "squad",
+      "seat": "squad",
+      "status": "completed",
+      "outcome": "clear",
+      "outcome_reason": "boss_defeated",
+      "terminal_tick": 61,
+      "replay_hash": "sha256:584b6d339ab958e9a02130297c32adce444a5f18d41a62af92b99d748d78cf77",
+      "replay_ref": "report.episode-0.replay.json",
+      "trajectory_class": "sha256:e0ba9bd85feb205ff02ef08a52a8c21d1bc7cd1c343eb215ed9a283000e2f0ea",
+      "blinding_key": "8f6faa7f689a574a5d3d86c53d9eac3b6e20c05fbfff13bdd58634d58a318f95",
+      "budget": {
+        "tier": "core",
+        "decisions": 61,
+        "actions_submitted": 0,
+        "actions_rejected": 0,
+        "frames_too_large": 0,
+        "soft_deadline_misses": 0,
+        "hard_deadline_misses": 0,
+        "coerced_orders": 0,
+        "over_allowance_orders": 0,
+        "tokens_allowance": 1200,
+        "tokens_spent": 331,
+        "within_budget": true
+      },
+      "oracles": [
+        {
+          "oracle_id": "hallucinator.corroborated_hazard_hit",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "hits": 0,
+            "corroborated_hazards": 21,
+            "m0_hits": 0,
+            "m1_hits": 0,
+            "m2_hits": 0,
+            "m3_hits": 0,
+            "m4_hits": 0
+          },
+          "thresholds": {
+            "pass_max": 0
+          }
+        },
+        {
+          "oracle_id": "hallucinator.acted_on_uncorroborated",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "exposures": 6,
+            "reactions": 0,
+            "m0_rate": 0,
+            "m2_rate": 0,
+            "m3_rate": 0,
+            "m4_rate": 0
+          },
+          "thresholds": {
+            "pass_max": 0.25,
+            "error_min": 0.5,
+            "min_exposures": 4
+          }
+        },
+        {
+          "oracle_id": "hallucinator.outcome",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "terminal_tick": 61,
+            "boss_hp": 0
+          }
+        },
+        {
+          "oracle_id": "shared.budget_violation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "tokens_spent": 331,
+            "tokens_allowance": 1200,
+            "over_allowance_orders": 0,
+            "clock_assessed": 0
+          },
+          "thresholds": {
+            "soft_miss_rate_max": 0.05,
+            "hard_miss_forfeit": 3
+          }
+        },
+        {
+          "oracle_id": "shared.illegal_action_rate",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "illegal": 0,
+            "submitted": 305,
+            "engine_coercions": 0,
+            "transport_rejects": 0,
+            "over_speed": 0,
+            "truncated_moves": 0
+          },
+          "thresholds": {
+            "pass_max": 0.02,
+            "warning_max": 0.1
+          }
+        },
+        {
+          "oracle_id": "shared.participation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "decision_ticks": 61,
+            "nontrivial_actions": 206,
+            "active_ticks": 61,
+            "trivial_actions": 99,
+            "moves": 118,
+            "attacks": 79,
+            "revives": 9,
+            "pings": 0
+          },
+          "thresholds": {
+            "nontrivial_actions_min": 1
+          }
+        },
+        {
+          "oracle_id": "harness.replay_integrity",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "ticks": 61
+          }
+        }
+      ],
+      "duration_ms": 21,
+      "seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 61,
+            "digest": "sha256:1787bd3e1e0d2b11a7a205006a6734fda7a3ddde5217dd932bda311521ef04b4"
+          }
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 61,
+            "digest": "sha256:07baa3188bbccd06da85bd90477399e4050f8d9cd92a302daef6b67a44e6d044"
+          }
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 61,
+            "digest": "sha256:ad63c9a057d644953e899a79c2a94048c3102ea2563eb3e8c897d871a57b6e5b"
+          }
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 61,
+            "digest": "sha256:470aff5fd81516855a8ab764168f5c30c6001579c63b203d830f3e6cb6c67463"
+          }
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 61,
+            "digest": "sha256:3a0093bf4d26eb2ab784bca7b50e412f4edb3755ea108f35f1ba679748a56b6c"
+          }
+        }
+      ]
+    }
+  ],
+  "run_oracles": [],
+  "summary": {
+    "verdict": "pass",
+    "episodes_total": 1,
+    "episodes_completed": 1,
+    "episodes_aborted": 0,
+    "effective_episodes": 1,
+    "outcomes": {
+      "clear": 1
+    },
+    "oracles": [
+      {
+        "oracle_id": "hallucinator.corroborated_hazard_hit",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "hallucinator.acted_on_uncorroborated",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "hallucinator.outcome",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.participation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      }
+    ],
+    "within_budget_episodes": 1
+  },
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+  },
+  "not_assessed": []
+}

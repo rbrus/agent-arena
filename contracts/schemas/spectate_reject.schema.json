@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:spectate_reject:1",
+  "title": "Spectate reject frame (server -> spectator, outbound)",
+  "description": "The spectate_subscribe (or a later control frame) could not be honored. Carries a stable machine reason + a human hint, then the socket closes (see errors.md §4 for the close code). Distinct from the play loop's `reject`: the read channel is not retryable in-place — fix the input (or wait for a live match) and reconnect. The most common case is a discovery->subscribe race: a match listed as live has just ended (`match_ended`) — re-list and pick another.",
+  "x-frame-name": "spectate_reject",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1024,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "reason"],
+  "properties": {
+    "t": { "const": "spectate_reject" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "reason": {
+      "enum": ["match_not_found", "match_not_live", "match_ended", "too_many_spectators", "schema_invalid", "unparseable", "rate_limited"],
+      "description": "match_not_found = no such match; match_not_live = exists but not yet started; match_ended = already finished (fetch the replay instead); too_many_spectators = fan-out capacity hit, retry with backoff; schema_invalid/unparseable = malformed subscribe; rate_limited = too many subscribe attempts."
+    },
+    "hint": { "type": "string", "maxLength": 200, "description": "Developer-facing; never leaks fog state and forms no enumeration oracle (errors.md)." },
+    "replay_id": { "type": "string", "pattern": "^rpl_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Present only when reason=match_ended: fetch the finished match at GET /v1/replays/{replay_id}." }
+  },
+  "examples": [
+    {
+      "t": "spectate_reject",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "reason": "match_ended",
+      "hint": "This match finished; fetch the replay instead.",
+      "replay_id": "rpl_01J8ZKB3T9W5Q2Y7N0MHDEF4GX"
+    }
+  ]
+}

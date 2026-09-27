@@ -1,0 +1,400 @@
+{
+ "datc_version": "3.0",
+ "section": "6.C",
+ "cases": [
+  {
+   "id": "6.C.1",
+   "title": "Three army circular movement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "ank" },
+     { "power": "turkey", "type": "A", "at": "con" },
+     { "power": "turkey", "type": "A", "at": "smy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F ank - con", "result": "success" },
+       { "o": "A con - smy", "result": "success" },
+       { "o": "A smy - ank", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "turkey", "type": "A", "at": "ank" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.2",
+   "title": "Three army circular movement with support",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "ank" },
+     { "power": "turkey", "type": "A", "at": "con" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F ank - con", "result": "success" },
+       { "o": "A con - smy", "result": "success" },
+       { "o": "A smy - ank", "result": "success" },
+       { "o": "A bul S F ank - con", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "turkey", "type": "A", "at": "ank" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.3",
+   "title": "A disrupted three army circular movement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "ank" },
+     { "power": "turkey", "type": "A", "at": "con" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F ank - con", "result": "failure" },
+       { "o": "A con - smy", "result": "failure" },
+       { "o": "A smy - ank", "result": "failure" },
+       { "o": "A bul - con", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "ank" },
+       { "power": "turkey", "type": "A", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.4",
+   "title": "A circular movement with attacked convoy",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "turkey", "type": "A", "at": "bul" },
+     { "power": "turkey", "type": "F", "at": "aeg" },
+     { "power": "turkey", "type": "F", "at": "ion" },
+     { "power": "turkey", "type": "F", "at": "adr" },
+     { "power": "italy", "type": "F", "at": "nap" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A tri - ser", "result": "success" },
+       { "o": "A ser - bul", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "A bul - tri", "result": "success" },
+       { "o": "F aeg C A bul - tri", "result": "success" },
+       { "o": "F ion C A bul - tri", "result": "success" },
+       { "o": "F adr C A bul - tri", "result": "success" }
+      ],
+      "italy": [
+       { "o": "F nap - ion", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "austria", "type": "A", "at": "bul" },
+       { "power": "turkey", "type": "A", "at": "tri" },
+       { "power": "turkey", "type": "F", "at": "aeg" },
+       { "power": "turkey", "type": "F", "at": "ion" },
+       { "power": "turkey", "type": "F", "at": "adr" },
+       { "power": "italy", "type": "F", "at": "nap" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.5",
+   "title": "A disrupted circular movement due to dislodged convoy",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "turkey", "type": "A", "at": "bul" },
+     { "power": "turkey", "type": "F", "at": "aeg" },
+     { "power": "turkey", "type": "F", "at": "ion" },
+     { "power": "turkey", "type": "F", "at": "adr" },
+     { "power": "italy", "type": "F", "at": "nap" },
+     { "power": "italy", "type": "F", "at": "tun" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A tri - ser", "result": "failure" },
+       { "o": "A ser - bul", "result": "failure" }
+      ],
+      "turkey": [
+       { "o": "A bul - tri", "result": "failure" },
+       { "o": "F aeg C A bul - tri", "result": "success" },
+       { "o": "F ion C A bul - tri", "result": "failure" },
+       { "o": "F adr C A bul - tri", "result": "success" }
+      ],
+      "italy": [
+       { "o": "F nap - ion", "result": "success" },
+       { "o": "F tun S F nap - ion", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "tri" },
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "turkey", "type": "A", "at": "bul" },
+       { "power": "turkey", "type": "F", "at": "aeg" },
+       { "power": "turkey", "type": "F", "at": "adr" },
+       { "power": "italy", "type": "F", "at": "ion" },
+       { "power": "italy", "type": "F", "at": "tun" }
+      ],
+      "dislodged_after": [
+       { "power": "turkey", "type": "F", "at": "ion" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.6",
+   "title": "Two armies with two convoys",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "lon" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "bel" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth C A lon - bel", "result": "success" },
+       { "o": "A lon - bel", "result": "success" }
+      ],
+      "france": [
+       { "o": "F eng C A bel - lon", "result": "success" },
+       { "o": "A bel - lon", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "A", "at": "bel" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "lon" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.7",
+   "title": "Disrupted unit swap",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "lon" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "bel" },
+     { "power": "france", "type": "A", "at": "bur" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth C A lon - bel", "result": "success" },
+       { "o": "A lon - bel", "result": "failure" }
+      ],
+      "france": [
+       { "o": "F eng C A bel - lon", "result": "success" },
+       { "o": "A bel - lon", "result": "failure" },
+       { "o": "A bur - bel", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "A", "at": "lon" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "bel" },
+       { "power": "france", "type": "A", "at": "bur" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.8",
+   "title": "No self dislodgement in disrupted circular movement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "con" },
+     { "power": "turkey", "type": "A", "at": "bul" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "austria", "type": "A", "at": "ser" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F con - bla", "result": "failure" },
+       { "o": "A bul - con", "result": "failure" },
+       { "o": "A smy S A bul - con", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bla - bul/ec", "result": "failure" }
+      ],
+      "austria": [
+       { "o": "A ser - bul", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "bul" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "russia", "type": "F", "at": "bla" },
+       { "power": "austria", "type": "A", "at": "ser" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.C.9",
+   "title": "No help in dislodgement of own unit in disrupted circular movement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "turkey", "type": "F", "at": "con" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "austria", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "turkey": [
+       { "o": "F con - bla", "result": "failure" },
+       { "o": "A smy S A bul - con", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bla - bul/ec", "result": "failure" }
+      ],
+      "austria": [
+       { "o": "A ser - bul", "result": "failure" },
+       { "o": "A bul - con", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "turkey", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "russia", "type": "F", "at": "bla" },
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "austria", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  }
+ ]
+}

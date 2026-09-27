@@ -1,0 +1,994 @@
+{
+ "datc_version": "3.0",
+ "section": "6.G",
+ "cases": [
+  {
+   "id": "6.G.1",
+   "title": "Two units can swap provinces by convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "A", "at": "swe" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe", "result": "success" },
+       { "o": "F ska C A nwy - swe", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.2",
+   "title": "Kidnapping an army",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "russia", "type": "F", "at": "swe" },
+     { "power": "germany", "type": "F", "at": "ska" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F swe - nwy", "result": "failure" }
+      ],
+      "germany": [
+       { "o": "F ska C A nwy - swe", "result": "void" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "nwy" },
+       { "power": "russia", "type": "F", "at": "swe" },
+       { "power": "germany", "type": "F", "at": "ska" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.3",
+   "title": "An unwanted disrupted convoy to adjacent province",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "bre" },
+     { "power": "france", "type": "A", "at": "pic" },
+     { "power": "france", "type": "A", "at": "bur" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "england", "type": "F", "at": "eng" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F bre - eng", "result": "success" },
+       { "o": "A pic - bel", "result": "success" },
+       { "o": "A bur S A pic - bel", "result": "success" },
+       { "o": "F mao S F bre - eng", "result": "success" }
+      ],
+      "england": [
+       { "o": "F eng C A pic - bel", "result": "void" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "bel" },
+       { "power": "france", "type": "A", "at": "bur" },
+       { "power": "france", "type": "F", "at": "mao" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "F", "at": "eng" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.4",
+   "title": "An unwanted disrupted convoy to adjacent province and opposite move",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "bre" },
+     { "power": "france", "type": "A", "at": "pic" },
+     { "power": "france", "type": "A", "at": "bur" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "england", "type": "F", "at": "eng" },
+     { "power": "england", "type": "A", "at": "bel" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F bre - eng", "result": "success" },
+       { "o": "A pic - bel", "result": "success" },
+       { "o": "A bur S A pic - bel", "result": "success" },
+       { "o": "F mao S F bre - eng", "result": "success" }
+      ],
+      "england": [
+       { "o": "F eng C A pic - bel", "result": "void" },
+       { "o": "A bel - pic", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "bel" },
+       { "power": "france", "type": "A", "at": "bur" },
+       { "power": "france", "type": "F", "at": "mao" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "england", "type": "A", "at": "bel" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.5",
+   "title": "Swapping with multiple fleets with one own fleet",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "A", "at": "rom" },
+     { "power": "italy", "type": "F", "at": "tys" },
+     { "power": "turkey", "type": "A", "at": "apu" },
+     { "power": "turkey", "type": "F", "at": "ion" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "A rom - apu", "result": "success" },
+       { "o": "F tys C A apu - rom", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "A apu - rom", "result": "success" },
+       { "o": "F ion C A apu - rom", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "A", "at": "apu" },
+       { "power": "italy", "type": "F", "at": "tys" },
+       { "power": "turkey", "type": "A", "at": "rom" },
+       { "power": "turkey", "type": "F", "at": "ion" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.6",
+   "title": "Swapping with unintended intent",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "england", "type": "F", "at": "eng" },
+     { "power": "germany", "type": "A", "at": "edi" },
+     { "power": "france", "type": "F", "at": "iri" },
+     { "power": "france", "type": "F", "at": "nth" },
+     { "power": "russia", "type": "F", "at": "nwg" },
+     { "power": "russia", "type": "F", "at": "nao" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi", "result": "success" },
+       { "o": "F eng C A lvp - edi", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A edi - lvp", "result": "success" }
+      ],
+      "france": [
+       "F iri H",
+       "F nth H"
+      ],
+      "russia": [
+       { "o": "F nwg C A lvp - edi", "result": "success" },
+       { "o": "F nao C A lvp - edi", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "germany", "type": "A", "at": "lvp" },
+       { "power": "france", "type": "F", "at": "iri" },
+       { "power": "france", "type": "F", "at": "nth" },
+       { "power": "russia", "type": "F", "at": "nwg" },
+       { "power": "russia", "type": "F", "at": "nao" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.7",
+   "title": "Swapping with illegal intent",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.E.1"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "ska" },
+     { "power": "england", "type": "F", "at": "nwy" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "bot" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F ska C A swe - nwy", "result": "void" },
+       { "o": "F nwy - swe", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "failure" },
+       { "o": "F bot C A swe - nwy", "result": "illegal", "reason": "convoy_not_needed" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "ska" },
+       { "power": "england", "type": "F", "at": "nwy" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "F", "at": "bot" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.8",
+   "title": "Explicit convoy that isn't there",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "bel" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "hol" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A bel - hol VIA", "result": "failure" }
+      ],
+      "england": [
+       { "o": "F nth - hel", "result": "success" },
+       { "o": "A hol - kie", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "bel" },
+       { "power": "england", "type": "F", "at": "hel" },
+       { "power": "england", "type": "A", "at": "kie" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.9",
+   "title": "Swapped or dislodged?",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "F", "at": "ska" },
+     { "power": "england", "type": "F", "at": "fin" },
+     { "power": "russia", "type": "A", "at": "swe" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe", "result": "success" },
+       { "o": "F ska C A nwy - swe", "result": "success" },
+       { "o": "F fin S A nwy - swe", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "F", "at": "ska" },
+       { "power": "england", "type": "F", "at": "fin" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.10",
+   "title": "Swapped or an head-to-head battle?",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.7"
+   ],
+   "requires": [
+    "convoy",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "F", "at": "den" },
+     { "power": "england", "type": "F", "at": "fin" },
+     { "power": "germany", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "bar" },
+     { "power": "france", "type": "F", "at": "nwg" },
+     { "power": "france", "type": "F", "at": "nth" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe VIA", "result": "success" },
+       { "o": "F den S A nwy - swe", "result": "success" },
+       { "o": "F fin S A nwy - swe", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F ska C A nwy - swe", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "failure" },
+       { "o": "F bar S A swe - nwy", "result": "success" }
+      ],
+      "france": [
+       { "o": "F nwg - nwy", "result": "failure" },
+       { "o": "F nth S F nwg - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "F", "at": "den" },
+       { "power": "england", "type": "F", "at": "fin" },
+       { "power": "germany", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "bar" },
+       { "power": "france", "type": "F", "at": "nwg" },
+       { "power": "france", "type": "F", "at": "nth" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "russia",
+        "type": "A",
+        "at": "swe",
+        "retreat_options": []
+       }
+      ],
+      "contested_after": [
+       "nwy"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.11",
+   "title": "A convoy to an adjacent province with a paradox",
+   "status": "standard",
+   "rules": [
+    "4.A.2",
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nwy" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "bar" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nwy S F nth - ska", "result": "success" },
+       { "o": "F nth - ska", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "failure" },
+       { "o": "F ska C A swe - nwy", "result": "failure" },
+       { "o": "F bar S A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nwy" },
+       { "power": "england", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "F", "at": "bar" }
+      ],
+      "dislodged_after": [
+       { "power": "russia", "type": "F", "at": "ska" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.12",
+   "title": "Swapping two units with two convoys",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "england", "type": "F", "at": "nao" },
+     { "power": "england", "type": "F", "at": "nwg" },
+     { "power": "germany", "type": "A", "at": "edi" },
+     { "power": "germany", "type": "F", "at": "nth" },
+     { "power": "germany", "type": "F", "at": "eng" },
+     { "power": "germany", "type": "F", "at": "iri" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi VIA", "result": "success" },
+       { "o": "F nao C A lvp - edi", "result": "success" },
+       { "o": "F nwg C A lvp - edi", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A edi - lvp VIA", "result": "success" },
+       { "o": "F nth C A edi - lvp", "result": "success" },
+       { "o": "F eng C A edi - lvp", "result": "success" },
+       { "o": "F iri C A edi - lvp", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "nao" },
+       { "power": "england", "type": "F", "at": "nwg" },
+       { "power": "germany", "type": "A", "at": "lvp" },
+       { "power": "germany", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "eng" },
+       { "power": "germany", "type": "F", "at": "iri" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.13",
+   "title": "Support cut on attack on itself via convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.4"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "adr" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "F", "at": "alb" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "F adr C A tri - ven", "result": "success" },
+       { "o": "A tri - ven VIA", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "A ven S F alb - tri", "result": "success" },
+       { "o": "F alb - tri", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "adr" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "F", "at": "tri" }
+      ],
+      "dislodged_after": [
+       { "power": "austria", "type": "A", "at": "tri" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.14",
+   "title": "Bounce by convoy to adjacent province",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.7"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "F", "at": "den" },
+     { "power": "england", "type": "F", "at": "fin" },
+     { "power": "france", "type": "F", "at": "nwg" },
+     { "power": "france", "type": "F", "at": "nth" },
+     { "power": "germany", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "bar" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe", "result": "success" },
+       { "o": "F den S A nwy - swe", "result": "success" },
+       { "o": "F fin S A nwy - swe", "result": "success" }
+      ],
+      "france": [
+       { "o": "F nwg - nwy", "result": "failure" },
+       { "o": "F nth S F nwg - nwy", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F ska C A swe - nwy", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy VIA", "result": "failure" },
+       { "o": "F bar S A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "F", "at": "den" },
+       { "power": "england", "type": "F", "at": "fin" },
+       { "power": "france", "type": "F", "at": "nwg" },
+       { "power": "france", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "bar" }
+      ],
+      "dislodged_after": [
+       { "power": "russia", "type": "A", "at": "swe" }
+      ],
+      "contested_after": [
+       "nwy"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.15",
+   "title": "Bounce and dislodge with double convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.7"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "hol" },
+     { "power": "england", "type": "A", "at": "yor" },
+     { "power": "england", "type": "A", "at": "lon" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "bel" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth C A lon - bel", "result": "success" },
+       { "o": "A hol S A lon - bel", "result": "success" },
+       { "o": "A yor - lon", "result": "failure" },
+       { "o": "A lon - bel VIA", "result": "success" }
+      ],
+      "france": [
+       { "o": "F eng C A bel - lon", "result": "success" },
+       { "o": "A bel - lon VIA", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "A", "at": "hol" },
+       { "power": "england", "type": "A", "at": "yor" },
+       { "power": "england", "type": "A", "at": "bel" },
+       { "power": "france", "type": "F", "at": "eng" }
+      ],
+      "dislodged_after": [
+       { "power": "france", "type": "A", "at": "bel" }
+      ],
+      "contested_after": [
+       "lon"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.16",
+   "title": "The two unit in one area bug, moving by convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "A", "at": "den" },
+     { "power": "england", "type": "F", "at": "bal" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nwg" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe", "result": "success" },
+       { "o": "A den S A nwy - swe", "result": "success" },
+       { "o": "F bal S A nwy - swe", "result": "success" },
+       { "o": "F nth - nwy", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy VIA", "result": "success" },
+       { "o": "F ska C A swe - nwy", "result": "success" },
+       { "o": "F nwg S A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "A", "at": "den" },
+       { "power": "england", "type": "F", "at": "bal" },
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "russia", "type": "A", "at": "nwy" },
+       { "power": "russia", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "nwg" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.17",
+   "title": "The two unit in one area bug, moving over land",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "nwy" },
+     { "power": "england", "type": "A", "at": "den" },
+     { "power": "england", "type": "F", "at": "bal" },
+     { "power": "england", "type": "F", "at": "ska" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "F", "at": "nwg" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A nwy - swe VIA", "result": "success" },
+       { "o": "A den S A nwy - swe", "result": "success" },
+       { "o": "F bal S A nwy - swe", "result": "success" },
+       { "o": "F ska C A nwy - swe", "result": "success" },
+       { "o": "F nth - nwy", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A swe - nwy", "result": "success" },
+       { "o": "F nwg S A swe - nwy", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "swe" },
+       { "power": "england", "type": "A", "at": "den" },
+       { "power": "england", "type": "F", "at": "bal" },
+       { "power": "england", "type": "F", "at": "ska" },
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "russia", "type": "A", "at": "nwy" },
+       { "power": "russia", "type": "F", "at": "nwg" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.18",
+   "title": "The two unit in one area bug, with double convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "hol" },
+     { "power": "england", "type": "A", "at": "yor" },
+     { "power": "england", "type": "A", "at": "lon" },
+     { "power": "england", "type": "A", "at": "ruh" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "bel" },
+     { "power": "france", "type": "A", "at": "wal" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth C A lon - bel", "result": "success" },
+       { "o": "A hol S A lon - bel", "result": "success" },
+       { "o": "A yor - lon", "result": "failure" },
+       { "o": "A lon - bel", "result": "success" },
+       { "o": "A ruh S A lon - bel", "result": "success" }
+      ],
+      "france": [
+       { "o": "F eng C A bel - lon", "result": "success" },
+       { "o": "A bel - lon", "result": "success" },
+       { "o": "A wal S A bel - lon", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "A", "at": "hol" },
+       { "power": "england", "type": "A", "at": "yor" },
+       { "power": "england", "type": "A", "at": "bel" },
+       { "power": "england", "type": "A", "at": "ruh" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "lon" },
+       { "power": "france", "type": "A", "at": "wal" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.19",
+   "title": "Swapping with intent of unnecessary convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.E.1"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "mar" },
+     { "power": "france", "type": "F", "at": "wes" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "A", "at": "spa" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A mar - spa", "result": "failure" },
+       { "o": "F wes C A mar - spa", "result": "illegal", "reason": "convoy_not_needed" }
+      ],
+      "italy": [
+       { "o": "F lyo C A mar - spa", "result": "void" },
+       { "o": "A spa - mar", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "mar" },
+       { "power": "france", "type": "F", "at": "wes" },
+       { "power": "italy", "type": "F", "at": "lyo" },
+       { "power": "italy", "type": "A", "at": "spa" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.G.20",
+   "title": "Explicit convoy to adjacent province disrupted",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "bre" },
+     { "power": "france", "type": "A", "at": "pic" },
+     { "power": "france", "type": "A", "at": "bur" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "england", "type": "F", "at": "eng" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F bre - eng", "result": "success" },
+       { "o": "A pic - bel VIA", "result": "failure" },
+       { "o": "A bur S A pic - bel", "result": "success" },
+       { "o": "F mao S F bre - eng", "result": "success" }
+      ],
+      "england": [
+       { "o": "F eng C A pic - bel", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "pic" },
+       { "power": "france", "type": "A", "at": "bur" },
+       { "power": "france", "type": "F", "at": "mao" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "F", "at": "eng" }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

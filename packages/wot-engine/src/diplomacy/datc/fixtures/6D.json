@@ -1,0 +1,1473 @@
+{
+ "datc_version": "3.0",
+ "section": "6.D",
+ "cases": [
+  {
+   "id": "6.D.1",
+   "title": "Supported hold can prevent dislodgement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "adr" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "F adr S A tri - ven", "result": "success" },
+       { "o": "A tri - ven", "result": "failure" }
+      ],
+      "italy": [
+       "A ven H",
+       { "o": "A tyr S A ven", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "adr" },
+       { "power": "austria", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "A", "at": "tyr" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.2",
+   "title": "A move cuts support on hold",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "adr" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "F adr S A tri - ven", "result": "success" },
+       { "o": "A tri - ven", "result": "success" },
+       { "o": "A vie - tyr", "result": "failure" }
+      ],
+      "italy": [
+       "A ven H",
+       { "o": "A tyr S A ven", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "adr" },
+       { "power": "austria", "type": "A", "at": "ven" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "tyr" }
+      ],
+      "dislodged_after": [
+       { "power": "italy", "type": "A", "at": "ven" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.3",
+   "title": "A move cuts support on move",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "adr" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "F", "at": "ion" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "F adr S A tri - ven", "result": "failure" },
+       { "o": "A tri - ven", "result": "failure" }
+      ],
+      "italy": [
+       "A ven H",
+       { "o": "F ion - adr", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "adr" },
+       { "power": "austria", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "F", "at": "ion" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.4",
+   "title": "Support to hold on unit supporting a hold allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber S F kie", "result": "failure" },
+       { "o": "F kie S A ber", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bal S A pru - ber", "result": "success" },
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.5",
+   "title": "Support to hold on unit supporting a move allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber S A mun - sil", "result": "failure" },
+       { "o": "F kie S A ber", "result": "success" },
+       { "o": "A mun - sil", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bal S A pru - ber", "result": "success" },
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "sil" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.6",
+   "title": "Support to hold on convoying unit allowed",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "bal" },
+     { "power": "germany", "type": "F", "at": "pru" },
+     { "power": "russia", "type": "F", "at": "lvn" },
+     { "power": "russia", "type": "F", "at": "bot" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - swe", "result": "success" },
+       { "o": "F bal C A ber - swe", "result": "success" },
+       { "o": "F pru S F bal", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F lvn - bal", "result": "failure" },
+       { "o": "F bot S F lvn - bal", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "swe" },
+       { "power": "germany", "type": "F", "at": "bal" },
+       { "power": "germany", "type": "F", "at": "pru" },
+       { "power": "russia", "type": "F", "at": "lvn" },
+       { "power": "russia", "type": "F", "at": "bot" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.7",
+   "title": "Support to hold on moving unit not allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "bal" },
+     { "power": "germany", "type": "F", "at": "pru" },
+     { "power": "russia", "type": "F", "at": "lvn" },
+     { "power": "russia", "type": "F", "at": "bot" },
+     { "power": "russia", "type": "A", "at": "fin" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F bal - swe", "result": "failure" },
+       { "o": "F pru S F bal", "result": "void" }
+      ],
+      "russia": [
+       { "o": "F lvn - bal", "result": "success" },
+       { "o": "F bot S F lvn - bal", "result": "success" },
+       { "o": "A fin - swe", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "pru" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "F", "at": "bot" },
+       { "power": "russia", "type": "A", "at": "fin" }
+      ],
+      "dislodged_after": [
+       { "power": "germany", "type": "F", "at": "bal" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.8",
+   "title": "Failed convoy cannot receive hold support",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "ion" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "austria", "type": "A", "at": "alb" },
+     { "power": "turkey", "type": "A", "at": "gre" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "F ion H",
+       { "o": "A ser S A alb - gre", "result": "success" },
+       { "o": "A alb - gre", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "A gre - nap", "result": "failure" },
+       { "o": "A bul S A gre", "result": "void" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "ion" },
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "austria", "type": "A", "at": "gre" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": [
+       { "power": "turkey", "type": "A", "at": "gre" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.9",
+   "title": "Support to move on holding unit not allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" },
+     { "power": "austria", "type": "A", "at": "alb" },
+     { "power": "austria", "type": "A", "at": "tri" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "A ven - tri", "result": "success" },
+       { "o": "A tyr S A ven - tri", "result": "success" }
+      ],
+      "austria": [
+       { "o": "A alb S A tri - ser", "result": "void" },
+       "A tri H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "tyr" },
+       { "power": "austria", "type": "A", "at": "alb" }
+      ],
+      "dislodged_after": [
+       { "power": "austria", "type": "A", "at": "tri" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.10",
+   "title": "Self dislodgment prohibited",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "mun" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       "A ber H",
+       { "o": "F kie - ber", "result": "failure" },
+       { "o": "A mun S F kie - ber", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "mun" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.11",
+   "title": "No self dislodgment of returning unit",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "russia", "type": "A", "at": "war" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - pru", "result": "failure" },
+       { "o": "F kie - ber", "result": "failure" },
+       { "o": "A mun S F kie - ber", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A war - pru", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "russia", "type": "A", "at": "war" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "pru"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.12",
+   "title": "Supporting a foreign unit to dislodge own unit prohibited",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "ven" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "F tri H",
+       { "o": "A vie S A ven - tri", "result": "success" }
+      ],
+      "italy": [
+       { "o": "A ven - tri", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "tri" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "ven" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.13",
+   "title": "Supporting a foreign unit to dislodge a returning own unit prohibited",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "F", "at": "apu" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "F tri - adr", "result": "failure" },
+       { "o": "A vie S A ven - tri", "result": "success" }
+      ],
+      "italy": [
+       { "o": "A ven - tri", "result": "failure" },
+       { "o": "F apu - adr", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "tri" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "F", "at": "apu" }
+      ],
+      "dislodged_after": [],
+      "contested_after": [
+       "adr"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.14",
+   "title": "Supporting a foreign unit is not enough to prevent dislodgement",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" },
+     { "power": "italy", "type": "F", "at": "adr" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "F tri H",
+       { "o": "A vie S A ven - tri", "result": "success" }
+      ],
+      "italy": [
+       { "o": "A ven - tri", "result": "success" },
+       { "o": "A tyr S A ven - tri", "result": "success" },
+       { "o": "F adr S A ven - tri", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "tyr" },
+       { "power": "italy", "type": "F", "at": "adr" }
+      ],
+      "dislodged_after": [
+       { "power": "austria", "type": "F", "at": "tri" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.15",
+   "title": "Defender cannot cut support for attack on itself",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "F", "at": "ank" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "F con S F bla - ank", "result": "success" },
+       { "o": "F bla - ank", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "F ank - con", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "con" },
+       { "power": "russia", "type": "F", "at": "ank" }
+      ],
+      "dislodged_after": [
+       { "power": "turkey", "type": "F", "at": "ank" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.16",
+   "title": "Convoying a unit dislodging a unit of same power is allowed",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lon" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "bel" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "A lon H",
+       { "o": "F nth C A bel - lon", "result": "success" }
+      ],
+      "france": [
+       { "o": "F eng S A bel - lon", "result": "success" },
+       { "o": "A bel - lon", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "lon" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "A", "at": "lon" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.17",
+   "title": "Dislodgement cuts supports",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "F", "at": "ank" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "turkey", "type": "A", "at": "arm" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "F con S F bla - ank", "result": "failure" },
+       { "o": "F bla - ank", "result": "failure" }
+      ],
+      "turkey": [
+       { "o": "F ank - con", "result": "success" },
+       { "o": "A smy S F ank - con", "result": "success" },
+       { "o": "A arm - ank", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "bla" },
+       { "power": "turkey", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "turkey", "type": "A", "at": "arm" }
+      ],
+      "dislodged_after": [
+       { "power": "russia", "type": "F", "at": "con" }
+      ],
+      "contested_after": [
+       "ank"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.18",
+   "title": "A surviving unit will sustain support",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "russia", "type": "A", "at": "bul" },
+     { "power": "turkey", "type": "F", "at": "ank" },
+     { "power": "turkey", "type": "A", "at": "smy" },
+     { "power": "turkey", "type": "A", "at": "arm" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "F con S F bla - ank", "result": "success" },
+       { "o": "F bla - ank", "result": "success" },
+       { "o": "A bul S F con", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "F ank - con", "result": "failure" },
+       { "o": "A smy S F ank - con", "result": "success" },
+       { "o": "A arm - ank", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "con" },
+       { "power": "russia", "type": "F", "at": "ank" },
+       { "power": "russia", "type": "A", "at": "bul" },
+       { "power": "turkey", "type": "A", "at": "smy" },
+       { "power": "turkey", "type": "A", "at": "arm" }
+      ],
+      "dislodged_after": [
+       { "power": "turkey", "type": "F", "at": "ank" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.19",
+   "title": "Even when surviving is in alternative way",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "russia", "type": "A", "at": "smy" },
+     { "power": "turkey", "type": "F", "at": "ank" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "F con S F bla - ank", "result": "success" },
+       { "o": "F bla - ank", "result": "success" },
+       { "o": "A smy S F ank - con", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "F ank - con", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "con" },
+       { "power": "russia", "type": "F", "at": "ank" },
+       { "power": "russia", "type": "A", "at": "smy" }
+      ],
+      "dislodged_after": [
+       { "power": "turkey", "type": "F", "at": "ank" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.20",
+   "title": "Unit cannot cut support of its own country",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "lon" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "yor" },
+     { "power": "france", "type": "F", "at": "eng" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F lon S F nth - eng", "result": "success" },
+       { "o": "F nth - eng", "result": "success" },
+       { "o": "A yor - lon", "result": "failure" }
+      ],
+      "france": [
+       "F eng H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "lon" },
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "england", "type": "A", "at": "yor" }
+      ],
+      "dislodged_after": [
+       { "power": "france", "type": "F", "at": "eng" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.21",
+   "title": "Dislodging does not cancel a support cut",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "tri" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "russia", "type": "A", "at": "sil" },
+     { "power": "russia", "type": "A", "at": "ber" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "F tri H"
+      ],
+      "italy": [
+       { "o": "A ven - tri", "result": "failure" },
+       { "o": "A tyr S A ven - tri", "result": "failure" }
+      ],
+      "germany": [
+       { "o": "A mun - tyr", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A sil - mun", "result": "success" },
+       { "o": "A ber S A sil - mun", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "F", "at": "tri" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "A", "at": "tyr" },
+       { "power": "russia", "type": "A", "at": "mun" },
+       { "power": "russia", "type": "A", "at": "ber" }
+      ],
+      "dislodged_after": [
+       { "power": "germany", "type": "A", "at": "mun" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.22",
+   "title": "Impossible fleet move cannot be supported",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "bur" },
+     { "power": "russia", "type": "A", "at": "mun" },
+     { "power": "russia", "type": "A", "at": "ber" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F kie - mun", "result": "illegal", "reason": "not_adjacent" },
+       { "o": "A bur S F kie - mun", "result": "illegal", "reason": "unsupportable_move" }
+      ],
+      "russia": [
+       { "o": "A mun - kie", "result": "success" },
+       { "o": "A ber S A mun - kie", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "bur" },
+       { "power": "russia", "type": "A", "at": "kie" },
+       { "power": "russia", "type": "A", "at": "ber" }
+      ],
+      "dislodged_after": [
+       { "power": "germany", "type": "F", "at": "kie" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.23",
+   "title": "Impossible coast move cannot be supported",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "F", "at": "wes" },
+     { "power": "france", "type": "F", "at": "spa/nc" },
+     { "power": "france", "type": "F", "at": "mar" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "F lyo - spa/sc", "result": "success" },
+       { "o": "F wes S F lyo - spa/sc", "result": "success" }
+      ],
+      "france": [
+       { "o": "F spa/nc - lyo", "result": "illegal", "reason": "not_adjacent" },
+       { "o": "F mar S F spa/nc - lyo", "result": "illegal", "reason": "unsupportable_move" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "F", "at": "spa/sc" },
+       { "power": "italy", "type": "F", "at": "wes" },
+       { "power": "france", "type": "F", "at": "mar" }
+      ],
+      "dislodged_after": [
+       { "power": "france", "type": "F", "at": "spa/nc" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.24",
+   "title": "Impossible army move cannot be supported",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "mar" },
+     { "power": "france", "type": "F", "at": "spa/sc" },
+     { "power": "italy", "type": "F", "at": "lyo" },
+     { "power": "turkey", "type": "F", "at": "tys" },
+     { "power": "turkey", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A mar - lyo", "result": "illegal", "reason": "army_to_sea" },
+       { "o": "F spa/sc S A mar - lyo", "result": "illegal", "reason": "unsupportable_move" }
+      ],
+      "italy": [
+       "F lyo H"
+      ],
+      "turkey": [
+       { "o": "F tys S F wes - lyo", "result": "success" },
+       { "o": "F wes - lyo", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "mar" },
+       { "power": "france", "type": "F", "at": "spa/sc" },
+       { "power": "turkey", "type": "F", "at": "tys" },
+       { "power": "turkey", "type": "F", "at": "lyo" }
+      ],
+      "dislodged_after": [
+       { "power": "italy", "type": "F", "at": "lyo" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.25",
+   "title": "Failing hold support can be supported",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber S A pru", "result": "void" },
+       { "o": "F kie S A ber", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bal S A pru - ber", "result": "success" },
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.26",
+   "title": "Failing move support can be supported",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber S A pru - sil", "result": "void" },
+       { "o": "F kie S A ber", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bal S A pru - ber", "result": "success" },
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.27",
+   "title": "Failing convoy can be supported",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "swe" },
+     { "power": "england", "type": "F", "at": "den" },
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "F", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F swe - bal", "result": "failure" },
+       { "o": "F den S F swe - bal", "result": "success" }
+      ],
+      "germany": [
+       "A ber H"
+      ],
+      "russia": [
+       { "o": "F bal C A ber - lvn", "result": "void" },
+       { "o": "F pru S F bal", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "swe" },
+       { "power": "england", "type": "F", "at": "den" },
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "F", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.28",
+   "title": "Impossible move and support",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "bud" },
+     { "power": "russia", "type": "F", "at": "rum" },
+     { "power": "turkey", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A bud S F rum", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F rum - hol", "result": "illegal", "reason": "not_adjacent" }
+      ],
+      "turkey": [
+       { "o": "F bla - rum", "result": "failure" },
+       { "o": "A bul S F bla - rum", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "russia", "type": "F", "at": "rum" },
+       { "power": "turkey", "type": "F", "at": "bla" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.29",
+   "title": "Move to impossible coast and support",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "bud" },
+     { "power": "russia", "type": "F", "at": "rum" },
+     { "power": "turkey", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A bud S F rum", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F rum - bul/sc", "result": "illegal", "reason": "bad_coast" }
+      ],
+      "turkey": [
+       { "o": "F bla - rum", "result": "failure" },
+       { "o": "A bul S F bla - rum", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "russia", "type": "F", "at": "rum" },
+       { "power": "turkey", "type": "F", "at": "bla" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.30",
+   "title": "Move without coast and support",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "italy", "type": "F", "at": "aeg" },
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "turkey", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "italy": [
+       { "o": "F aeg S F con", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F con - bul", "result": "illegal", "reason": "coast_required" }
+      ],
+      "turkey": [
+       { "o": "F bla - con", "result": "failure" },
+       { "o": "A bul S F bla - con", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "F", "at": "aeg" },
+       { "power": "russia", "type": "F", "at": "con" },
+       { "power": "turkey", "type": "F", "at": "bla" },
+       { "power": "turkey", "type": "A", "at": "bul" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.31",
+   "title": "A tricky impossible support",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "rum" },
+     { "power": "turkey", "type": "F", "at": "bla" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A rum - arm", "result": "failure" }
+      ],
+      "turkey": [
+       { "o": "F bla S A rum - arm", "result": "illegal", "reason": "unsupportable_move" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "rum" },
+       { "power": "turkey", "type": "F", "at": "bla" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.32",
+   "title": "A missing fleet",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "edi" },
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "france", "type": "F", "at": "lon" },
+     { "power": "germany", "type": "A", "at": "yor" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F edi S A lvp - yor", "result": "success" },
+       { "o": "A lvp - yor", "result": "failure" }
+      ],
+      "france": [
+       { "o": "F lon S A yor", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A yor - hol", "result": "illegal", "reason": "no_convoy_route" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "edi" },
+       { "power": "england", "type": "A", "at": "lvp" },
+       { "power": "france", "type": "F", "at": "lon" },
+       { "power": "germany", "type": "A", "at": "yor" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.33",
+   "title": "Unwanted support allowed",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "austria", "type": "A", "at": "vie" },
+     { "power": "russia", "type": "A", "at": "gal" },
+     { "power": "turkey", "type": "A", "at": "bul" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A ser - bud", "result": "success" },
+       { "o": "A vie - bud", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A gal S A ser - bud", "result": "success" }
+      ],
+      "turkey": [
+       { "o": "A bul - ser", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "russia", "type": "A", "at": "gal" },
+       { "power": "turkey", "type": "A", "at": "ser" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.D.34",
+   "title": "Support targeting own area not allowed",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "A", "at": "sil" },
+     { "power": "germany", "type": "F", "at": "bal" },
+     { "power": "italy", "type": "A", "at": "pru" },
+     { "power": "russia", "type": "A", "at": "war" },
+     { "power": "russia", "type": "A", "at": "lvn" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - pru", "result": "success" },
+       { "o": "A sil S A ber - pru", "result": "success" },
+       { "o": "F bal S A ber - pru", "result": "success" }
+      ],
+      "italy": [
+       { "o": "A pru S lvn - pru", "result": "illegal", "reason": "support_own_area" }
+      ],
+      "russia": [
+       { "o": "A war S A lvn - pru", "result": "success" },
+       { "o": "A lvn - pru", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "pru" },
+       { "power": "germany", "type": "A", "at": "sil" },
+       { "power": "germany", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "war" },
+       { "power": "russia", "type": "A", "at": "lvn" }
+      ],
+      "dislodged_after": [
+       { "power": "italy", "type": "A", "at": "pru" }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

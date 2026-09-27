@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:observation:grid_tactics:1",
+  "title": "Grid Tactics observation frame (server -> agent, outbound)",
+  "description": "Per-tick fog-filtered view sent to one player. Encoded from docs/design/grid-tactics-v1.md §7.6. FOG CONTRACT (normative, security-critical): hidden information is ABSENT, never present-but-null. Enemy units outside the viewer's visible set V(P) do not appear in `enemy_visible` at all (no position, HP, type, count, or existence hint). The server MUST build this frame by whitelist projection, never by redacting a full-state object (A1 §7.6 leakage assertion). additionalProperties is false so a stray field cannot leak fog.",
+  "x-frame-name": "observation",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 16384,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "match_id",
+    "turn_id",
+    "nonce",
+    "deadline_ms",
+    "phase",
+    "you",
+    "enemy_visible",
+    "objectives",
+    "scoreboard",
+    "collapse"
+  ],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "description": "Board coordinate [x, y], origin (0,0) at bottom-left (South-West). x,y in [0,8] on the 9x9 grid.",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 0, "maximum": 8 }
+    },
+    "unitType": { "enum": ["scout", "lancer", "archer", "guard"] },
+    "unitView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "type", "cell", "hp", "max_hp"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 32, "description": "Stable across sightings (re-identification on re-sight is allowed; the fog game is about position, not identity)." },
+        "type": { "$ref": "#/$defs/unitType" },
+        "cell": { "$ref": "#/$defs/cell" },
+        "hp": { "type": "integer", "minimum": 1 },
+        "max_hp": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "side": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["points", "tokens_remaining"],
+      "properties": {
+        "points": { "type": "integer", "minimum": 0 },
+        "tokens_remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cellList": {
+      "type": "array",
+      "maxItems": 81,
+      "items": { "$ref": "#/$defs/cell" }
+    }
+  },
+  "properties": {
+    "t": { "const": "observation" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "= tick. The action for this tick MUST echo this turn_id (anti-replay / stale-turn guard, salvaged from the legacy protocol)."
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64,
+      "description": "Server-issued opaque per-tick nonce. The action MUST echo this exact value. turn_id is predictable (= tick); the nonce is not, which strengthens the legacy turn_id echo into a genuine anti-replay: a mismatched or reused nonce is rejected (`bad_echo`). One accepted action-set per (turn_id, nonce)."
+    },
+    "deadline_ms": {
+      "type": "integer",
+      "minimum": 100,
+      "description": "Soft deadline Ds for THIS tick, measured from when this frame was sent. A valid action received by Ds is on-time. Core league default 1500."
+    },
+    "hard_deadline_ms": {
+      "type": "integer",
+      "minimum": 100,
+      "description": "Optional. Hard deadline Dh. A valid frame in (Ds, Dh] is logged but not applied (late_frame_dropped); nothing by Dh is a hard miss. Core league default 3000."
+    },
+    "phase": { "const": "grid_tactics" },
+    "you": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["player_id", "ascension_points", "action_tokens_remaining", "action_tokens_spent", "units"],
+      "properties": {
+        "player_id": { "enum": ["A", "B"] },
+        "ascension_points": { "type": "integer", "minimum": 0 },
+        "action_tokens_remaining": { "type": "integer", "minimum": 0 },
+        "action_tokens_spent": { "type": "integer", "minimum": 0 },
+        "units": {
+          "type": "array",
+          "description": "Every LIVING unit you own, full detail. Dead units are absent.",
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/unitView" }
+        }
+      }
+    },
+    "enemy_visible": {
+      "type": "array",
+      "description": "ONLY enemy units currently inside your visible set V(P). Empty array if you see none. Enemy units outside V(P) are ABSENT entirely — this array carries no null/placeholder rows.",
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/unitView" }
+    },
+    "objectives": {
+      "type": "array",
+      "description": "Always public. Controller reveals that SOME enemy unit holds a held objective, but not its type/HP unless it is also in V(P) (bounded, symmetric fog exception, A1 §7.4).",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "cell", "controller"],
+        "properties": {
+          "id": { "enum": ["nexus", "relay_w", "relay_e"] },
+          "cell": { "$ref": "#/$defs/cell" },
+          "controller": { "enum": ["A", "B", "none"] }
+        }
+      }
+    },
+    "scoreboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Always public: both scores, both remaining allowances, ticks remaining. Symmetric — no asymmetric information advantage.",
+      "required": ["A", "B", "ticks_remaining"],
+      "properties": {
+        "A": { "$ref": "#/$defs/side" },
+        "B": { "$ref": "#/$defs/side" },
+        "ticks_remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "collapse": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Always public Fog Collapse state (A1 §6.4). Corruption is announced one tick ahead via next_ring_tick.",
+      "required": ["active", "corrupted_rings", "next_ring_tick"],
+      "properties": {
+        "active": { "type": "boolean" },
+        "corrupted_rings": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 4 },
+          "maxItems": 5,
+          "description": "Rings already corrupted (lethal + impassable). ring(x,y)=min(x,8-x,y,8-y); ring 4 = the Nexus, never corrupts."
+        },
+        "next_ring_tick": { "type": ["integer", "null"], "minimum": 0, "description": "Tick at which the next ring corrupts, or null if none remain." }
+      }
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Static, seed-derived map. Fixed for the whole match. The server MAY send it every tick (keeps reflex agents stateless) or once at tick 0; agents must not assume it is resent. Objective cell locations live in top-level `objectives`.",
+      "required": ["width", "height", "obstacles"],
+      "properties": {
+        "width": { "const": 9 },
+        "height": { "const": 9 },
+        "obstacles": {
+          "type": "array",
+          "description": "Impassable, vision-transparent wall cells (exactly 8 in v1). Movement into an obstacle truncates; vision passes through.",
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/cell" }
+        }
+      }
+    },
+    "visible_cells": {
+      "allOf": [{ "$ref": "#/$defs/cellList" }],
+      "description": "OPTIONAL convenience: V(P), your own vision footprint (union of your living units' Chebyshev vision squares). Fog-filtered by construction."
+    },
+    "reachable": {
+      "type": "object",
+      "description": "OPTIONAL convenience: per-unit legal move DESTINATIONS this tick (advisory, not authoritative — a multi-step path may reach further and legality is still enforced server-side at validation). Keys are your unit_ids.",
+      "additionalProperties": {
+        "type": "array",
+        "maxItems": 8,
+        "items": { "$ref": "#/$defs/cell" }
+      }
+    },
+    "attacks": {
+      "type": "object",
+      "description": "OPTIONAL convenience: per-unit target cells of currently-visible enemies within attack range. Because vision >= attack range for every unit, every listed cell is already in V(P) (predictive fire never leaks fog). Keys are your unit_ids.",
+      "additionalProperties": {
+        "type": "array",
+        "maxItems": 8,
+        "items": { "$ref": "#/$defs/cell" }
+      }
+    }
+  },
+  "examples": [
+    {
+      "t": "observation",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "turn_id": 20,
+      "nonce": "n_7f3a9c1e0b2d4a6f",
+      "deadline_ms": 1500,
+      "hard_deadline_ms": 3000,
+      "phase": "grid_tactics",
+      "you": {
+        "player_id": "A",
+        "ascension_points": 44,
+        "action_tokens_remaining": 150,
+        "action_tokens_spent": 90,
+        "units": [
+          { "unit_id": "A-guard", "type": "guard", "cell": [4, 4], "hp": 10, "max_hp": 10 },
+          { "unit_id": "A-archer", "type": "archer", "cell": [2, 4], "hp": 3, "max_hp": 3 },
+          { "unit_id": "A-lancer", "type": "lancer", "cell": [4, 2], "hp": 6, "max_hp": 6 },
+          { "unit_id": "A-scout", "type": "scout", "cell": [7, 3], "hp": 3, "max_hp": 3 }
+        ]
+      },
+      "enemy_visible": [
+        { "unit_id": "B-scout", "type": "scout", "cell": [6, 4], "hp": 3, "max_hp": 3 }
+      ],
+      "objectives": [
+        { "id": "nexus", "cell": [4, 4], "controller": "A" },
+        { "id": "relay_w", "cell": [2, 4], "controller": "A" },
+        { "id": "relay_e", "cell": [6, 4], "controller": "B" }
+      ],
+      "scoreboard": {
+        "A": { "points": 44, "tokens_remaining": 150 },
+        "B": { "points": 40, "tokens_remaining": 130 },
+        "ticks_remaining": 100
+      },
+      "collapse": { "active": false, "corrupted_rings": [], "next_ring_tick": 80 },
+      "map": { "width": 9, "height": 9, "obstacles": [[1, 6], [7, 2], [2, 7], [6, 1]] },
+      "reachable": { "A-lancer": [[4, 3], [3, 2], [5, 2], [4, 0]] },
+      "attacks": { "A-scout": [[6, 4]] }
+    }
+  ]
+}

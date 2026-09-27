@@ -1,0 +1,1071 @@
+{
+ "datc_version": "3.0",
+ "section": "6.H",
+ "cases": [
+  {
+   "id": "6.H.1",
+   "title": "No supports during retreat",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves (\"X - Y\" in the retreat phase) are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "F", "at": "tri" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "turkey", "type": "F", "at": "gre" },
+     { "power": "italy", "type": "A", "at": "ven" },
+     { "power": "italy", "type": "A", "at": "tyr" },
+     { "power": "italy", "type": "F", "at": "ion" },
+     { "power": "italy", "type": "F", "at": "aeg" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       "F tri H",
+       "A ser H"
+      ],
+      "turkey": [
+       "F gre H"
+      ],
+      "italy": [
+       { "o": "A ven S A tyr - tri", "result": "success" },
+       { "o": "A tyr - tri", "result": "success" },
+       { "o": "F ion - gre", "result": "success" },
+       { "o": "F aeg S F ion - gre", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "F", "at": "gre" },
+       { "power": "italy", "type": "F", "at": "aeg" }
+      ],
+      "dislodged_after": [
+       { "power": "austria", "type": "F", "at": "tri" },
+       { "power": "turkey", "type": "F", "at": "gre" }
+      ],
+      "phase_after": "S1901R"
+     }
+    },
+    {
+     "orders": {
+      "austria": [
+       { "o": "F tri R alb", "result": "failure" },
+       { "o": "A ser S F tri - alb", "result": "illegal", "reason": "wrong_phase" }
+      ],
+      "turkey": [
+       { "o": "F gre R alb", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "italy", "type": "A", "at": "ven" },
+       { "power": "italy", "type": "A", "at": "tri" },
+       { "power": "italy", "type": "F", "at": "gre" },
+       { "power": "italy", "type": "F", "at": "aeg" }
+      ],
+      "dislodged_after": [],
+      "phase_after": "F1901M"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.2",
+   "title": "No supports from retreating unit",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "england", "type": "F", "at": "nwy" },
+     { "power": "germany", "type": "A", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "ruh" },
+     { "power": "russia", "type": "F", "at": "edi" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "A", "at": "fin" },
+     { "power": "russia", "type": "F", "at": "hol" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi", "result": "success" },
+       { "o": "F yor S A lvp - edi", "result": "success" },
+       "F nwy H"
+      ],
+      "germany": [
+       { "o": "A kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "success" }
+      ],
+      "russia": [
+       "F edi H",
+       { "o": "A swe S A fin - nwy", "result": "success" },
+       { "o": "A fin - nwy", "result": "success" },
+       "F hol H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "F", "at": "nwy" },
+       { "power": "russia", "type": "F", "at": "edi" },
+       { "power": "russia", "type": "F", "at": "hol" }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "F nwy R nth", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F edi R nth", "result": "failure" },
+       { "o": "F hol S F edi - nth", "result": "illegal", "reason": "wrong_phase" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": [],
+      "phase_after": "F1901M"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.3",
+   "title": "No convoy during retreat",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "ruh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "F nth H",
+       "A hol H"
+      ],
+      "germany": [
+       { "o": "F kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "A",
+        "at": "hol",
+        "retreat_options": [
+         "bel"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "A hol R yor", "result": "illegal", "reason": "retreat_not_allowed" },
+       { "o": "F nth C A hol - yor", "result": "illegal", "reason": "wrong_phase" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.4",
+   "title": "No other moves during retreat",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat-phase moves are transcribed with the retreat keyword R; the North Sea order is a retreat for a unit that is not dislodged.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "A", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "ruh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "F nth H",
+       "A hol H"
+      ],
+      "germany": [
+       { "o": "F kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "A", "at": "hol" }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "A hol R bel", "result": "success" },
+       { "o": "F nth R nwg", "result": "illegal", "reason": "no_unit" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" },
+       { "power": "england", "type": "A", "at": "bel" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.5",
+   "title": "A unit may not retreat to the area from which it is attacked",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "russia", "type": "F", "at": "con" },
+     { "power": "russia", "type": "F", "at": "bla" },
+     { "power": "turkey", "type": "F", "at": "ank" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "russia": [
+       { "o": "F con S F bla - ank", "result": "success" },
+       { "o": "F bla - ank", "result": "success" }
+      ],
+      "turkey": [
+       "F ank H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "con" },
+       { "power": "russia", "type": "F", "at": "ank" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "turkey",
+        "type": "F",
+        "at": "ank",
+        "retreat_options": [
+         "arm"
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.6",
+   "title": "Unit may not retreat to a contested area",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "bud" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "germany", "type": "A", "at": "sil" },
+     { "power": "italy", "type": "A", "at": "vie" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A bud S A tri - vie", "result": "success" },
+       { "o": "A tri - vie", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A mun - boh", "result": "failure" },
+       { "o": "A sil - boh", "result": "failure" }
+      ],
+      "italy": [
+       "A vie H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "germany", "type": "A", "at": "sil" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "italy",
+        "type": "A",
+        "at": "vie",
+        "retreat_options": [
+         "gal",
+         "tyr"
+        ]
+       }
+      ],
+      "contested_after": [
+       "boh"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.7",
+   "title": "Multiple retreat to same area will disband units",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "bud" },
+     { "power": "austria", "type": "A", "at": "tri" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "germany", "type": "A", "at": "sil" },
+     { "power": "italy", "type": "A", "at": "vie" },
+     { "power": "italy", "type": "A", "at": "boh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A bud S A tri - vie", "result": "success" },
+       { "o": "A tri - vie", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A mun S A sil - boh", "result": "success" },
+       { "o": "A sil - boh", "result": "success" }
+      ],
+      "italy": [
+       "A vie H",
+       "A boh H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "germany", "type": "A", "at": "boh" }
+      ],
+      "dislodged_after": [
+       { "power": "italy", "type": "A", "at": "vie" },
+       { "power": "italy", "type": "A", "at": "boh" }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "italy": [
+       { "o": "A boh R tyr", "result": "failure" },
+       { "o": "A vie R tyr", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "austria", "type": "A", "at": "vie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "germany", "type": "A", "at": "boh" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.8",
+   "title": "Triple retreat to same area will disband units",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "england", "type": "F", "at": "nwy" },
+     { "power": "germany", "type": "A", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "ruh" },
+     { "power": "russia", "type": "F", "at": "edi" },
+     { "power": "russia", "type": "A", "at": "swe" },
+     { "power": "russia", "type": "A", "at": "fin" },
+     { "power": "russia", "type": "F", "at": "hol" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi", "result": "success" },
+       { "o": "F yor S A lvp - edi", "result": "success" },
+       "F nwy H"
+      ],
+      "germany": [
+       { "o": "A kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "success" }
+      ],
+      "russia": [
+       "F edi H",
+       { "o": "A swe S A fin - nwy", "result": "success" },
+       { "o": "A fin - nwy", "result": "success" },
+       "F hol H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": [
+       { "power": "england", "type": "F", "at": "nwy" },
+       { "power": "russia", "type": "F", "at": "edi" },
+       { "power": "russia", "type": "F", "at": "hol" }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "F nwy R nth", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F edi R nth", "result": "failure" },
+       { "o": "F hol R nth", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "hol" },
+       { "power": "russia", "type": "A", "at": "swe" },
+       { "power": "russia", "type": "A", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.9",
+   "title": "Dislodged unit will not make attackers area contested",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "hel" },
+     { "power": "england", "type": "F", "at": "den" },
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "sil" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F hel - kie", "result": "success" },
+       { "o": "F den S F hel - kie", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A ber - pru", "result": "success" },
+       "F kie H",
+       { "o": "A sil S A ber - pru", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "kie" },
+       { "power": "england", "type": "F", "at": "den" },
+       { "power": "germany", "type": "A", "at": "pru" },
+       { "power": "germany", "type": "A", "at": "sil" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "germany",
+        "type": "F",
+        "at": "kie",
+        "retreat_options": [
+         "bal",
+         "ber",
+         "hol"
+        ]
+       },
+       {
+        "power": "russia",
+        "type": "A",
+        "at": "pru",
+        "retreat_options": [
+         "lvn",
+         "war"
+        ]
+       }
+      ],
+      "contested_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.10",
+   "title": "Not retreating to attacker does not mean contested",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "germany", "type": "A", "at": "pru" },
+     { "power": "russia", "type": "A", "at": "war" },
+     { "power": "russia", "type": "A", "at": "sil" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "A kie H"
+      ],
+      "germany": [
+       { "o": "A ber - kie", "result": "success" },
+       { "o": "A mun S A ber - kie", "result": "success" },
+       "A pru H"
+      ],
+      "russia": [
+       { "o": "A war - pru", "result": "success" },
+       { "o": "A sil S A war - pru", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "russia", "type": "A", "at": "pru" },
+       { "power": "russia", "type": "A", "at": "sil" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "A",
+        "at": "kie",
+        "retreat_options": [
+         "den",
+         "hol",
+         "ruh"
+        ]
+       },
+       {
+        "power": "germany",
+        "type": "A",
+        "at": "pru",
+        "retreat_options": [
+         "ber",
+         "lvn"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "A kie R ber", "result": "illegal", "reason": "retreat_not_allowed" }
+      ],
+      "germany": [
+       { "o": "A pru R ber", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "russia", "type": "A", "at": "pru" },
+       { "power": "russia", "type": "A", "at": "sil" },
+       { "power": "germany", "type": "A", "at": "ber" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.11",
+   "title": "Retreat when dislodged by adjacent convoy",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.5"
+   ],
+   "requires": [
+    "convoy",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "gas" },
+     { "power": "france", "type": "A", "at": "bur" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "france", "type": "F", "at": "wes" },
+     { "power": "france", "type": "F", "at": "lyo" },
+     { "power": "italy", "type": "A", "at": "mar" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A gas - mar VIA", "result": "success" },
+       { "o": "A bur S A gas - mar", "result": "success" },
+       { "o": "F mao C A gas - mar", "result": "success" },
+       { "o": "F wes C A gas - mar", "result": "success" },
+       { "o": "F lyo C A gas - mar", "result": "success" }
+      ],
+      "italy": [
+       "A mar H"
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "mar" },
+       { "power": "france", "type": "A", "at": "bur" },
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "france", "type": "F", "at": "wes" },
+       { "power": "france", "type": "F", "at": "lyo" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "italy",
+        "type": "A",
+        "at": "mar",
+        "retreat_options": [
+         "gas",
+         "pie",
+         "spa"
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.12",
+   "title": "Retreat when dislodged by adjacent convoy while trying to do the same",
+   "status": "standard",
+   "rules": [
+    "4.A.3",
+    "4.A.5"
+   ],
+   "requires": [
+    "convoy",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "england", "type": "F", "at": "iri" },
+     { "power": "england", "type": "F", "at": "eng" },
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "france", "type": "F", "at": "bre" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "russia", "type": "A", "at": "edi" },
+     { "power": "russia", "type": "F", "at": "nwg" },
+     { "power": "russia", "type": "F", "at": "nao" },
+     { "power": "russia", "type": "A", "at": "cly" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi VIA", "result": "failure" },
+       { "o": "F iri C A lvp - edi", "result": "success" },
+       { "o": "F eng C A lvp - edi", "result": "failure" },
+       { "o": "F nth C A lvp - edi", "result": "success" }
+      ],
+      "france": [
+       { "o": "F bre - eng", "result": "success" },
+       { "o": "F mao S F bre - eng", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A edi - lvp VIA", "result": "success" },
+       { "o": "F nwg C A edi - lvp", "result": "success" },
+       { "o": "F nao C A edi - lvp", "result": "success" },
+       { "o": "A cly S A edi - lvp", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "iri" },
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "russia", "type": "A", "at": "lvp" },
+       { "power": "russia", "type": "F", "at": "nwg" },
+       { "power": "russia", "type": "F", "at": "nao" },
+       { "power": "russia", "type": "A", "at": "cly" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "A",
+        "at": "lvp",
+        "retreat_options": [
+         "edi",
+         "wal",
+         "yor"
+        ]
+       },
+       { "power": "england", "type": "F", "at": "eng" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.13",
+   "title": "No retreat with convoy in movement phase",
+   "status": "standard",
+   "requires": [
+    "convoy",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "pic" },
+     { "power": "england", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "par" },
+     { "power": "france", "type": "A", "at": "bre" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "A pic H",
+       { "o": "F eng C A pic - lon", "result": "void" }
+      ],
+      "france": [
+       { "o": "A par - pic", "result": "success" },
+       { "o": "A bre S A par - pic", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "pic" },
+       { "power": "france", "type": "A", "at": "bre" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "A",
+        "at": "pic",
+        "retreat_options": [
+         "bel",
+         "bur"
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.14",
+   "title": "No retreat with support in movement phase",
+   "status": "standard",
+   "requires": [
+    "retreat"
+   ],
+   "transcription_notes": "DATC retreat moves are transcribed with the retreat keyword R.",
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "pic" },
+     { "power": "england", "type": "F", "at": "eng" },
+     { "power": "france", "type": "A", "at": "par" },
+     { "power": "france", "type": "A", "at": "bre" },
+     { "power": "france", "type": "A", "at": "bur" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "germany", "type": "A", "at": "mar" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "A pic H",
+       { "o": "F eng S A pic - bel", "result": "void" }
+      ],
+      "france": [
+       { "o": "A par - pic", "result": "success" },
+       { "o": "A bre S A par - pic", "result": "success" },
+       "A bur H"
+      ],
+      "germany": [
+       { "o": "A mun S A mar - bur", "result": "success" },
+       { "o": "A mar - bur", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "pic" },
+       { "power": "france", "type": "A", "at": "bre" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "germany", "type": "A", "at": "bur" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "A",
+        "at": "pic",
+        "retreat_options": [
+         "bel"
+        ]
+       },
+       {
+        "power": "france",
+        "type": "A",
+        "at": "bur",
+        "retreat_options": [
+         "bel",
+         "gas",
+         "par",
+         "ruh"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "orders": {
+      "england": [
+       { "o": "A pic R bel", "result": "failure" }
+      ],
+      "france": [
+       { "o": "A bur R bel", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "eng" },
+       { "power": "france", "type": "A", "at": "pic" },
+       { "power": "france", "type": "A", "at": "bre" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "germany", "type": "A", "at": "bur" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.15",
+   "title": "No coastal crawl in retreat",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "por" },
+     { "power": "france", "type": "F", "at": "spa/sc" },
+     { "power": "france", "type": "F", "at": "mao" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "F por H"
+      ],
+      "france": [
+       { "o": "F spa/sc - por", "result": "success" },
+       { "o": "F mao S F spa/sc - por", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "por" },
+       { "power": "france", "type": "F", "at": "mao" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "england",
+        "type": "F",
+        "at": "por",
+        "retreat_options": []
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.H.16",
+   "title": "Contested for both coasts",
+   "status": "standard",
+   "requires": [
+    "movement",
+    "retreat"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "france", "type": "F", "at": "gas" },
+     { "power": "france", "type": "F", "at": "wes" },
+     { "power": "italy", "type": "F", "at": "tun" },
+     { "power": "italy", "type": "F", "at": "tys" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F mao - spa/nc", "result": "failure" },
+       { "o": "F gas - spa/nc", "result": "failure" },
+       "F wes H"
+      ],
+      "italy": [
+       { "o": "F tun S F tys - wes", "result": "success" },
+       { "o": "F tys - wes", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "france", "type": "F", "at": "gas" },
+       { "power": "italy", "type": "F", "at": "tun" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": [
+       {
+        "power": "france",
+        "type": "F",
+        "at": "wes",
+        "retreat_options": [
+         "lyo",
+         "naf"
+        ]
+       }
+      ],
+      "contested_after": [
+       "spa"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

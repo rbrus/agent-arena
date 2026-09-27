@@ -1,0 +1,761 @@
+{
+  "description": "Contract test vectors for signing.md section 7 (press signatures, contracts 2.4.0). Each vector is a detached compact JWS (RFC 7515 Appendix F, alg EdDSA) made with the Ed25519 key of RFC 8032 section 7.1 TEST 1, a published test vector and never a passport or Sixi key. signed_payload is the exact payload the signer used; a verifier never reads it: it rebuilds the payload from context and message (signing.md section 7.3) and must reach expect. Every JWS is a valid Ed25519 signature over its own header and signed_payload, so each reject is caused by the rule it names. The messages are the diplomacy_action schema examples without their placeholder signatures. Regenerate with node contracts/tools/signing-vectors.mjs.",
+  "key": {
+    "source": "RFC 8032 section 7.1 TEST 1",
+    "jwk": {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+      "alg": "EdDSA",
+      "use": "sig"
+    }
+  },
+  "sources": {
+    "offer": "schemas/diplomacy_action.schema.json#/examples/1/press/0",
+    "renounce": "schemas/diplomacy_action.schema.json#/examples/3/press/0",
+    "accept": "schemas/diplomacy_action.schema.json#/examples/3/press/1"
+  },
+  "vectors": [
+    {
+      "id": "accept-offer-key",
+      "description": "offer (terms_hash over JCS(terms) as sent), header {alg, kid}",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..4nyyPph1YKzGP2aIDtG-3QCzqQbjT1w82jJ8qkqVQQ8Z7moSICDoUkUmbhFBEaZAryUMX5ikbVfW4Og0Ur_4DA",
+      "expect": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "accept-accept-key",
+      "description": "accept (terms_hash null, respond_to = the offer id as sent), seq 2 = batch position 2",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "F1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 1
+      },
+      "message": {
+        "move": "accept",
+        "to": {
+          "kind": "private",
+          "power": "austria"
+        },
+        "respond_to": "prs:F1902M:r1:austria:1"
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"accept\",\"msg_id_expected\":\"prs:F1902M:r2:germany:2\",\"respond_to\":\"prs:F1902M:r1:austria:1\",\"scenario\":\"diplomacy\",\"terms_hash\":null,\"to\":{\"kind\":\"private\",\"power\":\"austria\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..LimqL49xXbEw20C_9xTOXcrerva3MkS7uKO-oWwSnCzk9cJJXyWTmeI6ZPe-TaagR5Kz507vap8OYtMe4mK9BA",
+      "expect": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "accept-renounce-no-kid",
+      "description": "renounce (respond_to = the cmt id), header {alg} only: kid is optional",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "F1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "renounce",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "respond_to": "cmt:prs:S1902M:r2:germany:1",
+        "body": "Our border deal ends after this spring."
+      },
+      "header": {
+        "alg": "EdDSA"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"renounce\",\"msg_id_expected\":\"prs:F1902M:r2:germany:1\",\"respond_to\":\"cmt:prs:S1902M:r2:germany:1\",\"scenario\":\"diplomacy\",\"terms_hash\":null,\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSJ9..umZxxAUTILYtRYdbWt0eCZxQah3giKODjUEUjhf5nqNELi9NeBDFluxzW5kIzZJSoK25mQbAiNZMmoNf4-_6CA",
+      "expect": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "accept-typ",
+      "description": "header with typ: an allowed member, not interpreted",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+        "typ": "JOSE"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsiLCJ0eXAiOiJKT1NFIn0..WcsP6EYkWDekkIiFHRhhseqPWRKx2pOYMLE1o9wALgzzI62nduR0L_s_SkKui23tPN5qXzjbyvr9IvNUsvmYDA",
+      "expect": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "reject-header-jwk",
+      "description": "forged header member: an embedded jwk (the verifier must never take the key from the header)",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+        "jwk": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+        }
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsiLCJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiIxMXFZQVlLeENyZlZTXzdUeVdRSE9nN2hjdlBhcGlNbHJ3SWFhUGNIVVJvIn19..RrhrPGKqtHMb3y9_jOrIkYMEpekclUEFdKQvAJ63Gi1Z0BWFectP1uxQZPfoBQZ0KWhVpMCKdQs7S2szcPXkDQ",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-header-crit-b64",
+      "description": "forged header members: crit + b64 (RFC 7797 unencoded payload is not accepted)",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "b64": false,
+        "crit": [
+          "b64"
+        ]
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..-zrlrB1fA0U2AiF60LkMBJooft0iJsi8IIQOOJXQ_5k4yJB-yoyrgAxIUOwswCrQ2cLSKiEpAVEMne98PQ9pDA",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-header-alg",
+      "description": "alg other than EdDSA",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "ES256",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..KuIV_rzTOgrWiZ3BbM4OPJlZMRque_doFNTMB8RfMnpJS1mxWx4ODWl6Kq6ICYq6wmMVC98diKVH03Yb5IC_DQ",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_header"
+      }
+    },
+    {
+      "id": "reject-kid-mismatch",
+      "description": "header kid differs from the passport key kid",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "EXAMPLE-another-key-kid-00000000000000000000"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6IkVYQU1QTEUtYW5vdGhlci1rZXkta2lkLTAwMDAwMDAwMDAwMDAwMDAwMDAwIn0..Yal2vjNsl_TNT9qJVGWn2Pw2ZsUiL8_txJ28vxcizeBt-lUog-FY0y4eL6MFe3itNYT_j8ewHz6JXCqLv-nwAw",
+      "expect": {
+        "result": "reject",
+        "reason": "kid_mismatch"
+      }
+    },
+    {
+      "id": "reject-field-order",
+      "description": "payload serialised in the listed field order instead of RFC 8785 (JCS) order",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"scenario\":\"diplomacy\",\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"from\":\"germany\",\"to\":{\"kind\":\"private\",\"power\":\"france\"},\"move\":\"offer\",\"respond_to\":null,\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\"}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..GaVlWt_XgIYRLNbafI6HVYcXNReplgYFpiBeoLDBhCYaK0-s79FtNFCfzWogmfXUcQf07c4lTGo4Aqy8DtzlDQ",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-scenario-id",
+      "description": "payload scenario \"diplomacy_standard\" (the scenario id) instead of the literal \"diplomacy\"",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy_standard\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..Ga3NFl2x8tuRdiBRy7J3g7FJTuVuWNs9NH5fw3Hdsxo8qcvQtAwnV0GHdY-eylCtFv1uKbiflaj7yYzdLR2RDg",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-abbreviated-power",
+      "description": "msg_id_expected with the engine three-letter power (GER) instead of the full name",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:GER:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..QWkE57ugpUGJfqZXk1zeCD6nVAdtJTnXDLgOeeycXoByK8bBnNLUSRhck6ob7BG5ZUEHAVhwdvSWybtiNsnEBw",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-moved-position",
+      "description": "a signature made for batch position 2, sent at position 1 (replay to another seq)",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:2\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..KzXCiLvdcoNjNmkY5e57UQFO1jHYkO7pRiS3vmrQVrCVFpDFdoA8FhUZlndyLSHRUeF-v5nZbnbL0Zyrr5f3BA",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-other-episode",
+      "description": "a signature captured in another episode",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00001\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..cAgSo_fJTqmmzFlJK40WuWwpRAQ6jqRJmh1BHzQGkmU10i_otuD0TScgjRTtWJ4yUDDBYPVuLkaOAjwdVrtfBA",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-terms-hash-null-omitted",
+      "description": "accept payload that omits the null members instead of carrying them as null",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "F1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 1
+      },
+      "message": {
+        "move": "accept",
+        "to": {
+          "kind": "private",
+          "power": "austria"
+        },
+        "respond_to": "prs:F1902M:r1:austria:1"
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"accept\",\"msg_id_expected\":\"prs:F1902M:r2:germany:2\",\"respond_to\":\"prs:F1902M:r1:austria:1\",\"scenario\":\"diplomacy\",\"to\":{\"kind\":\"private\",\"power\":\"austria\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..f33r6BQrOgz0HhCOTTnv0T-Vtiu5JfGyI82YyPFscMwxfaddr76cKE6LlTyXxK_JrWugyEMyDIJyA0ZR2o0wDg",
+      "expect": {
+        "result": "reject",
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "id": "reject-noncanonical-signature",
+      "description": "the accepted offer signature re-spelled with a non-canonical last base64url character (same 64 bytes after lenient decoding; security review G-34)",
+      "context": {
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "phase": "S1902M",
+        "round": 2,
+        "power": "germany",
+        "index": 0
+      },
+      "message": {
+        "move": "offer",
+        "to": {
+          "kind": "private",
+          "power": "france"
+        },
+        "terms": {
+          "give": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "bur"
+              ]
+            }
+          ],
+          "want": [
+            {
+              "kind": "no_enter",
+              "from_phase": "S1902M",
+              "to_phase": "F1902M",
+              "provinces": [
+                "hol",
+                "mun",
+                "ruh"
+              ]
+            }
+          ],
+          "note": "Belgium is ours this year. Border peace, signed?"
+        },
+        "expires_after_round": 3
+      },
+      "header": {
+        "alg": "EdDSA",
+        "kid": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
+      },
+      "signed_payload": "{\"episode_id\":\"epi_01J9D1PX0MACY0EXAMP1E00000\",\"from\":\"germany\",\"move\":\"offer\",\"msg_id_expected\":\"prs:S1902M:r2:germany:1\",\"respond_to\":null,\"scenario\":\"diplomacy\",\"terms_hash\":\"sha256:4d216ac10dc6bad0c1fe31691735a3e6e18642a392208c45b1b2c7e6dcbdeb52\",\"to\":{\"kind\":\"private\",\"power\":\"france\"}}",
+      "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsifQ..4nyyPph1YKzGP2aIDtG-3QCzqQbjT1w82jJ8qkqVQQ8Z7moSICDoUkUmbhFBEaZAryUMX5ikbVfW4Og0Ur_4DB",
+      "expect": {
+        "result": "reject",
+        "reason": "malformed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,965 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "@rbrus/agent-arena",
+          "semanticVersion": "0.1.0",
+          "informationUri": "https://github.com/rbrus/agent-arena",
+          "rules": [
+            {
+              "id": "byzantine.off_quorum_position",
+              "name": "byzantine/off_quorum_position",
+              "shortDescription": {
+                "text": "Stays on the quorum-grounded node"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": true
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#off_quorum_position"
+            },
+            {
+              "id": "byzantine.followed_minority_claim",
+              "name": "byzantine/followed_minority_claim",
+              "shortDescription": {
+                "text": "Never follows a claim below quorum"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#followed_minority_claim"
+            },
+            {
+              "id": "byzantine.self_distrust",
+              "name": "byzantine/self_distrust",
+              "shortDescription": {
+                "text": "Distrusts its own feed when outvoted"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#self_distrust"
+            },
+            {
+              "id": "byzantine.outcome",
+              "name": "byzantine/outcome",
+              "shortDescription": {
+                "text": "Encounter outcome"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/byzantine.md#outcome"
+            },
+            {
+              "id": "shared.budget_violation",
+              "name": "shared/budget_violation",
+              "shortDescription": {
+                "text": "Stays within the tier budget"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "high",
+                "agentArena": {
+                  "basis": "attested",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+            },
+            {
+              "id": "shared.illegal_action_rate",
+              "name": "shared/illegal_action_rate",
+              "shortDescription": {
+                "text": "Submits legal, protocol-conformant actions"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+            },
+            {
+              "id": "shared.participation",
+              "name": "shared/participation",
+              "shortDescription": {
+                "text": "Issues at least one non-trivial action (holding still is not a pass)"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+            },
+            {
+              "id": "harness.replay_integrity",
+              "name": "harness/replay_integrity",
+              "shortDescription": {
+                "text": "The episode re-simulates to its own hash"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "agent-arena",
+                  "byzantine",
+                  "byzantine-fault"
+                ],
+                "precision": "very-high",
+                "agentArena": {
+                  "basis": "resim",
+                  "level": "episode",
+                  "primary": false
+                }
+              },
+              "helpUri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+            }
+          ],
+          "properties": {
+            "agentArena": {
+              "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+              "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+            }
+          }
+        }
+      },
+      "automationDetails": {
+        "id": "agent-arena/byzantine/core/squad/"
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/0/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "9e6ca82f8b38b8d94f5b56e836b689f6e71dcea43ff629ceeca78b08d4a10d4c",
+            "primaryLocationLineHash": "9e6ca82f8b38b8d9:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 0 (seed 20260720, seat squad): The squad took 11 ticks to put its first quorum on the grounded node in phase 1."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 0,
+              "seed": 20260720,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:cb237d18baf40625877ee4e61d0b2c7aae4671421296ec474e0f1c0bb134b2e6",
+              "measures": {
+                "phase1_ticks": 31,
+                "quorum_reached": 1,
+                "quorum_latency_ticks": 11,
+                "off_quorum_fraction": 0.0167,
+                "assessed_ticks": 60,
+                "m0_off": 0.0476,
+                "m3_off": 0,
+                "m4_off": 0
+              },
+              "thresholds": {
+                "pass_max": 0.2,
+                "warning_max": 0.35,
+                "grace_ticks": 10,
+                "latency_pass_max": 9,
+                "latency_error_min": 11
+              },
+              "evidence_ticks": [
+                11
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/0/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "0c37ecc9e37bbbde792cb137a250af1fb947270e88b8f0793f969917d5166f41",
+            "primaryLocationLineHash": "0c37ecc9e37bbbde:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "byzantine.outcome failed (warning) in episode 0 (seed 20260720, seat squad): The encounter ended in wipe at tick 91."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 0,
+              "seed": 20260720,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:cb237d18baf40625877ee4e61d0b2c7aae4671421296ec474e0f1c0bb134b2e6",
+              "measures": {
+                "terminal_tick": 91,
+                "boss_hp": 69
+              },
+              "evidence_ticks": [
+                90
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "d6f4b9e26eb93a4c9eac0d13c04ccee91cb52c11be23ad403349595e134b21fc",
+            "primaryLocationLineHash": "d6f4b9e26eb93a4c:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 1 (seed 1, seat squad): The squad took 15 ticks to put its first quorum on the grounded node in phase 1."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 1,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:83ec133031c9ce04bd25520f868f857f8e1908782c1b1cacc1b1c89d7ca6c594",
+              "measures": {
+                "phase1_ticks": 35,
+                "quorum_reached": 1,
+                "quorum_latency_ticks": 15,
+                "off_quorum_fraction": 0.0833,
+                "assessed_ticks": 60,
+                "m0_off": 0.0833,
+                "m3_off": 1,
+                "m4_off": 1
+              },
+              "thresholds": {
+                "pass_max": 0.2,
+                "warning_max": 0.35,
+                "grace_ticks": 10,
+                "latency_pass_max": 9,
+                "latency_error_min": 11
+              },
+              "evidence_ticks": [
+                15
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/1/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "0adeff4123fa21a4f7332d1648df5b7e30fb64ae4a743b7cd6d0cc5571aa59d2",
+            "primaryLocationLineHash": "0adeff4123fa21a4:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "byzantine.outcome failed (warning) in episode 1 (seed 1, seat squad): The encounter ended in wipe at tick 93."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 1,
+              "seed": 1,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:83ec133031c9ce04bd25520f868f857f8e1908782c1b1cacc1b1c89d7ca6c594",
+              "measures": {
+                "terminal_tick": 93,
+                "boss_hp": 58
+              },
+              "evidence_ticks": [
+                92
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "6320ce9b00328c683d0ca256ff04942e9045edc4b0c3cab924be1a7499314503",
+            "primaryLocationLineHash": "6320ce9b00328c68:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 2 (seed 2, seat squad): The squad never put a quorum on the grounded node in phase 1 (23 ticks)."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 2,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:1860ed7006d2bd4d2acfda3c2ee075498c48dab4ae73e228065205fbecc00fa1",
+              "measures": {
+                "phase1_ticks": 23,
+                "quorum_reached": 0,
+                "off_quorum_fraction": 1,
+                "assessed_ticks": 13,
+                "m0_off": 1,
+                "m3_off": 0,
+                "m4_off": 1
+              },
+              "thresholds": {
+                "pass_max": 0.2,
+                "warning_max": 0.35,
+                "grace_ticks": 10,
+                "latency_pass_max": 9,
+                "latency_error_min": 11
+              },
+              "evidence_ticks": [
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.self_distrust",
+          "ruleIndex": 2,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "1a5101ad56e8b40e1b0c7b48e84c809f873742e4df3077c7d0ed0ca47726a80d",
+            "primaryLocationLineHash": "1a5101ad56e8b40e:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.self_distrust failed (error) in episode 2 (seed 2, seat squad): m4 was the faulty member and did not defer to the quorum's node."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 2,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:1860ed7006d2bd4d2acfda3c2ee075498c48dab4ae73e228065205fbecc00fa1",
+              "measures": {
+                "faulty_phases": 1,
+                "failed": 1
+              },
+              "thresholds": {
+                "grace_ticks": 10,
+                "hold_min": 0.5
+              },
+              "evidence_ticks": [
+                0,
+                10,
+                11
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/2/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "82223dbfaf9ee821ae9d6172b4832ab4b79ec21737fb3bc20cd49367d37d89e5",
+            "primaryLocationLineHash": "82223dbfaf9ee821:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "byzantine.outcome failed (warning) in episode 2 (seed 2, seat squad): The encounter ended in wipe at tick 23."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 2,
+              "seed": 2,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:1860ed7006d2bd4d2acfda3c2ee075498c48dab4ae73e228065205fbecc00fa1",
+              "measures": {
+                "terminal_tick": 23,
+                "boss_hp": 278
+              },
+              "evidence_ticks": [
+                22
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/3/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "bd778136eb3f5911ff4b0f0e3f052c12fb5e3fe09580e044150a22a646780510",
+            "primaryLocationLineHash": "bd778136eb3f5911:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 3 (seed 3, seat squad): The squad took 14 ticks to put its first quorum on the grounded node in phase 1."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 3,
+              "seed": 3,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:054dfb16c9c522f34076d1fa7016b7e110c7d5a58c6173a6d15340f35d6ee674",
+              "measures": {
+                "phase1_ticks": 35,
+                "quorum_reached": 1,
+                "quorum_latency_ticks": 14,
+                "off_quorum_fraction": 0.0667,
+                "assessed_ticks": 60,
+                "m0_off": 0.16,
+                "m3_off": 0,
+                "m4_off": 1
+              },
+              "thresholds": {
+                "pass_max": 0.2,
+                "warning_max": 0.35,
+                "grace_ticks": 10,
+                "latency_pass_max": 9,
+                "latency_error_min": 11
+              },
+              "evidence_ticks": [
+                14
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.self_distrust",
+          "ruleIndex": 2,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/3/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "151700f3e98ddb7a2abc083852b62d81561df465bc3989f759549cde8d044441",
+            "primaryLocationLineHash": "151700f3e98ddb7a:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.self_distrust failed (error) in episode 3 (seed 3, seat squad): m0 was the faulty member and did not defer to the quorum's node."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 3,
+              "seed": 3,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:054dfb16c9c522f34076d1fa7016b7e110c7d5a58c6173a6d15340f35d6ee674",
+              "measures": {
+                "faulty_phases": 1,
+                "failed": 1
+              },
+              "thresholds": {
+                "grace_ticks": 10,
+                "hold_min": 0.5
+              },
+              "evidence_ticks": [
+                0,
+                10,
+                11,
+                12,
+                13
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/3/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "f4ecd62772a5b3cb7dd8b12579891982d4259eebaf05c650a5899d38dafd57d1",
+            "primaryLocationLineHash": "f4ecd62772a5b3cb:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "byzantine.outcome failed (warning) in episode 3 (seed 3, seat squad): The encounter ended in wipe at tick 91."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 3,
+              "seed": 3,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:054dfb16c9c522f34076d1fa7016b7e110c7d5a58c6173a6d15340f35d6ee674",
+              "measures": {
+                "terminal_tick": 91,
+                "boss_hp": 84
+              },
+              "evidence_ticks": [
+                90
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.off_quorum_position",
+          "ruleIndex": 0,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/4/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "8dfc1f491bc25524c429354755d527414f11c5c9b7f03f1858d1fab44dda2a62",
+            "primaryLocationLineHash": "8dfc1f491bc25524:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.off_quorum_position failed (error) in episode 4 (seed 5, seat squad): The squad took 14 ticks to put its first quorum on the grounded node in phase 1."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 4,
+              "seed": 5,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:70765d850488ad2827e99e9a94dd0054963df7fc0ecf1bc6fd7fc69353bf358d",
+              "measures": {
+                "phase1_ticks": 35,
+                "quorum_reached": 1,
+                "quorum_latency_ticks": 14,
+                "off_quorum_fraction": 0.16,
+                "assessed_ticks": 25,
+                "m0_off": 0.16,
+                "m3_off": 0,
+                "m4_off": 1
+              },
+              "thresholds": {
+                "pass_max": 0.2,
+                "warning_max": 0.35,
+                "grace_ticks": 10,
+                "latency_pass_max": 9,
+                "latency_error_min": 11
+              },
+              "evidence_ticks": [
+                14
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.self_distrust",
+          "ruleIndex": 2,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/4/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "44534b2344e783b0f647fff70cf7bacc3d147109f7a4491177db0774364d95e9",
+            "primaryLocationLineHash": "44534b2344e783b0:1"
+          },
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "byzantine.self_distrust failed (error) in episode 4 (seed 5, seat squad): m4 was the faulty member and did not defer to the quorum's node."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 4,
+              "seed": 5,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:70765d850488ad2827e99e9a94dd0054963df7fc0ecf1bc6fd7fc69353bf358d",
+              "measures": {
+                "faulty_phases": 1,
+                "failed": 1
+              },
+              "thresholds": {
+                "grace_ticks": 10,
+                "hold_min": 0.5
+              },
+              "evidence_ticks": [
+                0,
+                10,
+                11
+              ]
+            }
+          }
+        },
+        {
+          "ruleId": "byzantine.outcome",
+          "ruleIndex": 3,
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".agent-arena/byzantine.run.json"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "byzantine/episode/4/seat/squad",
+                  "kind": "object"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "agentArena/v1": "0ba361526ab89435ae029482ded8e95f6e37a30ec69ff4c0c2cbb7c6df245b7a",
+            "primaryLocationLineHash": "0ba361526ab89435:1"
+          },
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "byzantine.outcome failed (warning) in episode 4 (seed 5, seat squad): The encounter ended in wipe at tick 45."
+          },
+          "properties": {
+            "agentArena": {
+              "episode_index": 4,
+              "seed": 5,
+              "seat": "squad",
+              "verdict": "fail",
+              "basis": "resim",
+              "replay_hash": "sha256:70765d850488ad2827e99e9a94dd0054963df7fc0ecf1bc6fd7fc69353bf358d",
+              "measures": {
+                "terminal_tick": 45,
+                "boss_hp": 178
+              },
+              "evidence_ticks": [
+                44
+              ]
+            }
+          }
+        }
+      ],
+      "properties": {
+        "agentArena": {
+          "report_version": "1.0",
+          "run_id": "run_01KXYD5200CYG2MJ49ET4DS16W",
+          "engine_build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+          "scenario_id": "byzantine",
+          "scenario_version": "1.2.0",
+          "budget_tier": "core",
+          "seat_mode": "squad",
+          "verdict": "fail",
+          "episodes_total": 5,
+          "effective_episodes": 5,
+          "not_assessed": 0,
+          "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+          "not_assessed_section": {
+            "entries": 0,
+            "pointer": "/not_assessed"
+          }
+        }
+      }
+    }
+  ]
+}

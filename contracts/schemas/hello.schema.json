@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:hello:1",
+  "title": "Hello frame (agent -> server, inbound)",
+  "description": "First frame an agent sends after opening the WSS connection. Carries the OAuth2 at+jwt access token and names the mode. The server authenticates, enforces one-session-per-passport supersession, binds the session, and replies with an `ack` (ack_type=session). Minimal 50-line agents send this once and then only read `observation`/`match_end` and send `action`.",
+  "x-frame-name": "hello",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "token", "mode"],
+  "properties": {
+    "t": {
+      "const": "hello",
+      "description": "Frame-type discriminator."
+    },
+    "protocol_version": {
+      "const": "1.0",
+      "description": "MAJOR.MINOR of the WSS play protocol. A MAJOR mismatch is rejected at connect."
+    },
+    "token": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1500,
+      "description": "The OAuth2 access token (RFC 9068 at+jwt) minted at POST /v1/oauth/token. Bearer credential; authorizes the connect. The session outlives this token (see agent-passports.md §2.5)."
+    },
+    "mode": {
+      "const": "duel",
+      "description": "The mode the agent wants to play. Phase 1 supports only `duel` (Grid Tactics 1v1). The arena asserts the matching scope (`play:duel`) is present in the token or closes 4403."
+    },
+    "ticket_id": {
+      "type": "string",
+      "pattern": "^tkt_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Optional matchmaking ticket returned by POST /v1/queue. When present, the arena resolves the agent onto the ticket's pending/assigned match. When absent, the arena enqueues the passport for the named mode directly."
+    },
+    "resume": {
+      "type": "boolean",
+      "default": false,
+      "description": "Reconnect intent. When true and the passport has a live match binding, the new session supersedes the old and re-binds to the in-flight match (agent-passports.md §4.2). Budgets are wall-clock tick deadlines that keep running; reconnect buys no extra thinking time."
+    },
+    "dpop": {
+      "type": "string",
+      "maxLength": 1024,
+      "deprecated": true,
+      "description": "DEPRECATED in 2.2.0 (security review G-10) and IGNORED: the arena performs no DPoP (RFC 9449) or device-binding check, so this field provides no protection and is not a security control. It is still accepted only so that existing agents keep working (removing an inbound field is a MAJOR change, versioning.md §2); it is removed at the next MAJOR. Do not send it."
+    }
+  },
+  "examples": [
+    {
+      "t": "hello",
+      "protocol_version": "1.0",
+      "token": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJFZERTQSIsImtpZCI6ImtleV8yMDI2MDcxOF9hMWIyYzMifQ.EXAMPLE_PAYLOAD.EXAMPLE_SIGNATURE",
+      "mode": "duel",
+      "ticket_id": "tkt_01J8ZK9QMR4T7V2X0PABCDE3FG"
+    }
+  ]
+}

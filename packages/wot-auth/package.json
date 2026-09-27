@@ -1,0 +1,17 @@
+{
+  "name": "wot-auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared agent-passport auth: EdDSA at+jwt mint/verify, dev keypair + JWKS, scopes, peppered secret hashing. Implements docs/security/agent-passports.md.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  }
+}

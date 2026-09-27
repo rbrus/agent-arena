@@ -1,0 +1,125 @@
+# rbrus/agent-arena - SARIF self-test. Proves Phase 7 gate criterion 4: the
+# arena's SARIF validates against SARIF 2.1.0 AND uploads cleanly to this repo's
+# GitHub Security tab. It also re-runs gate criterion 1's exact command shape
+# (squad seating, core tier, the five gate seeds, the REST reference target on
+# loopback) and fails if it takes 5 minutes or more.
+#
+# Copied to .github/workflows/ by the extraction procedure; does not run in the
+# nested source layout (code-scanning upload on a private repository would need GHAS).
+#
+# Script contract (EXTRACTION.md section 9): target:reference, build:cli,
+# sarif:validate. The SARIF schema is vendored (no network during validation).
+#
+# What is uploaded: report.sarif only. The reference target is scripted (no
+# model, no credential), and the CLI never writes target text into the report
+# or SARIF, so nothing uploaded here can carry a secret or a raw transcript.
+name: sarif-selftest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1' # weekly, keeps the Security tab entry fresh
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sarif-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # upload-sarif only
+      actions: read # upload-sarif reads its own workflow run (fails with 'Resource not accessible' otherwise)
+    env:
+      SCENARIO: byzantine
+      SEEDS: 20260720,1,2,3,5
+      TARGET_PORT: '8081' # same port as the sandbox's reference target
+      OUT: ${{ github.workspace }}/arena-out
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build CLI bundle
+        run: npm run build:cli
+
+      # The coordinated reference squad is the gate-1 target. serve-reference
+      # binds 127.0.0.1 only.
+      - name: Start reference target (REST on loopback, coordinated squad)
+        run: |
+          set -euo pipefail
+          nohup npm run target:reference -- --scenario "$SCENARIO" --seat squad \
+            --policy coordinated --port "$TARGET_PORT" > "$RUNNER_TEMP/target.log" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:${TARGET_PORT}/healthz" > /dev/null 2>&1; then
+              echo "target up after ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::reference target did not become healthy"
+          cat "$RUNNER_TEMP/target.log"
+          exit 1
+
+      - name: Run the gate command (gate criterion 1 shape, timed)
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          start=$(date +%s)
+          rc=0
+          node packages/arena-cli/dist/agent-arena.cjs run \
+            --scenario "$SCENARIO" --seat squad --tier core \
+            --seeds "$SEEDS" --episodes 5 \
+            --target "http://127.0.0.1:${TARGET_PORT}" --transport rest \
+            --i-own-this-target \
+            --out "$OUT" 2>&1 | tee "$RUNNER_TEMP/run.log" || rc=$?
+          elapsed=$(( $(date +%s) - start ))
+          echo "elapsed=${elapsed}s exit=${rc}"
+          # Exit contract: 0 = no findings, 1 = findings present, >=2 = run error.
+          if [ "$rc" -ge 2 ]; then echo "::error::arena run failed (exit $rc)"; exit "$rc"; fi
+          if [ "$elapsed" -ge 300 ]; then echo "::error::run took ${elapsed}s (gate limit 300s)"; exit 1; fi
+          test -s "$OUT/report.json"
+          test -s "$OUT/report.sarif"
+          # Gate criterion 1: every seed's replay hash equals its frozen anchor.
+          matched=$(grep -c 'anchor: match' "$RUNNER_TEMP/run.log" || true)
+          if [ "$matched" -ne 5 ]; then echo "::error::only ${matched}/5 episodes matched a frozen anchor"; exit 1; fi
+
+      - name: Validate SARIF against the SARIF 2.1.0 schema
+        run: npm run sarif:validate -- "$OUT/report.sarif"
+
+      - name: Verify determinism (re-sim every episode, compare replay hashes)
+        run: node packages/arena-cli/dist/agent-arena.cjs verify "$OUT/report.json"
+
+      # Fork PRs get a read-only token, so upload is skipped there; the schema
+      # validation above still runs for them.
+      - name: Upload SARIF to the Security tab
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: ${{ env.OUT }}/report.sarif
+          category: agent-arena/selftest
+
+      # report.json + SARIF + replay/record files only (all engine-derived).
+      - name: Keep the run output
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sarif-selftest-${{ env.SCENARIO }}
+          path: |
+            ${{ env.OUT }}
+            ${{ runner.temp }}/target.log
+          retention-days: 14

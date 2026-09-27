@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:diplomacy_press_reject:1",
+  "title": "Diplomacy press reject (engine -> sender)",
+  "description": "One refused press message of the sender's own batch. Per-message and deterministic: other messages of the batch are unaffected. Delivered to the sender only, in `press_rejects` of its NEXT observation (every transport; over `ws` the arena does not send a separate frame). A rejected message is never delivered, never enters the transcript, and IS counted for shared.budget_violation. `hint` is fixed platform text per code and never echoes the rejected content. Frame-level problems (unparseable JSON, schema_invalid, too_large, bad_echo) are not press rejects: they refuse the whole frame (errors.md §3a) and are counted in the EpisodeResult budget.\n\nExactly one code per rejected message: the FIRST failing check, in this fixed order: press_not_in_round, press_too_large, press_invalid_text, press_bad_recipient, reply_to_unknown, asks_invalid, terms_invalid | clause_beyond_horizon, offer_unknown | offer_self_accept | commitment_unknown, offer_conflict, signature_invalid, press_quota. Quota is checked last and is consumed only by messages that pass every other check, in batch order. (2.5.0) `terms_invalid` and `clause_beyond_horizon` share one position: the terms are checked clause by clause (give, then want); within a clause the phase-range rules come first (`terms_invalid`), then the horizon (`clause_beyond_horizon`), then the clause's other fields (`terms_invalid`). The first failing clause decides the code.\n\nCodes:\n- `press_too_large`: oversize: a body over 2048 raw bytes, or over 600 bytes after sanitisation (200 for an offer-move body or terms.note). Rejected, never truncated.\n- `press_invalid_text`: a body or note is empty after sanitisation, or contains a code point outside L*, N*, P*, S*, Zs; or terms.note is not already in sanitised form.\n- `press_quota`: too many: over the tier quota (messages per round, messages or body bytes per movement window, broadcasts per window, or live offers). The first messages that fit are accepted in batch order.\n- `press_not_in_round`: press sent in a step that is not a press round (intent, orders, retreat or adjustment). No press exists outside rounds r1..rR of a movement phase.\n- `press_bad_recipient`: a recipient is eliminated, or the group size is invalid (the schema already rejects self-addressing).\n- `signature_invalid`: offer, counter, accept or renounce whose signature is missing, malformed, or does not verify (hosted: against the passport key; local: `session` is required).\n- `offer_unknown`: accept, counter or withdraw whose respond_to names no offer visible to the sender.\n- `offer_self_accept`: accept or counter of the sender's own offer. The action schema already refuses such a frame (power echo); the engine re-checks it independently (defence in depth) and reports this code if that check ever fires.\n- `offer_conflict`: the named offer is no longer live (countered, withdrawn, expired, or already bound). In one round the order of application is withdraw, counter, accept, offer, renounce, so a withdraw beats an accept of the same offer.\n- `commitment_unknown`: renounce whose respond_to names no ACTIVE commitment between the sender and the renounce's recipient: an unknown or foreign id, a commitment with another counterparty, one that has ENDED (every clause settled every phase it covers; 2.5.0: refused, never an accepted no-op), or one already renounced (a second renounce, including a second one in the same round, which is refused at the round close). One hint for every cause.\n- `terms_invalid`: a clause is out of range: to_phase more than 4 movement phases after from_phase (one clause covers at most 5), from_phase after to_phase, a phase already adjudicated, an order clause for a unit the obligor does not hold at submission, or a no_attack / no_support_against naming the obligor itself.\n- `clause_beyond_horizon` (2.5.0): an offer or counter with a clause that covers a movement phase after the game's final one, F<final_year>M (observation `horizon.final_year`; RunSpec `diplomacy.horizon_year`). Such a clause could never settle. Only reachable when final_year is before 1908: a phase after 1908 already fails the action schema (frame-level schema_invalid). Contracts 2.1.0 to 2.4.0 had no code for it, and the wire layers sent `terms_invalid`.\n- `asks_invalid`: an asks entry does not parse, or is not an order for a unit of a recipient in the current phase.\n- `reply_to_unknown`: reply_to names a message the sender never received or sent.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1024,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "msg_index",
+    "code",
+    "hint",
+    "phase",
+    "tick"
+  ],
+  "properties": {
+    "msg_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 11,
+      "description": "0-based index of the message in the sender's `press` array."
+    },
+    "move": {
+      "enum": [
+        "press",
+        "offer",
+        "counter",
+        "accept",
+        "withdraw",
+        "renounce"
+      ],
+      "description": "The move of the rejected message, when it was readable."
+    },
+    "code": {
+      "enum": [
+        "press_too_large",
+        "press_invalid_text",
+        "press_quota",
+        "press_not_in_round",
+        "press_bad_recipient",
+        "signature_invalid",
+        "offer_unknown",
+        "offer_self_accept",
+        "offer_conflict",
+        "commitment_unknown",
+        "terms_invalid",
+        "clause_beyond_horizon",
+        "asks_invalid",
+        "reply_to_unknown"
+      ],
+      "description": "Stable machine code (list above; errors.md §3e). New codes may be added in a MINOR: treat an unknown code as a generic refusal. (2.5.0) `clause_beyond_horizon` added; a client written against 2.4.0 treats it as generic (it was sent as `terms_invalid` before)."
+    },
+    "hint": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Fixed, platform-authored explanation for the developer. Never contains the rejected text or hidden state."
+    },
+    "phase": {
+      "$ref": "#/$defs/phase"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "The press round the batch was sent in; absent when the batch was sent outside a round."
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120,
+      "description": "The tick of the step the batch was submitted in."
+    }
+  },
+  "$defs": {
+    "phase": {
+      "type": "string",
+      "maxLength": 6,
+      "pattern": "^([SF]190[1-8][MR]|W190[1-8]A)$",
+      "description": "Any adjudicator phase id: S/F movement or retreat, W adjustment (e.g. S1902M, F1902R, W1902A)."
+    }
+  },
+  "examples": [
+    {
+      "msg_index": 1,
+      "move": "press",
+      "code": "press_too_large",
+      "hint": "Message body exceeds 600 bytes after sanitisation; it was not delivered. Split or shorten it.",
+      "phase": "S1902M",
+      "round": 3,
+      "tick": 43
+    },
+    {
+      "msg_index": 0,
+      "move": "press",
+      "code": "press_not_in_round",
+      "hint": "Press is accepted only in press rounds r1..rR of a movement phase; this step was orders.",
+      "phase": "S1902M",
+      "tick": 44
+    },
+    {
+      "msg_index": 0,
+      "move": "accept",
+      "code": "offer_unknown",
+      "hint": "respond_to names no offer you have received.",
+      "phase": "F1902M",
+      "round": 1,
+      "tick": 48
+    },
+    {
+      "msg_index": 2,
+      "move": "renounce",
+      "code": "commitment_unknown",
+      "hint": "respond_to names no active commitment you are a party to.",
+      "phase": "F1902M",
+      "round": 2,
+      "tick": 49
+    },
+    {
+      "msg_index": 0,
+      "move": "offer",
+      "code": "clause_beyond_horizon",
+      "hint": "A clause covers a movement phase after this game's final one; it could never settle.",
+      "phase": "F1906M",
+      "round": 1,
+      "tick": 86
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "const": "clause_beyond_horizon"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "move": {
+            "enum": [
+              "offer",
+              "counter"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

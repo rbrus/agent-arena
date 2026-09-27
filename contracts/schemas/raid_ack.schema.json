@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:raid_ack:1",
+  "title": "Raid ack frame (server -> agent, outbound)",
+  "description": "Acknowledgement on the raid channel. Two forms discriminated by ack_type. `session`: the raid_hello was accepted and this child's squad-slot session is bound (sent once). `action`: an action-set was accepted for a tick, reporting token spend and per-unit coercions. Mirrors `wot:ack:1` for the duel. Frame-level rejections reuse the generic `wot:reject:1` frame (raid_id carried in `detail`).",
+  "x-frame-name": "raid_ack",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "required": ["t", "ack_type"],
+  "oneOf": [
+    {
+      "title": "session ack",
+      "additionalProperties": false,
+      "required": ["t", "ack_type", "session_id", "mode", "squad_id", "member_id"],
+      "properties": {
+        "t": { "const": "raid_ack" },
+        "ack_type": { "const": "session" },
+        "session_id": { "type": "string", "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "mode": { "const": "raid" },
+        "squad_id": { "type": "string", "pattern": "^sqd_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "slot": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "league": { "enum": ["edge", "core", "frontier"] },
+        "raid_id": { "type": ["string", "null"], "pattern": "^rad_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Assigned raid encounter, or null while the squad is still forming/queued." },
+        "boss_id": { "type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{1,40}$" },
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Static encounter parameters for this raid (raids-v1).",
+          "properties": {
+            "soft_deadline_ms": { "type": "integer", "description": "Ds" },
+            "hard_deadline_ms": { "type": "integer", "description": "Dh" },
+            "action_allowance": { "type": "integer", "description": "Starting per-member per-encounter token allowance." },
+            "tick_cap": { "type": "integer", "description": "Hard cap on ticks (enrage/wipe timer)." },
+            "squad_size": { "type": "integer", "minimum": 1, "maximum": 5 }
+          }
+        }
+      }
+    },
+    {
+      "title": "action ack",
+      "additionalProperties": false,
+      "required": ["t", "ack_type", "turn_id", "tokens_spent", "tokens_remaining"],
+      "properties": {
+        "t": { "const": "raid_ack" },
+        "ack_type": { "const": "action" },
+        "turn_id": { "type": "integer", "minimum": 0 },
+        "tokens_spent": { "type": "integer", "minimum": 0 },
+        "tokens_remaining": { "type": "integer", "minimum": 0 },
+        "accepted_units": { "type": "array", "items": { "type": "string", "maxLength": 40 }, "description": "unit_ids whose submitted action was applied." },
+        "rejected_units": {
+          "type": "array",
+          "description": "Per-unit coercions: the submitted action was replaced with Hold and the reason logged. NOT a frame reject.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["unit_id", "reason"],
+            "properties": {
+              "unit_id": { "type": "string", "maxLength": 40 },
+              "reason": { "enum": ["illegal_type", "illegal_state", "out_of_range", "off_board", "insufficient_tokens", "not_downed", "ability_not_granted", "target_invalid"] },
+              "hint": { "type": "string", "maxLength": 200 }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "t": "raid_ack",
+      "ack_type": "session",
+      "session_id": "ses_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "mode": "raid",
+      "squad_id": "sqd_01J8ZKN9AA1B2C3D4E5F6G7H8J",
+      "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "slot": 1,
+      "league": "core",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "boss_id": "the_hallucinator",
+      "config": { "soft_deadline_ms": 1500, "hard_deadline_ms": 3000, "action_allowance": 240, "tick_cap": 200, "squad_size": 5 }
+    },
+    {
+      "t": "raid_ack",
+      "ack_type": "action",
+      "turn_id": 42,
+      "tokens_spent": 2,
+      "tokens_remaining": 178,
+      "accepted_units": ["m1-vanguard"],
+      "rejected_units": [ { "unit_id": "m1-scout", "reason": "ability_not_granted", "hint": "ability 'overclock_pulse' is not granted to this member's role in this scenario." } ]
+    }
+  ]
+}

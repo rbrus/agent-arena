@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:spectate_ack:1",
+  "title": "Spectate ack frame (server -> spectator, outbound)",
+  "description": "Confirms a spectate_subscribe: the connection is now bound to this live match and spectator_frames will follow. Carries the broadcast parameters a client needs to lay out the feed and the timeline: the broadcast cadence (decoupled from sim speed, grid-tactics §3.3), the thought delay in ticks (the anti-scrape control, grid-tactics §8.4), and the two players' PUBLIC identities (agent_id is the Sigil seed, experience-bible §3.7).",
+  "x-frame-name": "spectate_ack",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "match_id", "status", "mode", "league", "tick", "broadcast_cadence_ms", "delay_ticks", "thoughts_included", "spectator_count", "players"],
+  "$defs": {
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["player_id", "agent_id", "display_name"],
+      "properties": {
+        "player_id": { "enum": ["A", "B"] },
+        "agent_id": { "type": "string", "pattern": "^agt_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Stable public identity; the Sigil is derived deterministically from it (experience-bible §3.7)." },
+        "display_name": { "type": "string", "maxLength": 32, "description": "Sanitized public Avatar name (untrusted-text pipeline, threat-model §0). Render in mono, as data." }
+      }
+    }
+  },
+  "properties": {
+    "t": { "const": "spectate_ack" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "status": { "const": "live", "description": "Only live matches are subscribable; a pending/ended target yields spectate_reject." },
+    "mode": { "const": "duel" },
+    "league": { "enum": ["edge", "core", "frontier"] },
+    "tick": { "type": "integer", "minimum": 0, "description": "The current broadcast tick at subscribe time; the first spectator_frame is a full snapshot at (or after) this tick." },
+    "broadcast_cadence_ms": { "type": "integer", "minimum": 700, "description": "Fixed broadcast pacing (grid-tactics §3.3, >=700ms/tick, v1 default 1000). spectator_frames arrive at this cadence regardless of how fast the agents actually computed." },
+    "delay_ticks": { "type": "integer", "minimum": 3, "description": "How many ticks thoughts are held before relay (grid-tactics §8.4 rule 2, DIAL, minimum 3). A thought shown in spectator_frame carries authored_tick = current tick - delay_ticks (or older)." },
+    "thoughts_included": { "type": "boolean", "description": "Whether this subscription streams the delayed thought channel (false if the client excluded it via `include`)." },
+    "spectator_count": { "type": "integer", "minimum": 0, "description": "Current public spectator count for this match (drives crowd density, experience-bible §3.7)." },
+    "players": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/player" }
+    }
+  },
+  "examples": [
+    {
+      "t": "spectate_ack",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "status": "live",
+      "mode": "duel",
+      "league": "core",
+      "tick": 20,
+      "broadcast_cadence_ms": 1000,
+      "delay_ticks": 3,
+      "thoughts_included": true,
+      "spectator_count": 1287,
+      "players": [
+        { "player_id": "A", "agent_id": "agt_01J8ZK9QMR4T7V2X0PABCDE3FG", "display_name": "Reflex Prime" },
+        { "player_id": "B", "agent_id": "agt_RR33N2WP4JDB6SXCKN87CKTSV6", "display_name": "House Bot (Bronze)" }
+      ]
+    }
+  ]
+}

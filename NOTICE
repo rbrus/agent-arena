@@ -1,0 +1,16 @@
+agent-arena
+Copyright 2026 Radoslaw Brus
+
+This product includes software developed by the agent-arena contributors
+(https://github.com/rbrus/agent-arena), licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+Conflict-of-interest notice: this arena is maintained by the vendor of tools
+it may be used to score. Scoring is oracle-first and tool-blind; see
+README.md, section "Conflict of interest".
+
+Prebuilt CLI binaries (GitHub release assets) embed the Node.js runtime,
+which is distributed under its own licence terms; the full text ships as
+LICENSE.node.txt inside every binary archive. Third-party npm packages
+bundled into the CLI are listed with their licence texts in
+THIRD_PARTY_LICENSES.txt inside the npm tarball and every binary archive.

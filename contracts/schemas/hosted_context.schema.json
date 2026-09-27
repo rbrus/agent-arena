@@ -1,0 +1,533 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:hosted_context:1",
+  "title": "Hosted context: the signed run manifest of one hosted run",
+  "description": "(2.2.0, K9) The machine input that turns an untrusted RunSpec into a hosted run (HOSTED-PROFILE §2.3, threat-model-hosted.md §2.1). The control plane writes it at admission, signs it (`signing`, signing.md §3) and passes it to the runner next to the RunSpec; `run_spec_digest` binds the two. (2.5.0, 2.6.0; signing.md §3.1) The hosted runner reads both from read-only FILES, `agent-arena run --hosted --manifest <file> --run-spec <file>`, taken from the run's storage prefix, and from nowhere else: never from a per-execution environment override, which Cloud Run keeps in execution metadata and in the Admin Activity audit log, and never from an environment variable. signing.md §3.1 is the normative list of the variables a hosted job sets (ARENA_IMAGE_DIGEST is required) and of those that MUST be absent; a runner that finds one refuses before any I/O (hosted_context_invalid). (2.7.0) ARENA_HOSTED, set by the job template, is read: it restricts the CLI to `run --hosted`, `verify --hosted-seal` and `version` (any other command exits 3, hosted_mode_only), and signing.md §3.1.3 refuses every other variable of the ARENA_, NODE_, SSL and OPENSSL families and every proxy variable. signing.md §3.2 is the normative admission list: the control plane MUST NOT sign this document for a RunSpec or job that breaks it (a target URL with userinfo, query or fragment; a target off the verified origin or not https/wss; seats[] outside a table profile; a credential mode the RunSpec or the delivered secrets contradict; a run token over 1 h; an image not promoted or without a passing cross-check), and the runner refuses the same things. This document IS the run manifest: its digest, \"sha256:\" + hex(sha256(JCS(document without /signing/signature))), is the run's identity and is copied into the signed Report (`run.hosted.run_manifest.digest`, `signing.run_manifest_digest`). Not secret, and it can hold no secret by construction: every string is patterned, the credential appears only as `credential_mode`, and the credential value travels separately in ARENA_TARGET_CREDENTIAL (and ARENA_SEAT_CREDENTIAL_<POWER> per seats[] target), an environment variable backed by a per-run secret reference, never an override. Validated by `agent-arena run --hosted` before any I/O; nothing here can be relaxed by a flag, a RunSpec field or another variable.",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "context_version",
+    "run_id",
+    "scan_id",
+    "org_ref",
+    "region",
+    "issued_at",
+    "run_spec_digest",
+    "net_policy",
+    "egress_allowlist",
+    "credential_mode",
+    "signing_key_id",
+    "verified_origin",
+    "rps_cap",
+    "wall_clock_deadline",
+    "image_digest",
+    "engine_build_hash",
+    "packs",
+    "retention",
+    "signing"
+  ],
+  "properties": {
+    "context_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "The contract run id; 128 bits of randomness, never derived from the org, the origin or a time."
+    },
+    "scan_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$",
+      "description": "The scan this run belongs to (one scan = |scenarios| x |tiers| runs)."
+    },
+    "org_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$",
+      "description": "Opaque organisation reference. Never a name."
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "europe-central2",
+        "europe-north1",
+        "europe-north2",
+        "europe-southwest1",
+        "europe-west1",
+        "europe-west10",
+        "europe-west12",
+        "europe-west3",
+        "europe-west4",
+        "europe-west6",
+        "europe-west8",
+        "europe-west9"
+      ],
+      "description": "The processing region (default europe-west6). (2.9.0) An explicit list of Google Cloud regions, not a pattern: the regions in EU member states plus europe-west6 (Zürich, Switzerland), the same list the Sixi control plane enforces at startup. `europe-west2` (London, not in the EU) and every region outside the EU and Switzerland are refused. No fallback region exists (HOSTED-PROFILE §4.1). A region is added to this list on purpose, as a contract MINOR, in every copy at once (hosted_context, report run.hosted, evidence_report producer and scope, deletion_receipt; signing.md §3.2 rule M9)."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_spec_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "\"sha256:\" + hex(sha256(JCS(RunSpec))) of the RunSpec the runner received (the `--run-spec` file). The runner refuses a RunSpec whose digest differs."
+    },
+    "net_policy": {
+      "const": "hosted-v1",
+      "description": "The frozen hosted network policy (allowlist mode, no private, link-local, loopback or metadata addresses, no redirects, https/wss only). Not configurable."
+    },
+    "egress_allowlist": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 7,
+      "description": "The only origins the runner may connect to: exactly one `target` (the verified origin) plus one `peer_gateway` per distinct gateway only when `peers` is present (HOSTED-PROFILE §2.6).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "origin",
+          "role"
+        ],
+        "properties": {
+          "origin": {
+            "type": "string",
+            "maxLength": 270,
+            "pattern": "^(https|wss)://[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?)*(:[0-9]{1,5})?$",
+            "description": "An origin: scheme, lower-case host and optional port. No path, query, fragment or userinfo."
+          },
+          "role": {
+            "enum": [
+              "target",
+              "peer_gateway"
+            ]
+          }
+        }
+      },
+      "contains": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "const": "target"
+          }
+        }
+      },
+      "minContains": 1,
+      "maxContains": 1
+    },
+    "credential_mode": {
+      "enum": [
+        "none",
+        "sixi_run_token",
+        "customer_short_lived",
+        "customer_long_lived"
+      ],
+      "description": "How the target is authenticated (HOSTED-PROFILE §2.5). Only the mode is ever recorded, never a value."
+    },
+    "signing_key_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+      "description": "The report-signing key id the seal step will use; written into the Report (`run.hosted.signing_key_id`) and the SARIF, and equal to the DSSE keyid."
+    },
+    "verified_origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "method",
+        "verified_at",
+        "checked_at"
+      ],
+      "description": "The verified origin the run was allowed to reach. The runner refuses to start if it differs from the RunSpec target's origin.",
+      "properties": {
+        "origin": {
+          "type": "string",
+          "maxLength": 270,
+          "pattern": "^(https|wss)://[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?)*(:[0-9]{1,5})?$",
+          "description": "An origin: scheme, lower-case host and optional port. No path, query, fragment or userinfo."
+        },
+        "method": {
+          "enum": [
+            "dns",
+            "well-known"
+          ],
+          "description": "How control of the host was proven (HOSTED-PROFILE §1.2.1)."
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the control plane re-checked the proof at admission (a result cached for at most 24 hours is accepted)."
+        },
+        "record_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$",
+          "description": "Opaque id of the ownership verification record."
+        }
+      }
+    },
+    "rps_cap": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "description": "Per-origin request rate cap (the runner uses min(rps_cap, 50))."
+    },
+    "wall_clock_deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hard stop of the run (plan cap, never more than episodes x 120 x Dh + 10 minutes)."
+    },
+    "image_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "platform_manifest",
+        "platform"
+      ],
+      "description": "The runner image, pinned by digest, never a tag (HOSTED-PROFILE §2.2). (2.6.0) The runner proves which image it is from the job-template variable ARENA_IMAGE_DIGEST = \"<index>,<platform manifest>\" (signing.md §3.1): both digests here MUST be listed in it and `platform` MUST be the running platform, else hosted_context_invalid (detail.field `/image_digest/index`, `/image_digest/platform_manifest`, `/image_digest/platform`, or `/image_digest` when the variable is absent or malformed).",
+      "properties": {
+        "index": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The multi-arch image index digest (ghcr.io/rbrus/agent-arena@<index>), exactly as release.yml records and sandbox verify.sh prints as IMAGE_DIGEST."
+        },
+        "platform_manifest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The platform manifest digest actually run."
+        },
+        "platform": {
+          "enum": [
+            "linux/amd64",
+            "linux/arm64"
+          ]
+        }
+      }
+    },
+    "engine_build_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The engine build the promoted image carries; the runner refuses to start if its own build differs."
+    },
+    "seed_source": {
+      "enum": [
+        "fixed",
+        "fresh",
+        "explicit"
+      ],
+      "description": "Where the RunSpec seeds came from: fixed = the published gate seeds; fresh = drawn by the control plane's CSPRNG at admission; explicit = listed by the caller."
+    },
+    "packs": {
+      "type": "array",
+      "maxItems": 16,
+      "description": "Scenario packs mounted for the run (none = open scenarios only). (2.6.0, signing.md §11) Each is mounted read-only at `$ARENA_PACKS_DIR/<id>/pack.dsse.json` (plus its variant data files); ARENA_PACKS_DIR is required when this list is not empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "digest"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^sx-[a-z0-9-]{1,40}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})$"
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "description": "(2.6.0, signing.md §11.2) \"sha256:\" + hex(sha256(the exact bytes of the pack's `pack.dsse.json` envelope)), as fetched from the pack store and mounted. The runner refuses a mounted envelope whose bytes digest differently (scenario_pack_unavailable)."
+          }
+        }
+      }
+    },
+    "peers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "seat",
+          "pack",
+          "agent",
+          "gateway_origin",
+          "provider",
+          "model_reported",
+          "inference_region",
+          "prompt_digest",
+          "max_output_tokens",
+          "token_budget"
+        ],
+        "description": "A Sixi-operated LLM peer seat (adversarial_peer pack). The runner reaches it through `gateway_origin` exactly like a target. No provider key, prompt or persona text appears here.",
+        "properties": {
+          "seat": {
+            "enum": [
+              "austria",
+              "england",
+              "france",
+              "germany",
+              "italy",
+              "russia",
+              "turkey"
+            ]
+          },
+          "pack": {
+            "type": "string",
+            "pattern": "^sx-[a-z0-9-]{1,40}$"
+          },
+          "agent": {
+            "type": "string",
+            "maxLength": 96,
+            "pattern": "^[a-z0-9][a-z0-9-]{0,39}/[a-z0-9][a-z0-9-]{0,39}@[0-9A-Za-z.+-]{1,32}$"
+          },
+          "gateway_origin": {
+            "type": "string",
+            "maxLength": 270,
+            "pattern": "^(https|wss)://[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?)*(:[0-9]{1,5})?$",
+            "description": "An origin: scheme, lower-case host and optional port. No path, query, fragment or userinfo."
+          },
+          "provider": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+          },
+          "model_reported": {
+            "type": "string",
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$",
+            "description": "Model id as the provider reports it; unverified."
+          },
+          "inference_region": {
+            "type": "string",
+            "pattern": "^[a-z]{2,12}-[a-z]{2,12}[0-9]{1,2}$"
+          },
+          "prompt_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096,
+            "description": "Model output cap per decision (model tokens, metered by the gateway; never engine allowance tokens)."
+          },
+          "token_budget": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000,
+            "description": "Per-run model-token budget of this peer, enforced by the gateway."
+          }
+        }
+      },
+      "description": "LLM peer seats of an adversarial_peer pack. Each MUST match a RunSpec `seats[]` entry with driver recorded_peer (same seat, pack, agent)."
+    },
+    "episode_secret_commitments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "digest"
+      ],
+      "description": "Diplomacy family only (K4): the commitments to the per-episode secrets, fixed before the run. The secrets themselves travel through the per-run secret channel, never in this document. (2.5.0) The runner receives the secrets in the environment variables ARENA_DIP_SECRET_<n>, one per episode index n = 0..count-1 (decimal, no leading zero), each exactly 64 lower-case hex characters, backed by per-run secret references and never by overrides. Before any I/O it requires exactly those `count` variables, checks each against its commitment and the list against `digest` (signing.md §4), and deletes them from its environment. A missing, extra, malformed or mismatching secret is hosted_context_invalid (detail.field `episode_secret_commitments`), and nothing is sent to the target.",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "\"sha256:\" + hex(sha256(JCS(C))), C = the array of per-episode `episode_secret_commitment` strings in episode order (signing.md §4)."
+        }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transcripts_days",
+        "replays_days"
+      ],
+      "description": "Retention horizons applied to this run's stored data (HOSTED-PROFILE §4.2).",
+      "properties": {
+        "transcripts_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 365,
+          "description": "0 = digests only, no raw transcript kept."
+        },
+        "replays_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        }
+      }
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "signing_key_id",
+        "canonicalization",
+        "payload_type",
+        "excluded",
+        "signature"
+      ],
+      "description": "The control plane's signature over this manifest (signing.md §3). The runner refuses a manifest whose signature does not verify against the pinned control-plane key.",
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "signing_key_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+          "description": "The control plane's run-manifest key id (a separate kid namespace from report keys, threat-model-hosted.md §5.3)."
+        },
+        "canonicalization": {
+          "const": "jcs-rfc8785"
+        },
+        "payload_type": {
+          "const": "application/vnd.sixi.arena-run-manifest+json"
+        },
+        "excluded": {
+          "const": [
+            "/signing/signature"
+          ],
+          "description": "The only member left out of the signed bytes. Anything else, including an empty list, is invalid: a signature can never sign itself."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{86}==$",
+          "description": "Standard base64 of the 64-byte Ed25519 signature over PAE(payload_type, JCS(this document without /signing/signature)) (signing.md §2)."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "peers"
+        ],
+        "properties": {
+          "peers": true
+        }
+      },
+      "then": {
+        "properties": {
+          "egress_allowlist": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "const": "peer_gateway"
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "egress_allowlist": {
+            "type": "array",
+            "maxItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "context_version": "1.0",
+      "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
+      "scan_id": "scn_EXAMPLE000001",
+      "org_ref": "org_EXAMPLE0000001",
+      "region": "europe-west6",
+      "issued_at": "2026-11-10T13:59:30Z",
+      "run_spec_digest": "sha256:024cc26c021954ecbd64d489b1bb05dc2f7ff48e901dedda2eeabcc7159ba1d5",
+      "net_policy": "hosted-v1",
+      "egress_allowlist": [
+        {
+          "origin": "https://agent.example.com",
+          "role": "target"
+        },
+        {
+          "origin": "https://peers.europe-west6.arena.example.net",
+          "role": "peer_gateway"
+        }
+      ],
+      "credential_mode": "sixi_run_token",
+      "signing_key_id": "sixi-arena-ed25519-20261101",
+      "verified_origin": {
+        "origin": "https://agent.example.com",
+        "method": "dns",
+        "verified_at": "2026-10-02T08:11:00Z",
+        "checked_at": "2026-11-10T13:59:12Z",
+        "record_id": "dom_EXAMPLE00042"
+      },
+      "rps_cap": 5,
+      "wall_clock_deadline": "2026-11-10T14:26:00Z",
+      "image_digest": {
+        "index": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b",
+        "platform_manifest": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582",
+        "platform": "linux/amd64"
+      },
+      "engine_build_hash": "sha256:5e7a9c1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c",
+      "seed_source": "explicit",
+      "packs": [
+        {
+          "id": "sx-agentic-core",
+          "version": "1.0.0",
+          "digest": "sha256:7f6d0b51227b0763abb97d11cf104afbf89625fed1fbe41bc9bbb26885fbeada"
+        }
+      ],
+      "peers": [
+        {
+          "seat": "france",
+          "pack": "sx-agentic-core",
+          "agent": "sixi-attack/negotiator@1.0.0",
+          "gateway_origin": "https://peers.europe-west6.arena.example.net",
+          "provider": "example-provider",
+          "model_reported": "example-model-2026-09",
+          "inference_region": "europe-west6",
+          "prompt_digest": "sha256:a383ba284fae6dd0cd0c9641f7ffecd3a51c7afca2d5a67a035ccd539f0c28e7",
+          "max_output_tokens": 512,
+          "token_budget": 200000
+        }
+      ],
+      "episode_secret_commitments": {
+        "count": 1,
+        "digest": "sha256:c30d564e6f958861e996bb0c217d9111a38c61ec3e47d840c2842db28d82ef21"
+      },
+      "retention": {
+        "transcripts_days": 30,
+        "replays_days": 30
+      },
+      "signing": {
+        "algorithm": "ed25519",
+        "signing_key_id": "sixi-arena-manifest-ed25519-20261101",
+        "canonicalization": "jcs-rfc8785",
+        "payload_type": "application/vnd.sixi.arena-run-manifest+json",
+        "excluded": [
+          "/signing/signature"
+        ],
+        "signature": "EXAMPLE0000000000000000000000000000000000000000000000000000000000000000000000000000000=="
+      }
+    }
+  ]
+}

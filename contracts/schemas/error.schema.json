@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:error:1",
+  "title": "Management-plane error envelope (REST, outbound)",
+  "description": "The stable error body returned by every non-2xx management-plane (REST) response EXCEPT the OAuth2 token endpoint, which uses the RFC 6749 error shape (see oauthError.schema.json / errors.md). `error` is a stable machine code; `error_description` is a human hint that MUST NOT leak secrets or an enumeration oracle. Full code catalog and HTTP-status mapping live in errors.md.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error", "error_description"],
+  "properties": {
+    "error": {
+      "type": "string",
+      "description": "Stable machine-readable code. One of the management-plane codes in errors.md (e.g. invalid_request, unauthenticated, insufficient_scope, not_owner, owner_banned, agent_not_found, match_not_found, replay_not_found, quota_exceeded, rate_limited, payload_too_large, conflict, internal_error, service_unavailable)."
+    },
+    "error_description": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Human-readable hint for the developer. Never contains secrets; never distinguishes bad client_id from bad client_secret."
+    },
+    "request_id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Correlates the response with structured server logs ({match_id, passport_id, owner_id, request_id})."
+    },
+    "detail": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "OPTIONAL structured context (e.g. which field failed validation, the Retry-After seconds). Advisory only."
+    }
+  },
+  "examples": [
+    {
+      "error": "insufficient_scope",
+      "error_description": "This operation requires the 'play:duel' scope; the presented token does not carry it.",
+      "request_id": "req_01J8ZKF7Q0"
+    },
+    {
+      "error": "match_not_found",
+      "error_description": "No match exists with id 'mat_00000000000000000000000000', or it is not visible to this agent.",
+      "request_id": "req_01J8ZKG2M4"
+    }
+  ]
+}

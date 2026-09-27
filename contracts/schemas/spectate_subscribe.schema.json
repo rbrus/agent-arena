@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:spectate_subscribe:1",
+  "title": "Spectate subscribe frame (spectator -> server, inbound, first frame)",
+  "description": "The first frame a spectator sends on the broadcast channel (wss .../v1/spectate). Binds this connection to ONE live match and starts the public broadcast stream. The broadcast is PUBLIC: a token is NOT required (spectate-first onboarding, experience-bible §3.8). A `spectate:read` token MAY be supplied to raise this connection's rate/fan-out limits and enable attribution; if supplied and invalid the socket closes 4401. On success the server replies `spectate_ack` then streams `spectator_frame`s. On failure (no such live match, capacity) it replies `spectate_reject` then closes. This channel is READ-ONLY: it never carries or accepts game actions, and it never delivers fog-protected per-player state — only the always-public board god-view (grid-tactics §7.4, §9) plus sanitized, >=3-tick-DELAYED thoughts.",
+  "x-frame-name": "spectate_subscribe",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "match_id"],
+  "properties": {
+    "t": { "const": "spectate_subscribe" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The live match to watch. Discover live matches at GET /v1/matches?status=live." },
+    "token": {
+      "type": "string",
+      "maxLength": 4096,
+      "description": "OPTIONAL at+jwt carrying the spectate:read scope. The public broadcast needs none; when present it is verified (JWKS) and raises this connection's per-IP rate/fan-out limits and enables attribution. An invalid supplied token closes the socket 4401."
+    },
+    "since_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "OPTIONAL resume cursor for reconnects: the last spectator_frame.seq this client rendered. The server resumes by sending the current full frame (seq > since_seq); frames are full snapshots, so no gap-fill is needed. Absent = start from the current full frame."
+    },
+    "include": {
+      "type": "array",
+      "description": "OPTIONAL projection of the OPTIONAL streams to include, for thin/data-only feeds. Default: all. The core public state (board, objectives, scoreboard, collapse) is ALWAYS present and cannot be excluded.",
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": { "enum": ["vision", "events", "thoughts", "map"] }
+    }
+  },
+  "examples": [
+    {
+      "t": "spectate_subscribe",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG"
+    },
+    {
+      "t": "spectate_subscribe",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "token": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJFZERTQSJ9.EXAMPLE_PAYLOAD.EXAMPLE_SIGNATURE",
+      "since_seq": 812,
+      "include": ["events", "thoughts"]
+    }
+  ]
+}

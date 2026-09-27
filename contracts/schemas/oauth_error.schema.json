@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:oauth_error:1",
+  "title": "OAuth2 token-endpoint error (RFC 6749, outbound)",
+  "description": "The error body returned by POST /v1/oauth/token on failure, following RFC 6749 §5.2 exactly (so standard OAuth2 clients handle it). NOTE the no-enumeration-oracle rule: a bad client_id and a bad client_secret both return `invalid_client` with identical body and timing — the response never reveals which half was wrong (agent-passports.md §2.1).",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error"],
+  "properties": {
+    "error": {
+      "enum": ["invalid_request", "invalid_client", "invalid_grant", "unauthorized_client", "unsupported_grant_type", "invalid_scope", "delegation_not_permitted"],
+      "description": "RFC 6749 §5.2 error code."
+    },
+    "error_description": { "type": "string", "maxLength": 300 },
+    "error_uri": { "type": "string", "format": "uri", "maxLength": 300 }
+  },
+  "examples": [
+    { "error": "invalid_client", "error_description": "Client authentication failed." },
+    { "error": "invalid_scope", "error_description": "Requested scope exceeds the scopes granted to this passport." },
+    { "error": "unsupported_grant_type", "error_description": "Only 'client_credentials' is supported in Phase 1." }
+  ]
+}

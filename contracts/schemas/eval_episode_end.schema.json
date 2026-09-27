@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:eval_episode_end:1",
+  "title": "Eval episode end (arena -> target, outbound)",
+  "description": "Opt-in terminal notice for an encounter episode in an evaluation run (the duel sends the v1 `match_end`). A 50-line target may ignore it (REST: any 2xx; its body is ignored). Carries no verdict: verdicts are computed after terminal from the record and appear only in the report.",
+  "x-frame-name": "eval_episode_end",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "episode_id",
+    "outcome",
+    "terminal_tick",
+    "replay_hash"
+  ],
+  "properties": {
+    "t": {
+      "const": "eval_episode_end"
+    },
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "outcome": {
+      "enum": [
+        "clear",
+        "wipe",
+        "timeout",
+        "forfeit"
+      ]
+    },
+    "terminal_tick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "replay_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "examples": [
+    {
+      "t": "eval_episode_end",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "outcome": "clear",
+      "terminal_tick": 38,
+      "replay_hash": "sha256:e5330881c0a4f2b19d7e6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a59"
+    }
+  ]
+}

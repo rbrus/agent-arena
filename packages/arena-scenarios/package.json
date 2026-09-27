@@ -1,0 +1,20 @@
+{
+  "name": "arena-scenarios",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Scenario interface (docs/design/arena-scenarios.md §4) over the UNMODIFIED wot-engine: Grid Tactics duel + the six failure-mode encounters as evaluations. Target-facing egress projection, budget tiers, per-seat oracles, episode records. Pure: no I/O, no clock, no Math.random on any asserted path.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test --import tsx test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "wot-contracts": "*",
+    "wot-engine": "*"
+  }
+}

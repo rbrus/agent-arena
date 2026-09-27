@@ -1,0 +1,2919 @@
+{
+  "scenarioId": "grid_tactics",
+  "scenarioVersion": "1.1.0",
+  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "seed": 2,
+  "tier": "core",
+  "mode": "duel",
+  "targetSeat": "A",
+  "seats": [
+    {
+      "seat": "A",
+      "controls": [
+        "A"
+      ],
+      "role": "target",
+      "policyRef": "driver:ref:null"
+    },
+    {
+      "seat": "B",
+      "controls": [
+        "B"
+      ],
+      "role": "opponent",
+      "policyRef": "house-bot:silver"
+    }
+  ],
+  "inputs": [
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "W"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-scout",
+          "verb": "move",
+          "steps": [
+            "E"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": [
+        {
+          "unit_id": "B-guard",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "unit_id": "B-archer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        }
+      ]
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    },
+    {
+      "A": [],
+      "B": []
+    }
+  ],
+  "timing": [
+    {
+      "event": "decision",
+      "tick": 0,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 1,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 2,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 3,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 4,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 5,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 6,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 7,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 8,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 9,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 10,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 11,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 12,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 13,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 14,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 15,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 16,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 17,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 18,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 19,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 20,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 21,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 22,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 23,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 24,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 25,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 26,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 27,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 28,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 29,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 30,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 31,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 32,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 33,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 34,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 35,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 36,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 37,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 38,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 39,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 40,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 41,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 42,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 43,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 44,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 45,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 46,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 47,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 48,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 49,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 50,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 51,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 52,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 53,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 54,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 55,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 56,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 57,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 58,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 59,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 60,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 61,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 62,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 63,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 64,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 65,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 66,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 67,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 68,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 69,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 70,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 71,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 72,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 73,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 74,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 75,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 76,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 77,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 78,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 79,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 80,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 81,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 82,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 83,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 84,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    },
+    {
+      "event": "decision",
+      "tick": 85,
+      "seat": "A",
+      "latencyMs": null,
+      "miss": "none",
+      "frameBytes": null
+    }
+  ],
+  "adapterCoercions": [],
+  "blindingKey": "4c04bc3a7629ff843d61acc67c73913fcb6df61a522f3784bf04c3a017626af2",
+  "perTickHashes": [
+    "sha256:9beb0643927bed47afb7e266f1ae9aa47341478a8a0c344c7fcfba2d74ea1662",
+    "sha256:3c730447f7a053c4dde829f3c5a96ce237bcd475bb2c0422936e90256511d31e",
+    "sha256:04777aee0f63241722279f75fea691d86887a0d6aac22d80701d56ca358fe2e6",
+    "sha256:dcb036e777b92d866b5022f537acc678d0eb6b3733306294ce6f8d87a0c32aa6",
+    "sha256:3b2c7a468e18a93e1e36bf7ce232eb0ca2a9022f87c7c0b99ceb071ef7be41de",
+    "sha256:01a1e7e9fb2ed514f6325324bb1ef5ff772ed2fd369bd0b531475222ec72eb64",
+    "sha256:a80b0eef5388847c2ad007dc46046b6c8be1ff6fe15871c262eaebf58298c825",
+    "sha256:0babd9c3724168b90125eb767d3386caba66cf1bad2ac3cc63a84a8fd5b28483",
+    "sha256:ecf87d090e68265624f592ae8b467a2346730ed6a3f18b801b6daa58f7e37966",
+    "sha256:5d26a6a55b4c5e8ea29183b1f3d5553363e2fa703ce9566d40236094d633411f",
+    "sha256:af7930c51254f317ccc9560c7d3291986e6e3697ee4bef8accd5496cd27e7a00",
+    "sha256:e46fc22cd995459533c945fe13d97913f2b07fb484a0c51ead9e6646613f1457",
+    "sha256:49525af583ffc88db011a128f563f16225612e62b24fa0b73d00a0078742c151",
+    "sha256:cec2a7048e641a6b029b8af949bf3d98eef016e44098e5a64e084449da72322f",
+    "sha256:adf0727eb7ab3070bcca1e5f88124634dc50752eddd2344da882e3999dfef9f9",
+    "sha256:a86b6ac237ca67a3ebb489a95fdc2c9051773ebe3b764f18190e7e8107cb6069",
+    "sha256:08967965cd5222582d0d2780bed75a87ea54e9fb992cd0b487e202b6814eebb3",
+    "sha256:44ef475271c037145620bcf3f4cac5f8e26fba91bbeb95fcb5f57b03388e84b8",
+    "sha256:fe4604268b7371f6dd26bafb0b5e8c539bb8d26e0be19c2e4359a7acd0cfdc86",
+    "sha256:3e43126c1246b0cdb3a79f3d193578934b6ec681a7a5bfd15e58b8d700d1a1fe",
+    "sha256:f284b0f9b4c47536b7f9ba49098371a4c943f868aaf03b05ee2275e60f7edf82",
+    "sha256:8a23422957bfa2d8b81b37439a38da470f7b99f53bd4c81ee80259d7ca2fbc9b",
+    "sha256:57c0f15131da858f2d4fd1ebfe6d3e7dfd8be90404e4ce823fa354a1424e73fc",
+    "sha256:2b7e2d208ddea7bb285357ff716553a3a5b88ba67c246e511f97f485272a1a3a",
+    "sha256:80ec0ea47b8ebb83f34073994d34f50e93237b4b25f2d24d1794b12eb7f983de",
+    "sha256:f5725442f27b0892e193ccba8e0fbf997a35d9da8b1028c624276bacd9d16cf0",
+    "sha256:98d2802a7e4259d3e2040097cab4113d90e6606fe3cd13b054de505e6b51b2af",
+    "sha256:8bd4eff4b7457cdaf7e7cd1b7c6032873dcef7a2d8fd1202b7f7b2ed5c2d1434",
+    "sha256:3d1b84fe7b804988ab09a0fd132c32225ea2d3b1d3bf7e0e1efb2296745b1105",
+    "sha256:31a594a0228c4cc9491128f71347952db840074884ab0b10e9c32ade577958e6",
+    "sha256:452f364db1634b5849a0fb7019846a24d6e912d91daecac8fa847f3eec6ec2bc",
+    "sha256:29c265d8d60eb3a3d82d78e21daeae133acddf275ab0c376bd72da87bab31864",
+    "sha256:a8241b2e90d861aded34745fc77d34981766bdf6ddb2d41921b2a047b65feba0",
+    "sha256:226b210d0db5146169504262d6b5d7657046062fde165549ddeb627ee79cee54",
+    "sha256:de03d43326acd7227611c7cb11a227bfb28e319936108d2e97acdc68f95dc6c2",
+    "sha256:40978ba56d18d8a2deafbeac822aea9a7425992876d52b7570c7886dbef54976",
+    "sha256:a54163aa8669898d60a596dc8809ebbd58aafd38161498fdc6f038d6f3d9d311",
+    "sha256:d7c452213881a4120329bfae53159d7ee628be197ac72ddaa1f98a2eb02eb3c0",
+    "sha256:0bcd05e37d75464d4c17c3f3461db866be1c37d0e7a6210f168abd820c64d15b",
+    "sha256:7868cfe3ad569798c3ab020977f9250d7a141a1efe7df908c32e791e337052a0",
+    "sha256:96aba11ca87c4c3e349115e858a303c8d4eac3bab440026386fcdb22dab1414e",
+    "sha256:788e5836d6f5181b68c2f5fd1a9fc6e46ca69db8eba6640779ec45e0b966b2f3",
+    "sha256:d6b37e748a6490b71c2f6dddbaa63086f5a082e73258d5b2509f156f7ccf4ab5",
+    "sha256:9ad00eb2384272c86242fbfefe03bcc69daa8e841622c5e4e6f668d5b87bb920",
+    "sha256:11e8ac33b9f52222967c2e87a3dc5365949160d381be4c5a202f9da9da394966",
+    "sha256:02882e98e4d677e2128608c9516536e2e0165614e9199d18bc438df19b03e149",
+    "sha256:0130a3316ebdc475dd2f2ac2322db35ea42b0324fdca6efab3ff5762357acec2",
+    "sha256:76f3c61d1b922cb492ed1cdb868d2032d5000c75a05c371ac179fe1b76f345cf",
+    "sha256:cb3f0f306ca65f13a8757a444be16eee51fb2aa0e5eecab96da3759dc46f468d",
+    "sha256:8c95bf34a47b44627245da494f82bf32ad13e301078e5edd2437cf5abcb47036",
+    "sha256:9631c4019ff7f012ce29c70806d8237c2404c947fece0400515798a4bfe655f2",
+    "sha256:c212d3888853af251d9a66030d718f0026779937daa87acf46389e4e695b3bbd",
+    "sha256:504fc81a7faa4364803681e560a650234867838697560759c17ed13eff32208e",
+    "sha256:faf60587888a9ddc5efc61022209604036db4d1372e709371189248e8f87fe4b",
+    "sha256:96c6bb433bce1405627923596ef918ea76e51ef77964aabd7fd41a328cd3d2e6",
+    "sha256:d78f47c1288035a5aa4ae19a384c9acb6cd349e63222ae961ace8265e291f217",
+    "sha256:6fdaf3511d70660975f19d18ec3a938627e3c95587d283caa115bb056e8ad983",
+    "sha256:cbf6de3840ac75ca6796ab98762aebaf1d498fb7a03d019709fa380b705f4db6",
+    "sha256:c46f260eb40cf83f0d9b4ce29eb6199b01e1691a54a4ee89d70686facce01274",
+    "sha256:2b1b0f987b348ba9411eff5c0e60b0dec3dab27a8dd41476340604a2c477a04f",
+    "sha256:b557d5932e10bcc0e8f1a07b2a98650222e7dd7eccdec678cdac39888acf1888",
+    "sha256:0b3b1768064552fade2cef34b6192dbb11e6749fdf2596101e3b1f1737b9a317",
+    "sha256:0b73912d37c1498abed412b3883d07e2e84378aecc5255ffc0576d9b9fed6ce4",
+    "sha256:7d7bd1ebc646ba503738851ae40eff5788422b76a3b6349d719a6230ed7cad9f",
+    "sha256:32db6bed903c82adde834d08d9bf37e0a64f7fb51720443fbb3ee1bfa72543d9",
+    "sha256:109f91560669ab52d0d80a1ce146e389c9e3b1147756c0b3025af17c2a87ff8b",
+    "sha256:a11b8220a4b051e8cf3f566fb1a8262f1fb51d607d119fd4dc4a7944670c2b6b",
+    "sha256:5a65e302b10fb3f1f1d4593693ed04350c5dd599a632c31289feeaeff824192e",
+    "sha256:249081f9658764117fa2e52908f87cd04199c153c1d462f3e73758ca19b412cb",
+    "sha256:c41ea2da9b1bbe14ae1a53d67651917e233346bbf3124f4755967bac3bd24e8c",
+    "sha256:65ff0040ddb92e4ea2acd2d8b812ac66fa325c832fdfd6a5630bcfc189a72253",
+    "sha256:464ba256c2c7897169b1e9c5dd065f748c95087ef374f46677d5ee93546c5d2d",
+    "sha256:5e00934f3f1cb5054cd2aad4c2e19ac8ae708436b4d5a7cd9837e19c54515631",
+    "sha256:668c342acaa060b05ffc992f3cf8c770f6aaa3858bb48cf8eebdbc6c6494da84",
+    "sha256:d5dcb8b6748f873a0e54fade3fa37654f5e8555b8621835f123c4e2271caa6b9",
+    "sha256:d056ec089a9168b0c7bf1c88ca006fc3ebfef27690c9098fd5f0516fc68189a8",
+    "sha256:fbb8addaf685f17f6fad7d8b1b0aa37a503318bb22031ff0a4369826bb2cd405",
+    "sha256:bcf5e1cfa8dcc0623cccb607141194da8a37bb8832917ec0b2600f0324f12592",
+    "sha256:f7ab0449fcdb78e0ca2c4a56b44e9adaddb3a2899ab53b0b5ec877783c530ec8",
+    "sha256:3914096a7aab8041787ec93e1ca78583118678bc3535ec54c87cd9626d89df19",
+    "sha256:4322600d233a585178c6d0116c82420ec91d22326b3586fdf661676993f97f94",
+    "sha256:2aee86fe31c903ea34a867910844a74a555f75d2983baf8cecd39a635d04abef",
+    "sha256:e0fd5c48d3b2bb97b272c140a25e144519346aae4709f213f0e3576939b91a97",
+    "sha256:bad6bf9e1de26cb70b49c8a8731d82ee5a8d39b22131664d1cd20a28ffb55a52",
+    "sha256:8794a6613e4328ca9d99c5a0e4d8b6ec5e1e1ae52e87195186367ce2ac059e6d",
+    "sha256:f0bd24e416c7647081b5ea8f4f3be2fec757804c7520901a9371822a784f28bc"
+  ],
+  "replayHash": "sha256:f74e6b5d123615047a68b0ae48b2cb561e3d9d8c4a62a4494327322f9cb6a53c",
+  "terminal": {
+    "outcome": "loss",
+    "reason": "ascension",
+    "ticks": 86
+  },
+  "trajectoryClass": "sha256:17decd1cf666674ec2f236094f6b0d34bb770ed1b379b0e201c3343c4dc44807"
+}

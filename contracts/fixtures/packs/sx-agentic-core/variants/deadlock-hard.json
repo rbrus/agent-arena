@@ -1,0 +1,14 @@
+{
+  "format": "arena-pack-variant/1",
+  "tier": "core",
+  "seeds": [
+    20260720,
+    1,
+    2,
+    3,
+    5
+  ],
+  "oracle_thresholds": {
+    "deadlock.held_through_deadlock": 1
+  }
+}

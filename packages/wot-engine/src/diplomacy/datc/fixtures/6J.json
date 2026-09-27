@@ -1,0 +1,427 @@
+{
+ "datc_version": "3.0",
+ "section": "6.J",
+ "cases": [
+  {
+   "id": "6.J.1",
+   "title": "Too many disband orders",
+   "status": "standard",
+   "rules": [
+    "4.D.6"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "transcription_notes": "France owns only Paris and has armies in Paris and Picardy.",
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "france", "type": "A", "at": "par" },
+     { "power": "france", "type": "A", "at": "pic" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "par": "france"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "F lyo D", "result": "illegal", "reason": "no_unit" },
+       { "o": "A pic D", "result": "success" },
+       { "o": "A par D", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "par" }
+      ],
+      "dislodged_after": [],
+      "phase_after": "S1902M"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.2",
+   "title": "Removing the same unit twice",
+   "status": "standard",
+   "rules": [
+    "4.D.6",
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "transcription_notes": "France owns only Paris and has armies in Paris, Picardy and Burgundy (two removals owed). Civil disorder then removes Burgundy (distance 1 like Picardy; English name first).",
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "france", "type": "A", "at": "par" },
+     { "power": "france", "type": "A", "at": "pic" },
+     { "power": "france", "type": "A", "at": "bur" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "par": "france"
+    }
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A par D", "result": "success" },
+       { "o": "A par D", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "pic" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.3",
+   "title": "Civil disorder two armies with different distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "lvn" },
+     { "power": "russia", "type": "A", "at": "swe" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "lvn" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.4",
+   "title": "Civil disorder two armies with equal distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "lvn" },
+     { "power": "russia", "type": "A", "at": "ukr" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "mos": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "ukr" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.5",
+   "title": "Civil disorder two fleets with different distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "ber" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "ska" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.6",
+   "title": "Civil disorder two fleets with equal distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "F", "at": "bot" },
+     { "power": "russia", "type": "F", "at": "nth" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "mun": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "nth" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.7",
+   "title": "Civil disorder two fleets and army with equal distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "boh" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nth" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia",
+     "war": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "boh" },
+       { "power": "russia", "type": "F", "at": "ska" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.8",
+   "title": "Civil disorder a fleet with shorter distance then the army",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "tyr" },
+     { "power": "russia", "type": "F", "at": "bal" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "war": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "F", "at": "bal" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.9#1",
+   "title": "Civil disorder must be counted from both coasts (fleet in Baltic Sea)",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "gre" },
+     { "power": "russia", "type": "A", "at": "sev" },
+     { "power": "russia", "type": "F", "at": "bal" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia",
+     "sev": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "sev" },
+       { "power": "russia", "type": "F", "at": "bal" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.9#2",
+   "title": "Civil disorder must be counted from both coasts (fleet in Skagerrak)",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "russia", "type": "A", "at": "gre" },
+     { "power": "russia", "type": "A", "at": "sev" },
+     { "power": "russia", "type": "F", "at": "ska" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "stp": "russia",
+     "sev": "russia"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "russia", "type": "A", "at": "sev" },
+       { "power": "russia", "type": "F", "at": "ska" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.10",
+   "title": "Civil disorder counting convoying distance",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "italy", "type": "A", "at": "gre" },
+     { "power": "italy", "type": "A", "at": "pie" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "nap": "italy"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "A", "at": "gre" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.J.11",
+   "title": "Distance to owned supply center",
+   "status": "standard",
+   "rules": [
+    "4.D.8"
+   ],
+   "requires": [
+    "adjustment"
+   ],
+   "setup": {
+    "phase": "W1901A",
+    "units": [
+     { "power": "italy", "type": "A", "at": "war" },
+     { "power": "italy", "type": "A", "at": "tus" }
+    ],
+    "supply_centers_base": "none",
+    "supply_centers": {
+     "war": "italy"
+    }
+   },
+   "steps": [
+    {
+     "orders": {},
+     "expect": {
+      "units_after": [
+       { "power": "italy", "type": "A", "at": "war" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  }
+ ]
+}

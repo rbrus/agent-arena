@@ -1,0 +1,42 @@
+# Build context for sandbox/Dockerfile is this directory (ascension/ here, the
+# repo root after extraction). Allow what the build stage needs, keep secrets,
+# local state and bulk out.
+
+# VCS, local installs, build output
+.git
+**/.git
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+
+# Secrets and local state: never in any layer, not even the build stage
+.dev-keys
+**/.dev-keys
+**/.env
+**/.env.*
+!sandbox/.env.example
+**/*.pem
+**/*.key
+**/*.p12
+**/*-adminsdk-*.json
+**/*service-account*.json
+**/*serviceAccount*.json
+**/credentials*.json
+sandbox/out
+
+# Markdown is NOT excluded: the build stage runs `npm test`, and tests read
+# .md fixtures (arena-report evidence goldens, qa/test/fixtures), the contract
+# docs (contracts/*.md) and package READMEs (the Phase 8 gate). Nothing .md
+# reaches the runtime stage, which copies only /out.
+
+# Not part of the image: the replay inspector is a separate static build (B5)
+frontend
+
+# Editor / OS noise
+**/.DS_Store
+**/.vscode
+**/.idea
+
+# arena-cli tests import the inspector replay format (keep after the frontend exclusion)
+!frontend/src/lib/replay-format.ts

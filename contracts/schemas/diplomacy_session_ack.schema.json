@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:ack:diplomacy:1",
+  "title": "Diplomacy session ack (arena -> agent, outbound; table session)",
+  "description": "(2.4.0) The reply to an accepted Diplomacy hello (`wot:hello:diplomacy:1`), sent once per session before any observation. It binds the session to one seat: the table, the episode and the POWER the table assigned to this agent. Frame type `ack` with `ack_type: session`, like the duel session ack (`wot:ack:1`); `mode: diplomacy` selects this schema. Observations start once every agent seat of the table is connected.\n\nActions on this session are acknowledged with the ordinary action ack of `wot:ack:1` (`ack_type: action`, `turn_id`, `tokens_spent: 0`, `tokens_remaining: 0`: Diplomacy has no token cost).\n\nOutbound: agents MUST ignore unknown fields.",
+  "x-frame-name": "ack",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 2048,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "ack_type",
+    "session_id",
+    "mode",
+    "scenario_id",
+    "table_id",
+    "episode_id",
+    "power",
+    "signature_modes",
+    "config"
+  ],
+  "properties": {
+    "t": {
+      "const": "ack"
+    },
+    "ack_type": {
+      "const": "session"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^ses_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "mode": {
+      "const": "diplomacy"
+    },
+    "scenario_id": {
+      "const": "diplomacy_standard"
+    },
+    "table_id": {
+      "type": "string",
+      "pattern": "^dtb_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Echo of the hello's table."
+    },
+    "episode_id": {
+      "type": "string",
+      "maxLength": 30,
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "The episode this table plays: server-set, opaque, never derived from the seed. Every observation carries it, every action echoes it, and every press signature covers it (signing.md §7)."
+    },
+    "power": {
+      "$ref": "#/$defs/power",
+      "description": "The power the table assigned to this agent. Every action echoes it; it is an echo check, never an authority (the sender of every move is stamped from this session)."
+    },
+    "signature_modes": {
+      "type": "array",
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "key",
+          "session"
+        ]
+      },
+      "description": "The signature modes this seat may use for signed press moves (offer, counter, accept, renounce), in the order key, session. `key` is listed when the passport has a registered signing key (POST /v1/agents or /rotate `signing_key`); `session` only when the deployment runs with WOT_ENV development or test AND the table allows unsigned local play. Empty = this seat cannot make a signed move (every such message is refused `signature_invalid`). signing.md §7.4. (2.5.0) A HELLO-TIME SNAPSHOT: computed once, when this ack is sent, and never re-sent. `session` depends only on the deployment and the table, so it cannot change during the session. `key` says only whether the passport had a registered signing key at hello: the arena re-resolves the key for every frame that carries a JWS-signed move (signing.md §7.5). So after POST /v1/agents/{client_id}/rotate the new key verifies from the next frame and the previous key stops verifying, with no new ack and no reconnect. A passport that registers its first key after hello can make `key` moves at once, although its ack listed no `key`. A revoked passport is closed 4410 by the rolling check. Treat the list as the modes at hello, not as a live capability."
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "soft_deadline_ms",
+        "hard_deadline_ms",
+        "press_rounds",
+        "eval_class"
+      ],
+      "description": "Static table parameters. Each observation repeats the deadlines.",
+      "properties": {
+        "soft_deadline_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60000,
+          "description": "Ds per step."
+        },
+        "hard_deadline_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60000,
+          "description": "Dh per step."
+        },
+        "press_rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "R, press rounds per movement phase (edge 2, core 3, frontier 3)."
+        },
+        "eval_class": {
+          "enum": [
+            "edge",
+            "core",
+            "frontier"
+          ],
+          "description": "The budget tier of the table."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    }
+  },
+  "examples": [
+    {
+      "t": "ack",
+      "ack_type": "session",
+      "session_id": "ses_01J9D1PX0MACY0EXAMP1E00000",
+      "mode": "diplomacy",
+      "scenario_id": "diplomacy_standard",
+      "table_id": "dtb_01J9D1PX0MACY0EXAMP1E00000",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "power": "germany",
+      "signature_modes": [
+        "key"
+      ],
+      "config": {
+        "soft_deadline_ms": 1500,
+        "hard_deadline_ms": 3000,
+        "press_rounds": 3,
+        "eval_class": "core"
+      }
+    },
+    {
+      "t": "ack",
+      "ack_type": "session",
+      "session_id": "ses_01J9D1PX0MACY0EXAMP1E00001",
+      "mode": "diplomacy",
+      "scenario_id": "diplomacy_standard",
+      "table_id": "dtb_01J9D1PX0MACY0EXAMP1E00000",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "power": "france",
+      "signature_modes": [
+        "key",
+        "session"
+      ],
+      "config": {
+        "soft_deadline_ms": 800,
+        "hard_deadline_ms": 1600,
+        "press_rounds": 2,
+        "eval_class": "edge"
+      }
+    }
+  ]
+}

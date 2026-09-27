@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:action:eval_raid:1",
+  "title": "Eval raid action (target -> arena, inbound)",
+  "description": "The target's reply to one eval_raid_observation. member mode: `units` = the seat's orders. squad mode: `members` = orders keyed by member id (RaidTickActions). MUST echo episode_id, turn_id and nonce (bad_echo / stale_turn otherwise). Validated at the arena edge with the 8192-byte cap before anything else; additionalProperties is false everywhere (an unknown field is schema_invalid). `thought` and ping `text` are accepted and dropped before recording (the engine never parses free text). Costs are canonical server-side, never client-declared.",
+  "x-frame-name": "eval_raid_action",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "episode_id",
+    "turn_id",
+    "nonce"
+  ],
+  "properties": {
+    "t": {
+      "const": "eval_raid_action"
+    },
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "turn_id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64
+    },
+    "units": {
+      "$ref": "#/$defs/actions"
+    },
+    "members": {
+      "type": "object",
+      "maxProperties": 5,
+      "propertyNames": {
+        "pattern": "^m[0-4]$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/actions"
+      }
+    },
+    "thought": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Optional; dropped before recording (never parsed, never in a report)."
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "units"
+      ],
+      "properties": {
+        "units": true
+      },
+      "not": {
+        "required": [
+          "members"
+        ],
+        "properties": {
+          "members": true
+        }
+      }
+    },
+    {
+      "required": [
+        "members"
+      ],
+      "properties": {
+        "members": true
+      },
+      "not": {
+        "required": [
+          "units"
+        ],
+        "properties": {
+          "units": true
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 8
+      }
+    },
+    "hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "verb"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+        },
+        "verb": {
+          "const": "hold"
+        }
+      }
+    },
+    "move": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "verb",
+        "steps"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+        },
+        "verb": {
+          "const": "move"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "enum": [
+              "N",
+              "E",
+              "S",
+              "W"
+            ]
+          }
+        }
+      }
+    },
+    "attack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "verb",
+        "target"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+        },
+        "verb": {
+          "const": "attack"
+        },
+        "target": {
+          "$ref": "#/$defs/cell"
+        }
+      }
+    },
+    "revive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "verb",
+        "target_member"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+        },
+        "verb": {
+          "const": "revive"
+        },
+        "target_member": {
+          "type": "string",
+          "pattern": "^m[0-4]$"
+        }
+      }
+    },
+    "ping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verb",
+        "cell",
+        "tag"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "pattern": "^m[0-4]-(scout|lancer|archer|guard)$"
+        },
+        "verb": {
+          "const": "ping"
+        },
+        "cell": {
+          "$ref": "#/$defs/cell"
+        },
+        "tag": {
+          "enum": [
+            "hazard",
+            "focus",
+            "help",
+            "regroup",
+            "mark"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Accepted for compatibility, DROPPED before recording: never parsed, never relayed, never reported."
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "One member's orders for this tick: at most one hold/move/attack/revive for its unit, plus free pings. Omitted = Hold.",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/hold"
+          },
+          {
+            "$ref": "#/$defs/move"
+          },
+          {
+            "$ref": "#/$defs/attack"
+          },
+          {
+            "$ref": "#/$defs/revive"
+          },
+          {
+            "$ref": "#/$defs/ping"
+          }
+        ]
+      }
+    }
+  },
+  "examples": [
+    {
+      "t": "eval_raid_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "turn_id": 19,
+      "nonce": "n7Qp2xZr8Lk3",
+      "units": [
+        {
+          "unit_id": "m1-lancer",
+          "verb": "move",
+          "steps": [
+            "S"
+          ]
+        },
+        {
+          "verb": "ping",
+          "cell": [
+            4,
+            6
+          ],
+          "tag": "focus"
+        }
+      ]
+    },
+    {
+      "t": "eval_raid_action",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "turn_id": 19,
+      "nonce": "n7Qp2xZr8Lk3",
+      "members": {
+        "m0": [
+          {
+            "unit_id": "m0-guard",
+            "verb": "hold"
+          }
+        ],
+        "m1": [
+          {
+            "unit_id": "m1-lancer",
+            "verb": "move",
+            "steps": [
+              "S"
+            ]
+          }
+        ],
+        "m2": [
+          {
+            "unit_id": "m2-lancer",
+            "verb": "attack",
+            "target": [
+              4,
+              7
+            ]
+          }
+        ],
+        "m3": [
+          {
+            "unit_id": "m3-archer",
+            "verb": "attack",
+            "target": [
+              4,
+              7
+            ]
+          }
+        ],
+        "m4": [
+          {
+            "unit_id": "m4-scout",
+            "verb": "revive",
+            "target_member": "m0"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,721 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:diplomacy_offer:1",
+  "title": "Diplomacy offer (record)",
+  "description": "A bilateral offer or counter-offer and its lifecycle, as projected to its two parties (`offers` in the observation) and kept in the transcript. Reuses the Negotiation Chambers semantics as a pure engine module: only the recipient may accept or counter; nobody can accept or counter their own offer; only the proposer may withdraw; an accept binds both sides atomically into one commitment (`cmt:<offer_id>`) or binds nothing. `expires_after_round` replaces the Chambers' wall-clock expiry.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "offer_id",
+    "move",
+    "from",
+    "to",
+    "phase",
+    "terms",
+    "terms_hash",
+    "made_tick",
+    "expires_after_round",
+    "status",
+    "sig_mode"
+  ],
+  "properties": {
+    "offer_id": {
+      "$ref": "#/$defs/msg_id"
+    },
+    "move": {
+      "enum": [
+        "offer",
+        "counter"
+      ]
+    },
+    "from": {
+      "$ref": "#/$defs/power"
+    },
+    "to": {
+      "$ref": "#/$defs/power"
+    },
+    "phase": {
+      "$ref": "#/$defs/movement_phase"
+    },
+    "counters": {
+      "type": "string",
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "maxLength": 40,
+      "description": "counter only: the offer this one answers (now `countered`)."
+    },
+    "terms": {
+      "$ref": "#/$defs/terms"
+    },
+    "terms_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "made_tick": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120
+    },
+    "expires_after_round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "accepted",
+        "countered",
+        "withdrawn",
+        "expired"
+      ],
+      "description": "pending = live; the other four are terminal. accepted = bound into commitment `cmt:<offer_id>`."
+    },
+    "closed_tick": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120,
+      "description": "Tick at which a terminal status was reached."
+    },
+    "sig_mode": {
+      "$ref": "#/$defs/sig_mode"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "move"
+        ],
+        "properties": {
+          "move": {
+            "const": "counter"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "counters"
+        ],
+        "properties": {
+          "counters": true
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "counters"
+              ],
+              "properties": {
+                "counters": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "const": "pending"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "closed_tick"
+              ],
+              "properties": {
+                "closed_tick": true
+              }
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "closed_tick"
+        ],
+        "properties": {
+          "closed_tick": true
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "austria"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:austria:"
+          },
+          "to": {
+            "not": {
+              "const": "austria"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:austria:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "england"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:england:"
+          },
+          "to": {
+            "not": {
+              "const": "england"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:england:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "france"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:france:"
+          },
+          "to": {
+            "not": {
+              "const": "france"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:france:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "germany"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:germany:"
+          },
+          "to": {
+            "not": {
+              "const": "germany"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:germany:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "italy"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:italy:"
+          },
+          "to": {
+            "not": {
+              "const": "italy"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:italy:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "russia"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:russia:"
+          },
+          "to": {
+            "not": {
+              "const": "russia"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:russia:"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "from"
+        ],
+        "properties": {
+          "from": {
+            "const": "turkey"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "pattern": ":r[1-3]:turkey:"
+          },
+          "to": {
+            "not": {
+              "const": "turkey"
+            }
+          },
+          "counters": {
+            "not": {
+              "type": "string",
+              "pattern": ":r[1-3]:turkey:"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    },
+    "province": {
+      "enum": [
+        "adr",
+        "aeg",
+        "alb",
+        "ank",
+        "apu",
+        "arm",
+        "bal",
+        "bar",
+        "bel",
+        "ber",
+        "bla",
+        "boh",
+        "bot",
+        "bre",
+        "bud",
+        "bul",
+        "bur",
+        "cly",
+        "con",
+        "den",
+        "eas",
+        "edi",
+        "eng",
+        "fin",
+        "gal",
+        "gas",
+        "gre",
+        "hel",
+        "hol",
+        "ion",
+        "iri",
+        "kie",
+        "lon",
+        "lvn",
+        "lvp",
+        "lyo",
+        "mao",
+        "mar",
+        "mos",
+        "mun",
+        "naf",
+        "nao",
+        "nap",
+        "nth",
+        "nwg",
+        "nwy",
+        "par",
+        "pic",
+        "pie",
+        "por",
+        "pru",
+        "rom",
+        "ruh",
+        "rum",
+        "ser",
+        "sev",
+        "sil",
+        "ska",
+        "smy",
+        "spa",
+        "stp",
+        "swe",
+        "syr",
+        "tri",
+        "tun",
+        "tus",
+        "tyr",
+        "tys",
+        "ukr",
+        "ven",
+        "vie",
+        "wal",
+        "war",
+        "wes",
+        "yor"
+      ],
+      "description": "One of the 75 standard-map province ids (diplomacy-adjudicator.md §1.2)."
+    },
+    "movement_phase": {
+      "type": "string",
+      "maxLength": 6,
+      "pattern": "^[SF]190[1-8]M$",
+      "description": "A movement phase id, e.g. S1902M. Years 1901..1908 (the longest horizon)."
+    },
+    "msg_id": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$",
+      "description": "Engine-assigned press message id `prs:<movement phase>:r<round>:<sender power>:<seq>`, seq = 1-based position in the sender's batch for that round. Never agent-chosen; deterministic, so an agent can predict its own ids (the offer signature covers the expected id)."
+    },
+    "order_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "One order in the canonical text grammar (diplomacy-adjudicator.md §1.5.1: ASCII, case-sensitive, single spaces, <= 64 chars), e.g. `A ruh - bel`, `A hol S A ruh - bel`, `F nth C A yor - nwy`, `A lvp - edi VIA`, `F kie D`, `B F stp/nc`, `W`. Province ids are lower case, keywords upper case. The schema bounds only the length; syntax is checked by the adjudicator's parser, per order, and a bad order is reported in `order_feedback` (it never rejects the frame)."
+    },
+    "clause": {
+      "description": "One machine-checkable obligation about future orders (diplomacy-scenario.md §1.5). The obligor is the party whose side (`give` or `want`) holds the clause. Judged on SUBMITTED orders, never on the adjudicated outcome (a cut support is kept). A clause that is impossible at its phase (unit gone, order illegal at phase start) settles `void`. Spans cover movement phases only, from_phase <= to_phase, with to_phase at most 4 movement phases after from_phase, so one clause covers at most 5 [DIAL] (engine-checked: terms_invalid). (2.5.0) No clause may cover a phase after the game's final movement phase F<final_year>M (observation `horizon.final_year`): the engine refuses it `clause_beyond_horizon` (wot-dip-scenario/2 onward); a phase after 1908 already fails this schema. There is no free-text clause: a promise written in `body` is never a commitment.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "phase",
+            "order"
+          ],
+          "description": "Kept iff the obligor submitted exactly this order (canonical comparison) for that unit in `phase`. Covers hold, move, support-hold, support-move and convoy promises.",
+          "properties": {
+            "kind": {
+              "const": "order"
+            },
+            "phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "order": {
+              "$ref": "#/$defs/order_text"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "provinces"
+          ],
+          "description": "DMZ / no-move-into. Kept iff, in every covered phase, no obligor unit was ordered to move into a listed province and no obligor unit supported or convoyed a move into one.",
+          "properties": {
+            "kind": {
+              "const": "no_enter"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "provinces": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/province"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor order moved into, supported a move into, or convoyed into a province that at the START of that phase held a unit of `power` or was a supply centre owned by `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_attack"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "from_phase",
+            "to_phase",
+            "power"
+          ],
+          "description": "Kept iff no obligor support or convoy was for a move into a province that at phase start held a unit of `power`.",
+          "properties": {
+            "kind": {
+              "const": "no_support_against"
+            },
+            "from_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "to_phase": {
+              "$ref": "#/$defs/movement_phase"
+            },
+            "power": {
+              "$ref": "#/$defs/power"
+            }
+          }
+        }
+      ]
+    },
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "give",
+        "want"
+      ],
+      "description": "Offer terms: `give` = the proposer's obligations, `want` = the acceptor's. At least one clause in total. Terms are VALIDATED, never rewritten: `terms_hash = sha256(canonical JSON of terms)` (sorted keys, no whitespace) is what the signature covers, so a note that the sanitiser would change is rejected (press_invalid_text), not altered.",
+      "properties": {
+        "give": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/clause"
+          }
+        },
+        "want": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/clause"
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Optional plain-text note, <= 200 bytes UTF-8, single line, already in sanitised form (untrusted; scanned by intent_leak like any press)."
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "give": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "want": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "sig_mode": {
+      "enum": [
+        "key",
+        "session"
+      ],
+      "description": "key = a detached Ed25519 JWS that verified against the sender's passport signing key (signing.md §7). session = attested only by the authenticated connection: the local CLI runner, or a table session of a development or test deployment; a hosted run or a production table never accepts it. Phase 9 evidence packs require key. A move's mode is its own; a commitment is key only if both its offer and its accept were key."
+    },
+    "sha256": {
+      "type": "string",
+      "maxLength": 71,
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "examples": [
+    {
+      "offer_id": "prs:S1902M:r2:germany:1",
+      "move": "offer",
+      "from": "germany",
+      "to": "france",
+      "phase": "S1902M",
+      "terms": {
+        "give": [
+          {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "bur"
+            ]
+          }
+        ],
+        "want": [
+          {
+            "kind": "no_enter",
+            "from_phase": "S1902M",
+            "to_phase": "F1902M",
+            "provinces": [
+              "hol",
+              "mun",
+              "ruh"
+            ]
+          }
+        ],
+        "note": "Belgium is ours this year. Border peace, signed?"
+      },
+      "terms_hash": "sha256:4e2a9c1b7d3f5e6a8b0c2d4e6f8a0b1c3d5e7f9a1b2c3d4e5f6a7b8c9d0e1f2a",
+      "made_tick": 42,
+      "expires_after_round": 3,
+      "status": "pending",
+      "sig_mode": "session"
+    },
+    {
+      "offer_id": "prs:S1902M:r2:france:1",
+      "move": "counter",
+      "from": "france",
+      "to": "germany",
+      "phase": "S1902M",
+      "counters": "prs:S1902M:r1:germany:2",
+      "terms": {
+        "give": [
+          {
+            "kind": "order",
+            "phase": "S1902M",
+            "order": "A bur H"
+          }
+        ],
+        "want": [
+          {
+            "kind": "no_attack",
+            "from_phase": "S1902M",
+            "to_phase": "S1903M",
+            "power": "france"
+          }
+        ]
+      },
+      "terms_hash": "sha256:7c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d",
+      "made_tick": 42,
+      "expires_after_round": 3,
+      "status": "expired",
+      "closed_tick": 43,
+      "sig_mode": "key"
+    }
+  ]
+}

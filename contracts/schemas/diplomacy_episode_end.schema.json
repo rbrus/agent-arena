@@ -1,0 +1,802 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:diplomacy_episode_end:1",
+  "title": "Diplomacy episode end (arena -> target, outbound)",
+  "description": "Opt-in terminal notice for a Diplomacy episode (the Diplomacy counterpart of eval_episode_end). A target may ignore it (REST: any 2xx). Outcome from the target's side: `solo` = the target won (>= 18 centres, or last power standing); `survived` = the game reached the horizon with the target still on the board and no winner (a shared draw); `eliminated` = the target lost its last unit and centre; `loss` = another power won while the target was still on the board; `forfeit` = the target missed 3 consecutive hard deadlines and its power played on in civil disorder. Win/loss is reported, never scored. Three independent hashes: `replay_hash` (board chain: orders and positions only; press never enters it), `transcript_hash` (press, intents, offer transitions, clause settlements) and `evaluation_hash` (the verdict vector).\n\nCarries no verdict. `evaluation_hash` is NEVER sent on the target channel while the run is in progress: the verdict vector is small enough to enumerate, so its hash would leak the verdicts back to the target between episodes. It is present only in the stored terminal record (replay bundle) and in the EpisodeResult.",
+  "x-frame-name": "diplomacy_episode_end",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 4096,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "t",
+    "protocol_version",
+    "episode_id",
+    "power",
+    "outcome",
+    "terminal",
+    "sc_counts",
+    "unit_counts",
+    "eliminated",
+    "civil_disorder",
+    "terminal_tick",
+    "replay_hash",
+    "transcript_hash"
+  ],
+  "properties": {
+    "t": {
+      "const": "diplomacy_episode_end"
+    },
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string",
+      "maxLength": 30,
+      "pattern": "^epi_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "power": {
+      "$ref": "#/$defs/power"
+    },
+    "outcome": {
+      "enum": [
+        "solo",
+        "survived",
+        "eliminated",
+        "loss",
+        "forfeit"
+      ]
+    },
+    "terminal": {
+      "$ref": "#/$defs/terminal"
+    },
+    "sc_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "properties": {
+        "austria": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "england": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "france": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "germany": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "italy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "russia": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "turkey": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        }
+      }
+    },
+    "unit_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "properties": {
+        "austria": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "england": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "france": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "germany": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "italy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "russia": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        },
+        "turkey": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 34
+        }
+      }
+    },
+    "eliminated": {
+      "type": "array",
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/power"
+      }
+    },
+    "civil_disorder": {
+      "type": "array",
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/power"
+      },
+      "description": "Powers whose seat forfeited and whose units played on with empty submissions."
+    },
+    "terminal_tick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "replay_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "transcript_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "evaluation_hash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "enum": [
+              "solo",
+              "loss"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "solo",
+                  "last_standing"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "const": "survived"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "horizon"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "austria"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "austria"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "england"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "england"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "france"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "france"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "germany"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "germany"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "italy"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "italy"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "russia"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "russia"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "turkey"
+          },
+          "outcome": {
+            "const": "solo"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "const": "turkey"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "austria"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "austria"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "england"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "england"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "france"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "france"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "germany"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "germany"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "italy"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "italy"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "russia"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "russia"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "power",
+          "outcome"
+        ],
+        "properties": {
+          "power": {
+            "const": "turkey"
+          },
+          "outcome": {
+            "const": "loss"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "terminal": {
+            "type": "object",
+            "properties": {
+              "winner": {
+                "not": {
+                  "const": "turkey"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "power": {
+      "enum": [
+        "austria",
+        "england",
+        "france",
+        "germany",
+        "italy",
+        "russia",
+        "turkey"
+      ],
+      "description": "A standard-map power. Lower-case full names, the same tokens as the order grammar (diplomacy-adjudicator.md §1.1). Canonical order everywhere: alphabetical, as listed."
+    },
+    "sha256": {
+      "type": "string",
+      "maxLength": 71,
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "terminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "year",
+        "winner"
+      ],
+      "description": "How the game ended (diplomacy-adjudicator.md §6.5), checked after each Fall centre update: solo (a power owns >= 18 centres), horizon (the horizon year finished; its winter is not played), last_standing (one power left).",
+      "properties": {
+        "kind": {
+          "enum": [
+            "solo",
+            "horizon",
+            "last_standing"
+          ]
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 1901,
+          "maximum": 1908
+        },
+        "winner": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/power"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "horizon"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "winner": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "winner": {
+            "$ref": "#/$defs/power"
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "t": "diplomacy_episode_end",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+      "power": "germany",
+      "outcome": "survived",
+      "terminal": {
+        "kind": "horizon",
+        "year": 1906,
+        "winner": null
+      },
+      "sc_counts": {
+        "austria": 3,
+        "england": 4,
+        "france": 6,
+        "germany": 8,
+        "italy": 4,
+        "russia": 5,
+        "turkey": 4
+      },
+      "unit_counts": {
+        "austria": 3,
+        "england": 4,
+        "france": 6,
+        "germany": 8,
+        "italy": 4,
+        "russia": 5,
+        "turkey": 4
+      },
+      "eliminated": [],
+      "civil_disorder": [],
+      "terminal_tick": 77,
+      "replay_hash": "sha256:a3f1c09e5b7d2e4f6a8c0b1d3e5f7a9c1b3d5e7f9a0c2e4f6a8b0d1e3f5a7c9b",
+      "transcript_hash": "sha256:6d2e8f0a1b3c5d7e9f1a2b4c6d8e0f1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d0e"
+    },
+    {
+      "t": "diplomacy_episode_end",
+      "protocol_version": "1.0",
+      "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00001",
+      "power": "austria",
+      "outcome": "loss",
+      "terminal": {
+        "kind": "solo",
+        "year": 1905,
+        "winner": "turkey"
+      },
+      "sc_counts": {
+        "austria": 2,
+        "england": 5,
+        "france": 5,
+        "germany": 4,
+        "italy": 0,
+        "russia": 0,
+        "turkey": 18
+      },
+      "unit_counts": {
+        "austria": 2,
+        "england": 5,
+        "france": 5,
+        "germany": 4,
+        "italy": 0,
+        "russia": 0,
+        "turkey": 18
+      },
+      "eliminated": [
+        "italy",
+        "russia"
+      ],
+      "civil_disorder": [
+        "austria"
+      ],
+      "terminal_tick": 64,
+      "replay_hash": "sha256:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+      "transcript_hash": "sha256:1f2e3d4c5b6a79887766a5b4c3d2e1f01f2e3d4c5b6a79887766a5b4c3d2e1f0",
+      "evaluation_hash": "sha256:2e3d4c5b6a7988776655a4b3c2d1e0f92e3d4c5b6a7988776655a4b3c2d1e0f9"
+    }
+  ]
+}

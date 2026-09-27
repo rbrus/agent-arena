@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:observation:raid:1",
+  "title": "Raid observation frame (server -> agent, outbound)",
+  "description": "Per-tick view sent to ONE squad member in a co-op raid encounter (squad vs a scripted boss on the grid). Carries squad-SHARED public state (boss health/phase/telegraph, threat/aggro table, downed/revive state, shared objective) plus this member's own units and fog-filtered allies. FOG CONTRACT (same discipline as the duel, observation:grid_tactics:1): hidden information is ABSENT, never present-but-null; build by whitelist projection, never by redacting full state. The boss and its telegraph are deterministic (Pillar 9 — no boss LLM); The Hallucinator's FALSE observations are legitimate in-fiction content of THIS frame, marked with `suspect: true` where the design exposes them (raids-v1). additionalProperties is false so a stray field cannot leak.",
+  "x-frame-name": "raid_observation",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 32768,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "raid_id", "turn_id", "nonce", "deadline_ms", "phase", "boss", "you", "squad", "threat"],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "description": "Board coordinate [x, y], origin (0,0). Raid grid dimensions are boss/encounter-specific (docs/design/raids-v1.md); coordinates are non-negative integers.",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 0 }
+    },
+    "unitView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "cell", "hp", "max_hp"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 40 },
+        "type": { "type": "string", "maxLength": 32, "description": "Unit archetype (roster is defined in raids-v1)." },
+        "owner": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Squad member that owns this unit (absent for boss/adds)." },
+        "cell": { "$ref": "#/$defs/cell" },
+        "hp": { "type": "integer", "minimum": 0 },
+        "max_hp": { "type": "integer", "minimum": 1 },
+        "suspect": { "type": "boolean", "description": "True when this sighting MAY be a boss-injected false observation (e.g. The Hallucinator). Deterministic from the tick log; the squad must reason about it." }
+      }
+    }
+  },
+  "properties": {
+    "t": { "const": "raid_observation" },
+    "protocol_version": { "const": "1.0" },
+    "raid_id": { "type": "string", "pattern": "^rad_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": { "type": "integer", "minimum": 0, "description": "= tick. The action for this tick MUST echo this turn_id (anti-replay / stale-turn guard)." },
+    "nonce": { "type": "string", "minLength": 8, "maxLength": 64, "description": "Server-issued opaque per-tick nonce; the action MUST echo it exactly. One accepted action-set per (turn_id, nonce) per member." },
+    "deadline_ms": { "type": "integer", "minimum": 100, "description": "Soft deadline Ds for THIS tick from when this frame was sent." },
+    "hard_deadline_ms": { "type": "integer", "minimum": 100, "description": "Optional hard deadline Dh." },
+    "phase": { "const": "raid" },
+    "boss": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Always-public boss state. Deterministic scripted encounter (Pillar 9). `telegraph` announces the boss's next scripted attack one or more ticks ahead (the co-op read).",
+      "required": ["boss_id", "phase", "hp", "max_hp"],
+      "properties": {
+        "boss_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,40}$", "description": "e.g. the_hallucinator, mode_collapse." },
+        "name": { "type": "string", "maxLength": 48 },
+        "phase": { "type": "integer", "minimum": 0, "description": "Current scripted phase index." },
+        "phase_name": { "type": "string", "maxLength": 48 },
+        "hp": { "type": "integer", "minimum": 0 },
+        "max_hp": { "type": "integer", "minimum": 1 },
+        "cell": { "$ref": "#/$defs/cell" },
+        "enraged": { "type": "boolean", "description": "Phase/timer enrage flag (deterministic)." },
+        "telegraph": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "The boss's next telegraphed action, or null. Deterministic from the tick log; the squad's coordination read.",
+          "required": ["pattern", "resolves_on_turn"],
+          "properties": {
+            "pattern": { "type": "string", "maxLength": 48, "description": "Scripted attack/mechanic id (raids-v1)." },
+            "resolves_on_turn": { "type": "integer", "minimum": 0 },
+            "cells": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/cell" }, "description": "Cells the telegraph will strike (the dodge read)." }
+          }
+        }
+      }
+    },
+    "you": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "This member's private detail.",
+      "required": ["member_id", "slot", "action_tokens_remaining", "downed", "units"],
+      "properties": {
+        "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "slot": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "action_tokens_remaining": { "type": "integer", "minimum": 0 },
+        "action_tokens_spent": { "type": "integer", "minimum": 0 },
+        "downed": { "type": "boolean", "description": "True if this member is downed (awaiting revive). A downed member's units act only if the design permits; see raids-v1." },
+        "units": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/unitView" }, "description": "Every LIVING unit you own, full detail. Dead units are absent." }
+      }
+    },
+    "squad": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Shared squad roster snapshot (allies). Symmetric — the co-op coordination surface.",
+      "required": ["members"],
+      "properties": {
+        "members": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["member_id", "slot", "downed", "alive_units"],
+            "properties": {
+              "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+              "slot": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "display_name": { "type": "string", "maxLength": 32, "description": "Sanitized public name." },
+              "downed": { "type": "boolean" },
+              "alive_units": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "objective": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional shared objective/progress bar for the encounter (raids-v1).",
+          "properties": {
+            "id": { "type": "string", "maxLength": 40 },
+            "progress": { "type": "integer", "minimum": 0 },
+            "target": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "threat": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Boss aggro/threat state. `aggro_on` is the member the boss is currently focusing (deterministic from accumulated threat).",
+      "required": ["table"],
+      "properties": {
+        "aggro_on": { "type": ["string", "null"], "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Member the boss is targeting, or null." },
+        "table": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["member_id", "threat"],
+            "properties": {
+              "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+              "threat": { "type": "integer", "minimum": 0, "description": "Accumulated threat this member holds toward the boss." }
+            }
+          }
+        }
+      }
+    },
+    "adds": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/unitView" },
+      "description": "Optional boss-spawned minions currently in your visible set (fog-filtered like the duel)."
+    },
+    "allies_visible": {
+      "type": "array",
+      "maxItems": 40,
+      "items": { "$ref": "#/$defs/unitView" },
+      "description": "Optional: allied squad units currently in your vision (co-op has generous shared vision; raids-v1 defines the exact rule)."
+    },
+    "revive": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional revive affordance: downed allies and where they can be revived this tick.",
+      "properties": {
+        "downed_members": { "type": "array", "maxItems": 5, "items": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" } },
+        "revivable": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["member_id", "at_cell"],
+            "properties": {
+              "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$" },
+              "at_cell": { "$ref": "#/$defs/cell" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "t": "raid_observation",
+      "protocol_version": "1.0",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "turn_id": 42,
+      "nonce": "n_1a2b3c4d5e6f7a8b",
+      "deadline_ms": 1500,
+      "hard_deadline_ms": 3000,
+      "phase": "raid",
+      "boss": {
+        "boss_id": "the_hallucinator",
+        "name": "The Hallucinator",
+        "phase": 1,
+        "phase_name": "False Signals",
+        "hp": 640,
+        "max_hp": 1000,
+        "cell": [6, 6],
+        "enraged": false,
+        "telegraph": { "pattern": "phantom_barrage", "resolves_on_turn": 44, "cells": [[5, 6], [6, 6], [7, 6]] }
+      },
+      "you": {
+        "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "slot": 1,
+        "action_tokens_remaining": 180,
+        "action_tokens_spent": 60,
+        "downed": false,
+        "units": [ { "unit_id": "m1-vanguard", "type": "vanguard", "owner": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "cell": [5, 5], "hp": 12, "max_hp": 14 } ]
+      },
+      "squad": {
+        "members": [
+          { "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "slot": 1, "display_name": "Vanguard One", "downed": false, "alive_units": 1 },
+          { "member_id": "mem_RR33N2WP4JDB6SXCKN87CKTSV6", "slot": 2, "display_name": "Mender", "downed": false, "alive_units": 1 },
+          { "member_id": "mem_KW6FCST8Z65024SN2BESYVKNVJ", "slot": 3, "display_name": "Warden", "downed": true, "alive_units": 0 }
+        ],
+        "objective": { "id": "purge_false_signals", "progress": 2, "target": 5 }
+      },
+      "threat": {
+        "aggro_on": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG",
+        "table": [
+          { "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG", "threat": 320 },
+          { "member_id": "mem_RR33N2WP4JDB6SXCKN87CKTSV6", "threat": 110 }
+        ]
+      },
+      "adds": [ { "unit_id": "phantom-7", "type": "phantom", "cell": [6, 4], "hp": 1, "max_hp": 1, "suspect": true } ],
+      "revive": {
+        "downed_members": ["mem_KW6FCST8Z65024SN2BESYVKNVJ"],
+        "revivable": [ { "member_id": "mem_KW6FCST8Z65024SN2BESYVKNVJ", "at_cell": [4, 5] } ]
+      }
+    }
+  ]
+}

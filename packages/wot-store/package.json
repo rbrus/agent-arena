@@ -1,0 +1,19 @@
+{
+  "name": "wot-store",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Storage interfaces + in-memory implementations (owners keyed by Architect issuer+sub, passports, tickets, matches, replays). Interface-first so a durable implementation slots behind these seams later.",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./net-blocklist": "./src/net-blocklist.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ulid": "^2.3.0",
+    "wot-auth": "*"
+  }
+}

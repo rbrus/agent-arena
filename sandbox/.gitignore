@@ -1,0 +1,6 @@
+# Local secrets and run output of the sandbox. Never commit.
+.env
+.env.*
+!.env.example
+out/
+dist/

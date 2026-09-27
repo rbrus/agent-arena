@@ -1,0 +1,204 @@
+# rbrus/agent-arena - CI. Lives in the PRIVATE repo under ascension/.github-public/
+# and is copied to .github/workflows/ by the extraction procedure
+# (docs/phase-7/EXTRACTION.md, section 3). It runs only in the public layout.
+#
+# Script contract (EXTRACTION.md section 9). Root package.json provides
+#   contracts:tier0, contracts:check, typecheck, test, gate, build:cli,
+#   licenses:third-party, target:reference, sarif:validate
+# and the @rbrus/agent-arena workspace provides lint:net. build:cli bundles to
+# packages/arena-cli/dist/agent-arena.cjs.
+#
+# `gate` fails with "phase7 gate not built" until qa/phase7-gate.ts exists
+# (Stage C1). That is deliberate: CI must not report a gate it did not run.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: # release.yml re-runs the full check before publishing anything
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Frozen golden anchor: byzantine, core tier, squad seating, seed 20260720,
+  # in-process coordinated reference. Must equal the row in
+  # packages/arena-scenarios/src/anchors.ts (checked below).
+  ANCHOR_HASH: sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147
+  GATE_SEEDS: 20260720,1,2,3,5
+
+jobs:
+  check:
+    name: check (node ${{ matrix.node }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22 is the supported floor and the runtime embedded in the release
+        # binaries and the image. 24 proves replay hashes do not depend on the
+        # Node major.
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install (lockfile-exact)
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Contracts tier-0 (v2.x self-consistency)
+        run: npm run contracts:tier0
+
+      - name: Contract checks (mirrors, OpenAPI examples, negative cases)
+        run: npm run contracts:check
+
+      - name: Network lint (no network call outside packages/arena-cli/src/net/)
+        run: npm run lint:net -w @rbrus/agent-arena
+
+      # The gate's C5-INSPECTOR check runs frontend/node_modules/.bin/vitest;
+      # without this install it fails with "exit -2; no summary" (EXTRACTION-DRYRUN.md).
+      - name: Install inspector deps for the gate (lockfile-exact)
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Phase gate (qa/phase7-gate.ts)
+        run: npm run gate
+        env:
+          # The gate writes machine-readable evidence here; uploaded below.
+          ARENA_GATE_OUT: ${{ runner.temp }}/gate
+
+      - name: Upload gate evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gate-evidence-node${{ matrix.node }}
+          path: ${{ runner.temp }}/gate
+          if-no-files-found: warn
+          retention-days: 14
+
+  cli-bundle:
+    name: cli bundle smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+
+      - name: The workflow anchor equals the frozen anchor table
+        run: |
+          set -euo pipefail
+          grep -qF "$ANCHOR_HASH" packages/arena-scenarios/src/anchors.ts \
+            || { echo "::error::ANCHOR_HASH is not in packages/arena-scenarios/src/anchors.ts (re-freeze without a workflow bump?)"; exit 1; }
+
+      - name: Build the single-file CLI bundle (esbuild, schemas inlined) + licences
+        run: |
+          set -euo pipefail
+          npm run build:cli
+          npm run licenses:third-party -- --out packages/arena-cli/dist/THIRD_PARTY_LICENSES.txt
+
+      - name: Smoke the bundle outside the workspace (no node_modules on the path)
+        run: |
+          set -euo pipefail
+          smoke="$RUNNER_TEMP/smoke"
+          mkdir -p "$smoke"
+          cp packages/arena-cli/dist/agent-arena.cjs "$smoke/"
+          # A committed golden fixture set (Stage C1) is copied WHOLE: verify
+          # re-simulates from the sibling report.episode-<n>.record.json files,
+          # so copying only the report would make it unverifiable (exit 2).
+          if [ -d qa/fixtures/golden ]; then cp -R qa/fixtures/golden "$smoke/golden-committed"; fi
+          cd "$smoke"
+          node agent-arena.cjs --version
+          node agent-arena.cjs list-scenarios
+          # The five gate seeds against the in-process coordinated reference:
+          # every episode must report "anchor: match" and episode 0 must equal
+          # the frozen hash exactly.
+          node agent-arena.cjs run --scenario byzantine --seat squad --tier core \
+            --seeds "$GATE_SEEDS" --episodes 5 --target ref:coordinated --out gate 2>&1 | tee run.log
+          test "$(grep -c 'anchor: match' run.log)" -eq 5
+          got=$(node -p "require('./gate/report.json').episodes[0].replay_hash")
+          [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::anchor mismatch: $got != $ANCHOR_HASH"; exit 1; }
+          # Move the WHOLE output directory, then verify from the new place.
+          cp -R gate golden-fresh
+          node agent-arena.cjs verify golden-fresh/report.json
+          if [ -d golden-committed ]; then
+            find golden-committed -type f \( -name report.json -o -name '*.report.json' \) -print0 \
+              | xargs -0 -n1 node agent-arena.cjs verify
+          fi
+
+      - name: npm pack dry run (what would be published)
+        working-directory: packages/arena-cli
+        run: npm pack --dry-run
+
+  secrets:
+    name: secrets scan (full history)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # >= 8.25.0 is required: .gitleaks.toml uses [[allowlists]] + targetRules,
+      # which 8.24.x silently ignores (EXTRACTION-DRYRUN.md).
+      GITLEAKS_VERSION: 8.30.1
+      # sha256 of gitleaks_8.30.1_linux_x64.tar.gz from the upstream checksums file.
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The gitleaks binary (MIT) is used directly instead of gitleaks-action,
+      # which needs a paid licence key on organisation accounts.
+      - name: Install gitleaks (checksum-pinned)
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/gitleaks.tgz" "$url"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP" gitleaks
+      - name: Scan git history
+        run: |
+          "$RUNNER_TEMP/gitleaks" git --no-banner --redact --config .gitleaks.toml --exit-code 1 .
+
+  inspector:
+    name: replay inspector (build, no-network, tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install workspace deps (the inspector's sample tests run the CLI)
+        run: npm ci --no-audit --no-fund
+      - name: Install (lockfile-exact)
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      # lint:no-danger, vite build, no external origins in dist, vitest (happy-dom).
+      - name: Verify
+        working-directory: frontend
+        run: npm run verify

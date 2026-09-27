@@ -1,0 +1,456 @@
+{
+  "report_version": "1.0",
+  "run": {
+    "run_id": "run_PT058XFW2M0RD9XJ4BMCPZGGGH",
+    "mode": "local",
+    "started_at": "2026-09-26T13:51:51.630Z",
+    "finished_at": "2026-09-26T13:51:51.646Z",
+    "tool": {
+      "name": "@rbrus/agent-arena",
+      "version": "0.1.0"
+    },
+    "spec": {
+      "scenario_id": "overfit",
+      "scenario_version": "1.2.0",
+      "seeds": [
+        20260720
+      ],
+      "episodes": 1,
+      "budget_tier": "core",
+      "seat": {
+        "mode": "squad"
+      },
+      "target": {
+        "transport": "rest",
+        "url": "http://in-process.invalid/ref:naive",
+        "label": "in-process reference ref:naive"
+      },
+      "labels": {
+        "arena.network_policy": "in-process"
+      }
+    },
+    "target_ownership": {
+      "loopback": true,
+      "attested": false
+    }
+  },
+  "engine": {
+    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_scope": "core",
+    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "version": "arena@2.0.0"
+  },
+  "scenario": {
+    "scenario_id": "overfit",
+    "version": "1.2.0",
+    "failure_mode_id": "overfitting",
+    "oracles": [
+      {
+        "oracle_id": "overfit.predictability",
+        "title": "Stays unpredictable while the boss models it",
+        "primary": true,
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/overfit.md#predictability"
+      },
+      {
+        "oracle_id": "overfit.absorbed_share",
+        "title": "Does not absorb a disproportionate share of hits",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/overfit.md#absorbed_share"
+      },
+      {
+        "oracle_id": "overfit.outcome",
+        "title": "Encounter outcome",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "warning",
+          "note"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/overfit.md#outcome"
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "title": "Stays within the tier budget",
+        "level": "episode",
+        "basis": "attested",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#budget_violation"
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "title": "Submits legal, protocol-conformant actions",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error",
+          "warning"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#illegal_action_rate"
+      },
+      {
+        "oracle_id": "shared.participation",
+        "title": "Issues at least one non-trivial action (holding still is not a pass)",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/shared.md#participation"
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "title": "The episode re-simulates to its own hash",
+        "level": "episode",
+        "basis": "resim",
+        "severities": [
+          "error"
+        ],
+        "help_uri": "https://github.com/rbrus/agent-arena/blob/main/docs/scenarios/harness.md#replay_integrity"
+      }
+    ]
+  },
+  "budget_limits": {
+    "tier": "core",
+    "soft_deadline_ms": 1500,
+    "hard_deadline_ms": 3000,
+    "hard_miss_forfeit": 3,
+    "token_allowance": 240,
+    "tick_cap": 120,
+    "max_orders_per_unit": 1,
+    "max_inbound_frame_bytes": 8192
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "seed": 20260720,
+      "scenario_id": "overfit",
+      "mode": "squad",
+      "seat": "squad",
+      "status": "completed",
+      "outcome": "wipe",
+      "outcome_reason": "squad_wiped",
+      "terminal_tick": 100,
+      "replay_hash": "sha256:ccdcbb7b0ef1100d217d5534550a84c1a243f2fcec9e786fea70d5cb287203bd",
+      "replay_ref": "report.episode-0.replay.json",
+      "trajectory_class": "sha256:2290f30ce2949738a3f04cbac7014a9ceddd6b165361347bb098a069017b8d0f",
+      "blinding_key": "b1fd2934594dac4533893eb401326bcfd88f734bd3ca6aa8277ad913584aba3d",
+      "budget": {
+        "tier": "core",
+        "decisions": 100,
+        "actions_submitted": 0,
+        "actions_rejected": 0,
+        "frames_too_large": 0,
+        "soft_deadline_misses": 0,
+        "hard_deadline_misses": 0,
+        "coerced_orders": 0,
+        "over_allowance_orders": 0,
+        "tokens_allowance": 1200,
+        "tokens_spent": 420,
+        "within_budget": true
+      },
+      "oracles": [
+        {
+          "oracle_id": "overfit.predictability",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "error",
+          "basis": "resim",
+          "measures": {
+            "predictability_pct": 86,
+            "m0_pct": 100,
+            "m1_pct": 78,
+            "m2_pct": 78,
+            "m3_pct": 95,
+            "m4_pct": 95
+          },
+          "thresholds": {
+            "pass_max": 66,
+            "error_min": 80
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:ccdcbb7b0ef1100d217d5534550a84c1a243f2fcec9e786fea70d5cb287203bd",
+            "ticks": [
+              13,
+              99
+            ],
+            "code": "predictable_policy",
+            "message": "The squad's attack pattern reached 86% predictability; the boss absorbs that share of its damage."
+          }
+        },
+        {
+          "oracle_id": "overfit.absorbed_share",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "warning",
+          "basis": "resim",
+          "measures": {
+            "absorbed_share": 0.71,
+            "m0_absorbed": 0.8,
+            "m1_absorbed": 0.6159,
+            "m2_absorbed": 0.5391,
+            "m3_absorbed": 0.8444
+          },
+          "thresholds": {
+            "warning_min": 0.67
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:ccdcbb7b0ef1100d217d5534550a84c1a243f2fcec9e786fea70d5cb287203bd",
+            "ticks": [
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45
+            ],
+            "code": "damage_absorbed",
+            "message": "The boss absorbed 71% of the squad's damage after it fitted the counter-table."
+          }
+        },
+        {
+          "oracle_id": "overfit.outcome",
+          "seat": "squad",
+          "verdict": "fail",
+          "severity": "warning",
+          "basis": "resim",
+          "measures": {
+            "terminal_tick": 100,
+            "boss_hp": 110
+          },
+          "evidence_ref": {
+            "replay_hash": "sha256:ccdcbb7b0ef1100d217d5534550a84c1a243f2fcec9e786fea70d5cb287203bd",
+            "ticks": [
+              99
+            ],
+            "code": "episode_wipe",
+            "message": "The encounter ended in wipe at tick 100."
+          }
+        },
+        {
+          "oracle_id": "shared.budget_violation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "tokens_spent": 420,
+            "tokens_allowance": 1200,
+            "over_allowance_orders": 0,
+            "clock_assessed": 0
+          },
+          "thresholds": {
+            "soft_miss_rate_max": 0.05,
+            "hard_miss_forfeit": 3
+          }
+        },
+        {
+          "oracle_id": "shared.illegal_action_rate",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "rate": 0,
+            "illegal": 0,
+            "submitted": 328,
+            "engine_coercions": 0,
+            "transport_rejects": 0,
+            "over_speed": 0,
+            "truncated_moves": 0
+          },
+          "thresholds": {
+            "pass_max": 0.02,
+            "warning_max": 0.1
+          }
+        },
+        {
+          "oracle_id": "shared.participation",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "decision_ticks": 100,
+            "nontrivial_actions": 217,
+            "active_ticks": 100,
+            "trivial_actions": 111,
+            "moves": 23,
+            "attacks": 194,
+            "revives": 0,
+            "pings": 0
+          },
+          "thresholds": {
+            "nontrivial_actions_min": 1
+          }
+        },
+        {
+          "oracle_id": "harness.replay_integrity",
+          "seat": "squad",
+          "verdict": "pass",
+          "severity": "note",
+          "basis": "resim",
+          "measures": {
+            "ticks": 100
+          }
+        }
+      ],
+      "duration_ms": 10,
+      "seats": [
+        {
+          "seat": "m0",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:7a0b5405e8a5237844d97562a0a22a434a4716c77cb8300fbd96ad8e2ff699f6"
+          }
+        },
+        {
+          "seat": "m1",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:a1ab090581d730ee6296afc1b5a97fcd74fbfc1df96bf51b3e7c6c05c6f4b124"
+          }
+        },
+        {
+          "seat": "m2",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:7e46046d5efe08fddfb61a10a96ff1c99f5df79781afc9938d42992d6fd5ae66"
+          }
+        },
+        {
+          "seat": "m3",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:2bf8776e8c47f55cc262d6c82670e7697c7fad1e512dc9930bf273aef974f469"
+          }
+        },
+        {
+          "seat": "m4",
+          "driver": "target",
+          "inputs_source": "recorded",
+          "recorded_inputs": {
+            "decisions": 100,
+            "digest": "sha256:f9efe79184785179e08c74101371c70dd3f582abd2a0544a6e0829eafea9281b"
+          }
+        }
+      ]
+    }
+  ],
+  "run_oracles": [],
+  "summary": {
+    "verdict": "fail",
+    "episodes_total": 1,
+    "episodes_completed": 1,
+    "episodes_aborted": 0,
+    "effective_episodes": 1,
+    "outcomes": {
+      "wipe": 1
+    },
+    "oracles": [
+      {
+        "oracle_id": "overfit.predictability",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "error": 1
+        }
+      },
+      {
+        "oracle_id": "overfit.absorbed_share",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "warning": 1
+        }
+      },
+      {
+        "oracle_id": "overfit.outcome",
+        "pass": 0,
+        "fail": 1,
+        "not_assessed": 0,
+        "fail_by_severity": {
+          "warning": 1
+        }
+      },
+      {
+        "oracle_id": "shared.budget_violation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.illegal_action_rate",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "shared.participation",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      },
+      {
+        "oracle_id": "harness.replay_integrity",
+        "pass": 1,
+        "fail": 0,
+        "not_assessed": 0
+      }
+    ],
+    "within_budget_episodes": 1
+  },
+  "disclosure": {
+    "conflict_of_interest": "This arena is maintained by Sixi AI, the vendor of a tool it may be used to score. Verdicts are computed by deterministic, published oracles over hash-committed replays; scoring is oracle-first and tool-blind.",
+    "determinism": "Replaying an episode record always reproduces its replay_hash. Re-running a live target may not: a late or missed decision changes the recorded inputs."
+  },
+  "not_assessed": []
+}

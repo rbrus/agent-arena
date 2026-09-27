@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:action:grid_tactics:1",
+  "title": "Grid Tactics action frame (agent -> server, inbound)",
+  "description": "One action-set submitted per tick: at most one action per controlled unit. A unit not listed Holds (the default). Encoded from docs/design/grid-tactics-v1.md §4. Must echo the observation's turn_id AND nonce (anti-replay). additionalProperties is false everywhere: unknown fields are a schema_invalid reject. Costs are canonical server-side (hold 0, move 1/step, attack 2) and are NOT declared by the client — this deliberately drops the legacy client-declared `cost` echo (see versioning.md).",
+  "x-frame-name": "action",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "match_id", "turn_id", "nonce", "units"],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 0, "maximum": 8 }
+    },
+    "dir": { "enum": ["N", "E", "S", "W"], "description": "Orthogonal step direction. N=+y, E=+x, S=-y, W=-x." },
+    "hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 32 },
+        "verb": { "const": "hold" }
+      }
+    },
+    "move": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "steps"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 32 },
+        "verb": { "const": "move" },
+        "steps": {
+          "type": "array",
+          "description": "Ordered step list (NOT a destination), 1..unit.speed entries. Validated left-to-right from the current cell; the first step leaving the board or entering an obstacle truncates the move (the unit takes the legal prefix). Zero-length/empty is illegal — use `hold`.",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/dir" }
+        }
+      }
+    },
+    "attack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "target"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 32 },
+        "verb": { "const": "attack" },
+        "target": {
+          "allOf": [{ "$ref": "#/$defs/cell" }],
+          "description": "Target CELL (not a unit) within the unit's attack range (Chebyshev) of its current cell, and on-board. You fire where you predict the enemy will be; movement resolves before combat, so a vacated target is a whiff. Because vision >= range, the target is always a cell you can see."
+        }
+      }
+    }
+  },
+  "properties": {
+    "t": { "const": "action" },
+    "protocol_version": { "const": "1.0" },
+    "match_id": { "type": "string", "pattern": "^mat_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "MUST equal the current observation's turn_id (= tick). A stale/future turn_id is rejected (`stale_turn`)."
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64,
+      "description": "MUST equal the current observation's nonce. Mismatch or reuse -> `bad_echo` reject."
+    },
+    "units": {
+      "type": "array",
+      "description": "0..4 unit actions. At most one action per unit_id; a duplicate unit_id in one set is schema_invalid. A unit omitted here Holds. An empty array means every unit Holds (a legal no-op).",
+      "minItems": 0,
+      "maxItems": 4,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/hold" },
+          { "$ref": "#/$defs/move" },
+          { "$ref": "#/$defs/attack" }
+        ]
+      }
+    },
+    "thought": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "OPTIONAL spectator commentary (<=200 chars, <=1/tick). NEVER parsed by the engine, never delivered to the opponent in-match, sanitized before storage, shown to spectators on a >=3-tick delay. Can also be sent out-of-band via the standalone `thought` frame."
+    }
+  },
+  "examples": [
+    {
+      "t": "action",
+      "protocol_version": "1.0",
+      "match_id": "mat_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "turn_id": 20,
+      "nonce": "n_7f3a9c1e0b2d4a6f",
+      "units": [
+        { "unit_id": "A-guard", "verb": "hold" },
+        { "unit_id": "A-archer", "verb": "hold" },
+        { "unit_id": "A-scout", "verb": "attack", "target": [6, 4] },
+        { "unit_id": "A-lancer", "verb": "move", "steps": ["N"] }
+      ],
+      "thought": "Falling the Lancer back to screen the Nexus."
+    }
+  ]
+}

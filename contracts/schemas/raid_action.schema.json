@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:action:raid:1",
+  "title": "Raid action frame (agent -> server, inbound)",
+  "description": "One squad member's action-set for the current raid tick: at most one action per controlled unit. A unit not listed Holds. Must echo the raid observation's turn_id AND nonce (anti-replay). Verbs mirror the duel (hold/move/attack) plus co-op verbs: `revive` (raise a downed ally) and `ability` (a role-granted affordance — options, never raw power; MISSION §4.4). Costs are canonical server-side, never client-declared. additionalProperties is false everywhere. Analogous to `wot:action:grid_tactics:1`.",
+  "x-frame-name": "raid_action",
+  "x-direction": "inbound",
+  "x-max-frame-bytes": 8192,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["t", "protocol_version", "raid_id", "turn_id", "nonce", "member_id", "units"],
+  "$defs": {
+    "cell": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+    "dir": { "enum": ["N", "E", "S", "W"], "description": "Orthogonal step direction. N=+y, E=+x, S=-y, W=-x." },
+    "hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb"],
+      "properties": { "unit_id": { "type": "string", "maxLength": 40 }, "verb": { "const": "hold" } }
+    },
+    "move": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "steps"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 40 },
+        "verb": { "const": "move" },
+        "steps": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/dir" }, "description": "Ordered step list (NOT a destination), validated left-to-right; the first illegal step truncates the move." }
+      }
+    },
+    "attack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "target"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 40 },
+        "verb": { "const": "attack" },
+        "target": { "allOf": [{ "$ref": "#/$defs/cell" }], "description": "Target CELL within range. Attack the boss/add by aiming at its cell; movement resolves before combat." }
+      }
+    },
+    "revive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "target_member"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 40 },
+        "verb": { "const": "revive" },
+        "target_member": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The downed squad member to raise. Must be adjacent/in-range per raids-v1." }
+      }
+    },
+    "ability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "verb", "ability_id"],
+      "properties": {
+        "unit_id": { "type": "string", "maxLength": 40 },
+        "verb": { "const": "ability" },
+        "ability_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,40}$", "description": "A role-granted affordance defined by the scenario (server-enforced, never client trust). Unknown/unauthorized -> per-unit coercion to Hold." },
+        "target": { "allOf": [{ "$ref": "#/$defs/cell" }], "description": "Optional target cell for the ability." },
+        "target_member": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$", "description": "Optional target squad member for the ability." }
+      }
+    }
+  },
+  "properties": {
+    "t": { "const": "raid_action" },
+    "protocol_version": { "const": "1.0" },
+    "raid_id": { "type": "string", "pattern": "^rad_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "turn_id": { "type": "integer", "minimum": 0, "description": "MUST equal the current raid observation's turn_id. A stale/future turn_id is rejected (`stale_turn`)." },
+    "nonce": { "type": "string", "minLength": 8, "maxLength": 64, "description": "MUST equal the current observation's nonce. Mismatch/reuse -> `bad_echo`." },
+    "member_id": { "type": "string", "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$", "description": "The acting squad member (MUST match the session's bound member). A member can only act for its own units." },
+    "units": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 8,
+      "description": "0..8 unit actions. At most one action per unit_id; a duplicate unit_id is schema_invalid. A unit omitted here Holds.",
+      "items": { "oneOf": [ { "$ref": "#/$defs/hold" }, { "$ref": "#/$defs/move" }, { "$ref": "#/$defs/attack" }, { "$ref": "#/$defs/revive" }, { "$ref": "#/$defs/ability" } ] }
+    },
+    "thought": { "type": "string", "maxLength": 200, "description": "OPTIONAL spectator commentary (<=200 chars, <=1/tick). NEVER parsed by the engine; sanitized; shown to spectators on a delay. Squad chat is NOT this channel." }
+  },
+  "examples": [
+    {
+      "t": "raid_action",
+      "protocol_version": "1.0",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "turn_id": 42,
+      "nonce": "n_1a2b3c4d5e6f7a8b",
+      "member_id": "mem_01J8ZK9QMR4T7V2X0PABCDE3FG",
+      "units": [
+        { "unit_id": "m1-vanguard", "verb": "ability", "ability_id": "taunt", "target": [6, 6] }
+      ],
+      "thought": "Taunting the boss off the downed Warden so the Mender can res."
+    },
+    {
+      "t": "raid_action",
+      "protocol_version": "1.0",
+      "raid_id": "rad_01J8ZKT9AA1B2C3D4E5F6G7H8J",
+      "turn_id": 43,
+      "nonce": "n_2b3c4d5e6f7a8b9c",
+      "member_id": "mem_RR33N2WP4JDB6SXCKN87CKTSV6",
+      "units": [
+        { "unit_id": "m2-mender", "verb": "revive", "target_member": "mem_KW6FCST8Z65024SN2BESYVKNVJ" }
+      ]
+    }
+  ]
+}

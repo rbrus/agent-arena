@@ -1,0 +1,49 @@
+{
+  "name": "@rbrus/agent-arena",
+  "version": "0.1.0",
+  "description": "agent-arena: evaluate an AI agent against deterministic failure-mode scenarios over REST, WebSocket, MCP or A2A, and get report.json + SARIF. The engine runs in-process; no model runs anywhere in the open core. Published as one self-contained bundle: no runtime dependencies (everything, including the contract schemas, is inlined by esbuild).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "agent-arena": "bin/agent-arena.cjs"
+  },
+  "files": [
+    "bin/agent-arena.cjs",
+    "dist/agent-arena.cjs",
+    "dist/THIRD_PARTY_LICENSES.txt",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "codegen": "node codegen.mjs",
+    "lint:net": "node scripts/lint-net.mjs",
+    "test": "node scripts/lint-net.mjs && node --test --import tsx test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsx build.ts",
+    "dev": "tsx src/bin.ts",
+    "licenses": "node scripts/licenses.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "arena-report": "*",
+    "arena-scenarios": "*",
+    "esbuild": "0.28.1",
+    "json-schema-to-typescript": "^15.0.4",
+    "postject": "1.0.0-alpha.6",
+    "wot-contracts": "*",
+    "wot-engine": "*",
+    "wot-store": "*",
+    "ws": "^8.21.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

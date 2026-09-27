@@ -1,0 +1,70 @@
+{
+  "description": "The hosted runner's environment contract (contracts 2.6.0; 2.7.0: ARENA_HOSTED is read, and the guarded name families of §3.1.3; signing.md §3.1, §3.1.1, §3.1.2, §3.1.3) in machine-readable form, for implementation tests. contract-check keeps it equal to the signing.md tables. The `image_digest_cases` are evaluated with the manifest `image_digest` of hosted_context examples[0] and platform linux/amd64.",
+  "since": "2.6.0",
+  "job_template": [
+    { "name": "ARENA_IMAGE_DIGEST", "required": "always", "secret": false, "format": "<index digest>,<platform manifest digest>" },
+    { "name": "ARENA_PACKS_DIR", "required": "when manifest packs[] is not empty", "secret": false },
+    { "name": "NODE_OPTIONS", "required": "never", "secret": false, "rule": "present only with an empty value" },
+    { "name": "ARENA_HOSTED", "required": "never", "secret": false, "rule": "read: restricts the CLI to `run --hosted`, `verify --hosted-seal`, `version`", "since": "2.7.0" }
+  ],
+  "secrets": [
+    { "name": "ARENA_TARGET_CREDENTIAL", "pattern": "^ARENA_TARGET_CREDENTIAL$", "when": "credential_mode is not none" },
+    { "name": "ARENA_SEAT_CREDENTIAL_<POWER>", "pattern": "^ARENA_SEAT_CREDENTIAL_[A-Z]{1,16}$", "when": "one per seats[] target" },
+    { "name": "ARENA_DIP_SECRET_<n>", "pattern": "^ARENA_DIP_SECRET_(0|[1-9][0-9]{0,3})$", "when": "Diplomacy family: n = 0..episode_secret_commitments.count-1" }
+  ],
+  "must_be_absent": [
+    { "name": "AGENT_ARENA_SECRETS_DIR", "field": "environment" },
+    { "name": "ARENA_DEBUG", "field": "environment" },
+    { "name": "NODE_OPTIONS", "field": "environment", "unless": "empty" },
+    { "name": "NODE_DEBUG", "field": "environment" },
+    { "name": "NODE_TLS_REJECT_UNAUTHORIZED", "field": "environment" },
+    { "name": "NODE_EXTRA_CA_CERTS", "field": "environment" },
+    { "name": "SSLKEYLOGFILE", "field": "environment" },
+    { "name": "NODE_V8_COVERAGE", "field": "environment" },
+    { "name": "WOT_CONTRACTS_DIR", "field": "environment" },
+    { "name": "ARENA_HOSTED_CONTEXT", "field": "manifest_source" },
+    { "name": "ARENA_RUN_SPEC", "field": "manifest_source" },
+    { "name": "ARENA_EPISODE_SECRETS", "field": "episode_secret_commitments", "taken_as_secret": true },
+    { "name": "ARENA_DIP_SECRET_<x>", "pattern": "^ARENA_DIP_SECRET_(?!(0|[1-9][0-9]{0,3})$)", "field": "episode_secret_commitments", "taken_as_secret": true }
+  ],
+  "guarded_families": {
+    "since": "2.7.0",
+    "field": "environment",
+    "families": ["^ARENA_", "^NODE_", "^SSL", "^OPENSSL"],
+    "proxy": "^(https?|all|no|ftp|grpc|ws|wss)_proxy$",
+    "case_insensitive": true,
+    "allowed": ["ARENA_IMAGE_DIGEST", "ARENA_PACKS_DIR", "ARENA_HOSTED", "NODE_OPTIONS", "NODE_VERSION", "YARN_VERSION"],
+    "allowed_values": [{ "name": "NODE_ENV", "value": "production" }],
+    "rule": "a variable whose name matches a family or the proxy pattern is refused unless it is in allowed, allowed_values (with that value), secrets, or must_be_absent (which refuses it with its own field)",
+    "cases": [
+      { "name": "NODE_USE_SYSTEM_CA", "expect": "reject" },
+      { "name": "SSL_CERT_FILE", "expect": "reject" },
+      { "name": "OPENSSL_CONF", "expect": "reject" },
+      { "name": "HTTPS_PROXY", "expect": "reject" },
+      { "name": "https_proxy", "expect": "reject" },
+      { "name": "ARENA_EXTRA", "expect": "reject" },
+      { "name": "NODE_ENV", "value": "development", "expect": "reject" },
+      { "name": "NODE_ENV", "value": "production", "expect": "accept" },
+      { "name": "ARENA_HOSTED", "value": "1", "expect": "accept" },
+      { "name": "NODE_VERSION", "value": "22.11.0", "expect": "accept" },
+      { "name": "HOME", "value": "/home/node", "expect": "accept" }
+    ]
+  },
+  "absent_for_manifest": [
+    { "name": "ARENA_TARGET_CREDENTIAL", "when": "credential_mode is none", "field": "/credential_mode" },
+    { "name": "ARENA_SEAT_CREDENTIAL_<POWER>", "when": "the RunSpec has no seats[] target", "field": "/credential_mode" },
+    { "name": "ARENA_DIP_SECRET_<n>", "when": "not a Diplomacy-family scenario, or n >= episode_secret_commitments.count", "field": "episode_secret_commitments" }
+  ],
+  "image_digest_cases": [
+    { "id": "index-then-platform", "value": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b,sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582", "expect": "accept" },
+    { "id": "platform-then-index", "value": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582,sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b", "expect": "accept" },
+    { "id": "unset", "value": null, "expect": "reject", "field": "/image_digest" },
+    { "id": "empty", "value": "", "expect": "reject", "field": "/image_digest" },
+    { "id": "tag-not-digest", "value": "ghcr.io/rbrus/agent-arena:latest", "expect": "reject", "field": "/image_digest" },
+    { "id": "upper-case-hex", "value": "sha256:BB9578D2C19A6E84AAA12CBA43E514D49687B3DA8986A965836B479C681D1D2B,sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582", "expect": "reject", "field": "/image_digest" },
+    { "id": "nine-entries", "value": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b,sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582,sha256:0000000000000000000000000000000000000000000000000000000000000001,sha256:0000000000000000000000000000000000000000000000000000000000000002,sha256:0000000000000000000000000000000000000000000000000000000000000003,sha256:0000000000000000000000000000000000000000000000000000000000000004,sha256:0000000000000000000000000000000000000000000000000000000000000005,sha256:0000000000000000000000000000000000000000000000000000000000000006,sha256:0000000000000000000000000000000000000000000000000000000000000007", "expect": "reject", "field": "/image_digest" },
+    { "id": "index-only", "value": "sha256:bb9578d2c19a6e84aaa12cba43e514d49687b3da8986a965836b479c681d1d2b", "expect": "reject", "field": "/image_digest/platform_manifest" },
+    { "id": "platform-only", "value": "sha256:2300d92555eb5fdde2193de741d7347c6f13a3cc2eb14ed888cf296d6d237582", "expect": "reject", "field": "/image_digest/index" },
+    { "id": "another-image", "value": "sha256:0000000000000000000000000000000000000000000000000000000000000001,sha256:0000000000000000000000000000000000000000000000000000000000000002", "expect": "reject", "field": "/image_digest/index" }
+  ]
+}

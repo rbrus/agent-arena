@@ -1,0 +1,1270 @@
+{
+  "$comment": "Contracts 2.1.0 (cases added in 2.5.0 carry `since`): must-reject corpus for the Diplomacy press layer. Each case is a diplomacy_action frame plus the engine context it arrives in, and the required outcome. `expect.frame` = schema_invalid means the arena edge refuses the whole frame (reject reason schema_invalid, counted in budget.actions_rejected); accepted means the frame is schema-valid and the listed per-message press rejects (diplomacy_press_reject codes) must be produced, the listed message indexes delivered, and nothing else. contracts/tools/contract-check.mjs checks the schema half; the press-layer implementation test (Phase 8 B3) replays every case against the engine. Credential-shaped values contain EXAMPLE.",
+  "contract_version": "2.5.0",
+  "frame_schema": "wot:action:diplomacy:1",
+  "context_fields": {
+    "phase": "phase of the step",
+    "tick": "turn_id of the step",
+    "step": "the observation step block",
+    "tier": "budget tier (quota table)",
+    "power": "the sender, as stamped by the session",
+    "known_offers": "offer ids visible to the sender and live",
+    "active_commitments": "commitment ids the sender is party to",
+    "eliminated": "eliminated powers",
+    "sig_mode": "key (hosted, default) or session (local CLI)",
+    "horizon_year": "(2.5.0, optional) the final year of the game (observation horizon.final_year); absent = 1908",
+    "ended_commitments": "(2.5.0, optional) commitment ids the sender is party to whose every clause has settled (state ended)"
+  },
+  "cases": [
+    {
+      "id": "press_oversize_raw",
+      "title": "Body over the 2048 raw cap refuses the whole frame (schema_invalid).",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "press_oversize_after_sanitisation",
+      "title": "601 ASCII bytes after sanitisation: that message is rejected, never truncated; the other is delivered.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Border talks tomorrow?"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_too_large"
+          }
+        ],
+        "delivered": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "press_oversize_multibyte",
+      "title": "250 code points of a 3-byte character = 750 bytes > 600: press_too_large (the cap is bytes, not characters).",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac\u20ac"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_too_large"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "offer_body_oversize",
+      "title": "An offer-move body is capped at 200 bytes.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_enter",
+                  "from_phase": "S1902M",
+                  "to_phase": "S1902M",
+                  "provinces": [
+                    "bur"
+                  ]
+                }
+              ],
+              "want": []
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_too_large"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "press_in_orders_step",
+      "title": "Press in the orders step: every message is press_not_in_round; the orders in the same frame still apply.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 44,
+        "step": {
+          "kind": "orders",
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 44,
+        "nonce": "Hs3kP0wqZ8aN",
+        "power": "germany",
+        "orders": [
+          "A ruh - bel",
+          "A hol S A ruh - bel"
+        ],
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Border talks tomorrow?"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_not_in_round"
+          }
+        ],
+        "delivered": [],
+        "orders_applied": true
+      }
+    },
+    {
+      "id": "press_in_intent_step",
+      "title": "Press in the intent step (before round 1) is press_not_in_round; the intent is recorded.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 40,
+        "step": {
+          "kind": "intent",
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 40,
+        "nonce": "pX4nB8cV1sQe",
+        "power": "germany",
+        "intent": {
+          "phase": "S1902M",
+          "orders": [
+            "A mun H"
+          ]
+        },
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Border talks tomorrow?"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_not_in_round"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "press_in_retreat_phase",
+      "title": "No press exists in a retreat phase.",
+      "context": {
+        "phase": "S1902R",
+        "tick": 45,
+        "step": {
+          "kind": "retreat",
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 45,
+        "nonce": "Rt5mQ1vZx7Lp",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Border talks tomorrow?"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_not_in_round"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "self_accept",
+      "title": "Accepting your own offer refuses the frame (schema_invalid; record code offer_self_accept).",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:germany:1"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "accept",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "prs:S1902M:r1:germany:1",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "self_counter",
+      "title": "Countering your own offer refuses the frame.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:germany:1"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "counter",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "prs:S1902M:r1:germany:1",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "order",
+                  "phase": "S1902M",
+                  "order": "A mun H"
+                }
+              ],
+              "want": []
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "withdraw_foreign_offer",
+      "title": "Only the proposer may withdraw.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "withdraw",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "prs:S1902M:r1:france:2"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "self_addressed",
+      "title": "The sender is never a recipient.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "group",
+              "powers": [
+                "germany",
+                "france"
+              ]
+            },
+            "body": "Hello."
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "accept_unknown_offer",
+      "title": "Accept of a well-formed but non-existent offer: offer_unknown, and NO commitment is bound.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "accept",
+            "to": {
+              "kind": "private",
+              "power": "austria"
+            },
+            "respond_to": "prs:S1902M:r1:austria:3",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "offer_unknown"
+          }
+        ],
+        "delivered": [],
+        "commitments_bound": []
+      }
+    },
+    {
+      "id": "renounce_unknown_commitment",
+      "title": "Renounce of a commitment the sender is not party to: commitment_unknown.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [
+          "cmt:prs:S1902M:r1:france:2"
+        ],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "renounce",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "cmt:prs:S1901M:r3:france:1",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "commitment_unknown"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "renounce_names_an_offer",
+      "title": "A renounce must name a cmt: id, never an offer id.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "renounce",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "prs:S1902M:r1:france:2",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "schema_invalid"
+      }
+    },
+    {
+      "id": "quota_messages_per_round",
+      "title": "Core allows 6 messages per round: the 7th is press_quota, the first 6 are delivered.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 0."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 1."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 2."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 3."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 4."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 5."
+          },
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "Note 6."
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 6,
+            "code": "press_quota"
+          }
+        ],
+        "delivered": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "recipient_eliminated",
+      "title": "Press to an eliminated power: press_bad_recipient.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": [
+          "italy"
+        ]
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "italy"
+            },
+            "body": "Hello."
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_bad_recipient"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "text_empty_after_sanitisation",
+      "title": "Only controls and zero-width characters: empty after sanitisation.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "\u0007\u200b\u202e"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_invalid_text"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "text_private_use",
+      "title": "A private-use code point is outside L*, N*, P*, S*, Zs.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "press",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "body": "hello \ue000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_invalid_text"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "terms_note_not_sanitised_form",
+      "title": "terms.note is signed, so it is validated, never rewritten: a double space is press_invalid_text.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_enter",
+                  "from_phase": "S1902M",
+                  "to_phase": "S1902M",
+                  "provinces": [
+                    "bur"
+                  ]
+                }
+              ],
+              "want": [],
+              "note": "Border  peace"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "press_invalid_text"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "clause_span_too_long",
+      "title": "A clause spanning more than 4 movement phases: terms_invalid.",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": []
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_attack",
+                  "from_phase": "S1902M",
+                  "to_phase": "S1905M",
+                  "power": "france"
+                }
+              ],
+              "want": []
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "terms_invalid"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "local_offer_needs_session_signature",
+      "title": "Local CLI mode: a JWS-shaped signature that cannot be verified is signature_invalid (use the literal session).",
+      "context": {
+        "phase": "S1902M",
+        "tick": 42,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [
+          "prs:S1902M:r1:france:2"
+        ],
+        "active_commitments": [],
+        "eliminated": [],
+        "sig_mode": "session"
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 42,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_enter",
+                  "from_phase": "S1902M",
+                  "to_phase": "S1902M",
+                  "provinces": [
+                    "bur"
+                  ]
+                }
+              ],
+              "want": []
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "signature_invalid"
+          }
+        ],
+        "delivered": []
+      }
+    },
+    {
+      "id": "clause_beyond_horizon",
+      "title": "Horizon 1906: an offer whose clause covers S1907M (after the final movement phase F1906M) is refused clause_beyond_horizon; the in-horizon offer after it is delivered.",
+      "context": {
+        "phase": "F1906M",
+        "tick": 86,
+        "step": {
+          "kind": "press",
+          "round": 1,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [],
+        "active_commitments": [],
+        "eliminated": [],
+        "horizon_year": 1906
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 86,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_enter",
+                  "from_phase": "F1906M",
+                  "to_phase": "S1907M",
+                  "provinces": [
+                    "bur"
+                  ]
+                }
+              ],
+              "want": []
+            }
+          },
+          {
+            "move": "offer",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000",
+            "terms": {
+              "give": [
+                {
+                  "kind": "no_enter",
+                  "from_phase": "F1906M",
+                  "to_phase": "F1906M",
+                  "provinces": [
+                    "bur"
+                  ]
+                }
+              ],
+              "want": []
+            }
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "clause_beyond_horizon"
+          }
+        ],
+        "delivered": [
+          1
+        ]
+      },
+      "since": "2.5.0"
+    },
+    {
+      "id": "renounce_ended_commitment",
+      "title": "Renounce of a commitment the sender is party to but that has ended (every clause settled): commitment_unknown, never an accepted no-op.",
+      "context": {
+        "phase": "F1902M",
+        "tick": 48,
+        "step": {
+          "kind": "press",
+          "round": 2,
+          "rounds_total": 3
+        },
+        "tier": "core",
+        "power": "germany",
+        "known_offers": [],
+        "active_commitments": [],
+        "eliminated": [],
+        "ended_commitments": [
+          "cmt:prs:S1902M:r1:france:2"
+        ]
+      },
+      "frame": {
+        "t": "diplomacy_action",
+        "protocol_version": "1.0",
+        "episode_id": "epi_01J9D1PX0MACY0EXAMP1E00000",
+        "turn_id": 48,
+        "nonce": "dQ7vX2mL9pRt",
+        "power": "germany",
+        "press": [
+          {
+            "move": "renounce",
+            "to": {
+              "kind": "private",
+              "power": "france"
+            },
+            "respond_to": "cmt:prs:S1902M:r1:france:2",
+            "signature": "eyJhbGciOiJFZERTQSJ9..EXAMPLE-signature-EXAMPLE-0000000000000000000000"
+          }
+        ]
+      },
+      "expect": {
+        "frame": "accepted",
+        "press_rejects": [
+          {
+            "msg_index": 0,
+            "code": "commitment_unknown"
+          }
+        ],
+        "delivered": []
+      },
+      "since": "2.5.0"
+    }
+  ]
+}

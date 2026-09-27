@@ -1,0 +1,745 @@
+{
+ "datc_version": "3.0",
+ "section": "6.E",
+ "cases": [
+  {
+   "id": "6.E.1",
+   "title": "Dislodged unit has no effect on attacker's area",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "sil" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - pru", "result": "success" },
+       { "o": "F kie - ber", "result": "success" },
+       { "o": "A sil S A ber - pru", "result": "success" }
+      ],
+      "russia": [
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "pru" },
+       { "power": "germany", "type": "F", "at": "ber" },
+       { "power": "germany", "type": "A", "at": "sil" }
+      ],
+      "dislodged_after": [
+       { "power": "russia", "type": "A", "at": "pru" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.2",
+   "title": "No self dislodgement in head-to-head battle",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "kie" },
+     { "power": "germany", "type": "A", "at": "mun" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - kie", "result": "failure" },
+       { "o": "F kie - ber", "result": "failure" },
+       { "o": "A mun S A ber - kie", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "kie" },
+       { "power": "germany", "type": "A", "at": "mun" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.3",
+   "title": "No help in dislodging own unit",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "A", "at": "mun" },
+     { "power": "england", "type": "F", "at": "kie" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "A ber - kie", "result": "failure" },
+       { "o": "A mun S F kie - ber", "result": "success" }
+      ],
+      "england": [
+       { "o": "F kie - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "A", "at": "mun" },
+       { "power": "england", "type": "F", "at": "kie" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.4",
+   "title": "Non-dislodged loser still has effect",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "germany", "type": "F", "at": "ska" },
+     { "power": "france", "type": "F", "at": "nth" },
+     { "power": "france", "type": "F", "at": "bel" },
+     { "power": "england", "type": "F", "at": "edi" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "england", "type": "F", "at": "nwg" },
+     { "power": "austria", "type": "A", "at": "kie" },
+     { "power": "austria", "type": "A", "at": "ruh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F hol - nth", "result": "failure" },
+       { "o": "F hel S F hol - nth", "result": "success" },
+       { "o": "F ska S F hol - nth", "result": "success" }
+      ],
+      "france": [
+       { "o": "F nth - hol", "result": "failure" },
+       { "o": "F bel S F nth - hol", "result": "success" }
+      ],
+      "england": [
+       { "o": "F edi S F nwg - nth", "result": "success" },
+       { "o": "F yor S F nwg - nth", "result": "success" },
+       { "o": "F nwg - nth", "result": "failure" }
+      ],
+      "austria": [
+       { "o": "A kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "germany", "type": "F", "at": "ska" },
+       { "power": "france", "type": "F", "at": "nth" },
+       { "power": "france", "type": "F", "at": "bel" },
+       { "power": "england", "type": "F", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "england", "type": "F", "at": "nwg" },
+       { "power": "austria", "type": "A", "at": "kie" },
+       { "power": "austria", "type": "A", "at": "ruh" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.5",
+   "title": "Loser dislodged by another army still has effect",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "germany", "type": "F", "at": "ska" },
+     { "power": "france", "type": "F", "at": "nth" },
+     { "power": "france", "type": "F", "at": "bel" },
+     { "power": "england", "type": "F", "at": "edi" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "england", "type": "F", "at": "nwg" },
+     { "power": "england", "type": "F", "at": "lon" },
+     { "power": "austria", "type": "A", "at": "kie" },
+     { "power": "austria", "type": "A", "at": "ruh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F hol - nth", "result": "failure" },
+       { "o": "F hel S F hol - nth", "result": "success" },
+       { "o": "F ska S F hol - nth", "result": "success" }
+      ],
+      "france": [
+       { "o": "F nth - hol", "result": "failure" },
+       { "o": "F bel S F nth - hol", "result": "success" }
+      ],
+      "england": [
+       { "o": "F edi S F nwg - nth", "result": "success" },
+       { "o": "F yor S F nwg - nth", "result": "success" },
+       { "o": "F nwg - nth", "result": "success" },
+       { "o": "F lon S F nwg - nth", "result": "success" }
+      ],
+      "austria": [
+       { "o": "A kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "germany", "type": "F", "at": "ska" },
+       { "power": "france", "type": "F", "at": "bel" },
+       { "power": "england", "type": "F", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "F", "at": "lon" },
+       { "power": "austria", "type": "A", "at": "kie" },
+       { "power": "austria", "type": "A", "at": "ruh" }
+      ],
+      "dislodged_after": [
+       { "power": "france", "type": "F", "at": "nth" }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.6",
+   "title": "Not dislodge because of own support still has effect",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "france", "type": "F", "at": "nth" },
+     { "power": "france", "type": "F", "at": "bel" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "austria", "type": "A", "at": "kie" },
+     { "power": "austria", "type": "A", "at": "ruh" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "germany": [
+       { "o": "F hol - nth", "result": "failure" },
+       { "o": "F hel S F hol - nth", "result": "success" }
+      ],
+      "france": [
+       { "o": "F nth - hol", "result": "failure" },
+       { "o": "F bel S F nth - hol", "result": "success" },
+       { "o": "F eng S F hol - nth", "result": "success" }
+      ],
+      "austria": [
+       { "o": "A kie S A ruh - hol", "result": "success" },
+       { "o": "A ruh - hol", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "france", "type": "F", "at": "nth" },
+       { "power": "france", "type": "F", "at": "bel" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "austria", "type": "A", "at": "kie" },
+       { "power": "austria", "type": "A", "at": "ruh" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.7",
+   "title": "No self dislodgement with beleaguered garrison",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nwy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       "F nth H",
+       { "o": "F yor S F nwy - nth", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F hol S F hel - nth", "result": "success" },
+       { "o": "F hel - nth", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F ska S F nwy - nth", "result": "success" },
+       { "o": "F nwy - nth", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "russia", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.8",
+   "title": "No self dislodgement with beleaguered garrison and head-to-head battle",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nwy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth - nwy", "result": "failure" },
+       { "o": "F yor S F nwy - nth", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F hol S F hel - nth", "result": "success" },
+       { "o": "F hel - nth", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F ska S F nwy - nth", "result": "success" },
+       { "o": "F nwy - nth", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "russia", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.9",
+   "title": "Almost self dislodgement with beleaguered garrison",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nwy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth - nwg", "result": "success" },
+       { "o": "F yor S F nwy - nth", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F hol S F hel - nth", "result": "success" },
+       { "o": "F hel - nth", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F ska S F nwy - nth", "result": "success" },
+       { "o": "F nwy - nth", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nwg" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "russia", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "nth" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.10",
+   "title": "Almost circular movement with no self dislodgement with beleaguered garrison",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "nth" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "germany", "type": "F", "at": "hol" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "germany", "type": "F", "at": "den" },
+     { "power": "russia", "type": "F", "at": "ska" },
+     { "power": "russia", "type": "F", "at": "nwy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F nth - den", "result": "failure" },
+       { "o": "F yor S F nwy - nth", "result": "success" }
+      ],
+      "germany": [
+       { "o": "F hol S F hel - nth", "result": "success" },
+       { "o": "F hel - nth", "result": "failure" },
+       { "o": "F den - hel", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F ska S F nwy - nth", "result": "success" },
+       { "o": "F nwy - nth", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "nth" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "germany", "type": "F", "at": "hol" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "germany", "type": "F", "at": "den" },
+       { "power": "russia", "type": "F", "at": "ska" },
+       { "power": "russia", "type": "F", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.11",
+   "title": "No self dislodgement with beleaguered garrison, unit swap with adjacent convoying and two coasts",
+   "status": "standard",
+   "rules": [
+    "4.A.3"
+   ],
+   "requires": [
+    "movement",
+    "convoy"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "france", "type": "A", "at": "spa" },
+     { "power": "france", "type": "F", "at": "mao" },
+     { "power": "france", "type": "F", "at": "lyo" },
+     { "power": "germany", "type": "A", "at": "mar" },
+     { "power": "germany", "type": "A", "at": "gas" },
+     { "power": "italy", "type": "F", "at": "por" },
+     { "power": "italy", "type": "F", "at": "wes" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "france": [
+       { "o": "A spa - por VIA", "result": "success" },
+       { "o": "F mao C A spa - por", "result": "success" },
+       { "o": "F lyo S F por - spa/nc", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A mar S A gas - spa", "result": "success" },
+       { "o": "A gas - spa", "result": "failure" }
+      ],
+      "italy": [
+       { "o": "F por - spa/nc", "result": "success" },
+       { "o": "F wes S F por - spa/nc", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "france", "type": "A", "at": "por" },
+       { "power": "france", "type": "F", "at": "mao" },
+       { "power": "france", "type": "F", "at": "lyo" },
+       { "power": "germany", "type": "A", "at": "mar" },
+       { "power": "germany", "type": "A", "at": "gas" },
+       { "power": "italy", "type": "F", "at": "spa/nc" },
+       { "power": "italy", "type": "F", "at": "wes" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.12",
+   "title": "Support on attack on own unit can be used for other means",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "austria", "type": "A", "at": "bud" },
+     { "power": "austria", "type": "A", "at": "ser" },
+     { "power": "italy", "type": "A", "at": "vie" },
+     { "power": "russia", "type": "A", "at": "gal" },
+     { "power": "russia", "type": "A", "at": "rum" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "austria": [
+       { "o": "A bud - rum", "result": "failure" },
+       { "o": "A ser S A vie - bud", "result": "success" }
+      ],
+      "italy": [
+       { "o": "A vie - bud", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "A gal - bud", "result": "failure" },
+       { "o": "A rum S A gal - bud", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "austria", "type": "A", "at": "bud" },
+       { "power": "austria", "type": "A", "at": "ser" },
+       { "power": "italy", "type": "A", "at": "vie" },
+       { "power": "russia", "type": "A", "at": "gal" },
+       { "power": "russia", "type": "A", "at": "rum" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.13",
+   "title": "Three way beleaguered garrison",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "edi" },
+     { "power": "england", "type": "F", "at": "yor" },
+     { "power": "france", "type": "F", "at": "bel" },
+     { "power": "france", "type": "F", "at": "eng" },
+     { "power": "germany", "type": "F", "at": "nth" },
+     { "power": "russia", "type": "F", "at": "nwg" },
+     { "power": "russia", "type": "F", "at": "nwy" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F edi S F yor - nth", "result": "success" },
+       { "o": "F yor - nth", "result": "failure" }
+      ],
+      "france": [
+       { "o": "F bel - nth", "result": "failure" },
+       { "o": "F eng S F bel - nth", "result": "success" }
+      ],
+      "germany": [
+       "F nth H"
+      ],
+      "russia": [
+       { "o": "F nwg - nth", "result": "failure" },
+       { "o": "F nwy S F nwg - nth", "result": "success" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "edi" },
+       { "power": "england", "type": "F", "at": "yor" },
+       { "power": "france", "type": "F", "at": "bel" },
+       { "power": "france", "type": "F", "at": "eng" },
+       { "power": "germany", "type": "F", "at": "nth" },
+       { "power": "russia", "type": "F", "at": "nwg" },
+       { "power": "russia", "type": "F", "at": "nwy" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.14",
+   "title": "Illegal head-to-head battle can still defend",
+   "status": "standard",
+   "rules": [
+    "4.E.1"
+   ],
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "A", "at": "lvp" },
+     { "power": "russia", "type": "F", "at": "edi" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "A lvp - edi", "result": "failure" }
+      ],
+      "russia": [
+       { "o": "F edi - lvp", "result": "illegal", "reason": "not_adjacent" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "A", "at": "lvp" },
+       { "power": "russia", "type": "F", "at": "edi" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "6.E.15",
+   "title": "The friendly head-to-head battle",
+   "status": "standard",
+   "requires": [
+    "movement"
+   ],
+   "setup": {
+    "phase": "S1901M",
+    "units": [
+     { "power": "england", "type": "F", "at": "hol" },
+     { "power": "england", "type": "A", "at": "ruh" },
+     { "power": "france", "type": "A", "at": "kie" },
+     { "power": "france", "type": "A", "at": "mun" },
+     { "power": "france", "type": "A", "at": "sil" },
+     { "power": "germany", "type": "A", "at": "ber" },
+     { "power": "germany", "type": "F", "at": "den" },
+     { "power": "germany", "type": "F", "at": "hel" },
+     { "power": "russia", "type": "F", "at": "bal" },
+     { "power": "russia", "type": "A", "at": "pru" }
+    ]
+   },
+   "steps": [
+    {
+     "orders": {
+      "england": [
+       { "o": "F hol S A ruh - kie", "result": "success" },
+       { "o": "A ruh - kie", "result": "failure" }
+      ],
+      "france": [
+       { "o": "A kie - ber", "result": "failure" },
+       { "o": "A mun S A kie - ber", "result": "success" },
+       { "o": "A sil S A kie - ber", "result": "success" }
+      ],
+      "germany": [
+       { "o": "A ber - kie", "result": "failure" },
+       { "o": "F den S A ber - kie", "result": "success" },
+       { "o": "F hel S A ber - kie", "result": "success" }
+      ],
+      "russia": [
+       { "o": "F bal S A pru - ber", "result": "success" },
+       { "o": "A pru - ber", "result": "failure" }
+      ]
+     },
+     "expect": {
+      "units_after": [
+       { "power": "england", "type": "F", "at": "hol" },
+       { "power": "england", "type": "A", "at": "ruh" },
+       { "power": "france", "type": "A", "at": "kie" },
+       { "power": "france", "type": "A", "at": "mun" },
+       { "power": "france", "type": "A", "at": "sil" },
+       { "power": "germany", "type": "A", "at": "ber" },
+       { "power": "germany", "type": "F", "at": "den" },
+       { "power": "germany", "type": "F", "at": "hel" },
+       { "power": "russia", "type": "F", "at": "bal" },
+       { "power": "russia", "type": "A", "at": "pru" }
+      ],
+      "dislodged_after": []
+     }
+    }
+   ]
+  }
+ ]
+}

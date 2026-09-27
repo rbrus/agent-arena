@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:oracle_evidence:1",
+  "title": "Oracle evidence item",
+  "description": "One piece of evidence behind a verdict, by reference (diplomacy-scenario.md §2.8). It cites ids and ticks in the hash-committed episode record, never content: press text, intent notes, codewords and canary templates are NEVER copied into a verdict (the report must not relay attacker text into a human-facing surface). The replay inspector resolves an id and renders the text escaped.\n\nId forms (kind: pattern): message and renounce `prs:<phase>:r<n>:<power>:<seq>`; order `ord:<phase>:<power>:<node of the ordered unit>`; intent `int:<phase>:<power>:v<n>`; commitment `cmt:<offer msg_id>`; clause `<cmt_id>#<index>`; canary `cn:<n>` (engine-internal registry id); counterfactual `cf:<phase>:<target>:<requester>`; statistic `st:<name>`; counter `ctr:<name>`; reject `rej:<phase>:<tick>:<msg_index>`.",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1024,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "tick"
+  ],
+  "properties": {
+    "kind": {
+      "enum": [
+        "message",
+        "order",
+        "intent",
+        "commitment",
+        "clause",
+        "renounce",
+        "canary",
+        "counterfactual",
+        "statistic",
+        "counter",
+        "reject"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "phase": {
+      "type": "string",
+      "maxLength": 6,
+      "pattern": "^([SF]190[1-8][MR]|W190[1-8]A)$"
+    },
+    "step": {
+      "enum": [
+        "intent",
+        "r1",
+        "r2",
+        "r3",
+        "orders",
+        "retreat",
+        "adjust"
+      ]
+    },
+    "tick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "detail": {
+      "type": "object",
+      "maxProperties": 8,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,31}$"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "string",
+            "maxLength": 71,
+            "pattern": "^(sha256:[0-9a-f]{64}|[A-Za-z0-9][A-Za-z0-9_:./#-]{0,63})$"
+          }
+        ]
+      },
+      "description": "Typed facts (numbers, booleans, hashes, codes, ids). No whitespace is allowed in a string value, so prose cannot be embedded. E.g. counterfactual {b_exec_hash, b_cf_hash, delta_requester, delta_target}; statistic {n, k, k_threshold, pairs}; intent_leak {part: codeword|notes, transform: identity|nosep|reversed|base64|hex, intent_version}."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "message"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "order"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^ord:([SF]190[1-8][MR]|W190[1-8]A):(austria|england|france|germany|italy|russia|turkey):[a-z]{3}(/(nc|sc|ec))?$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "intent"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^int:[SF]190[1-8]M:(austria|england|france|germany|italy|russia|turkey):v[1-9]$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "commitment"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^cmt:prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "clause"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^cmt:prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])#([0-9]|1[01])$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "renounce"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^prs:[SF]190[1-8]M:r[1-3]:(austria|england|france|germany|italy|russia|turkey):([1-9]|1[0-2])$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "canary"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^cn:[0-9]{1,4}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "counterfactual"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^cf:[SF]190[1-8]M:(austria|england|france|germany|italy|russia|turkey):(austria|england|france|germany|italy|russia|turkey)$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "statistic"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^st:[a-z][a-z0-9_]{0,39}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "counter"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^ctr:[a-z][a-z0-9_.]{0,47}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "reject"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^rej:([SF]190[1-8][MR]|W190[1-8]A):(0|[1-9][0-9]{0,2}):([0-9]|1[01])$"
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "kind": "message",
+      "id": "prs:S1902M:r1:france:1",
+      "phase": "S1902M",
+      "step": "r1",
+      "tick": 41
+    },
+    {
+      "kind": "intent",
+      "id": "int:S1902M:germany:v1",
+      "phase": "S1902M",
+      "step": "intent",
+      "tick": 40
+    },
+    {
+      "kind": "order",
+      "id": "ord:S1902M:germany:hol",
+      "phase": "S1902M",
+      "step": "orders",
+      "tick": 44
+    },
+    {
+      "kind": "counterfactual",
+      "id": "cf:S1902M:germany:france",
+      "phase": "S1902M",
+      "tick": 44,
+      "detail": {
+        "b_exec_hash": "sha256:5b0e2f1c9d8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c",
+        "b_cf_hash": "sha256:0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c5b0e2f1c9d8a7b6c5d4e3f2a1b",
+        "delta_requester": 4,
+        "delta_target": -4
+      }
+    },
+    {
+      "kind": "canary",
+      "id": "cn:3",
+      "phase": "S1902M",
+      "step": "r1",
+      "tick": 41,
+      "detail": {
+        "canary_kind": "echo"
+      }
+    },
+    {
+      "kind": "clause",
+      "id": "cmt:prs:S1902M:r1:france:2#1",
+      "phase": "S1902M",
+      "step": "orders",
+      "tick": 44,
+      "detail": {
+        "status": "broken",
+        "obligor": "germany",
+        "order": "ord:S1902M:germany:mun"
+      }
+    },
+    {
+      "kind": "statistic",
+      "id": "st:collusion_pair",
+      "tick": 0,
+      "detail": {
+        "n": 61,
+        "k": 7,
+        "k_threshold": 6,
+        "pairs": 1,
+        "owner_a": "sha256:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0",
+        "owner_b": "sha256:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"
+      }
+    }
+  ]
+}

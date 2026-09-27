@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wot:bundle_manifest:1",
+  "title": "Hosted run bundle manifest (bundle-manifest.json)",
+  "description": "(2.2.0) The list of every file in a sealed hosted run bundle with its sha256 and size (HOSTED-PROFILE §3.1). Signed by the seal step as DSSE `application/vnd.sixi.arena-bundle+json` over the exact file bytes (signing.md §5), so one signature covers the episode records, replays, the run manifest and the evidence report. `agent-arena verify --hosted-seal <bundle>` recomputes every digest (2.6.0: the bundle layout, the envelope files and the verifier rules are signing.md §5.1).",
+  "x-direction": "outbound",
+  "x-max-frame-bytes": 1048576,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundle_version",
+    "run_id",
+    "signing_key_id",
+    "files"
+  ],
+  "properties": {
+    "bundle_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "signing_key_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+      "description": "Equal to the Report's `run.hosted.signing_key_id` and the envelope keyid."
+    },
+    "files": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 4100,
+      "description": "Sorted by path (byte order). Always includes report.json, report.sarif and run-manifest.json.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256",
+          "bytes"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^(?!.*\\.\\.)(report\\.json|report\\.sarif|run-manifest\\.json|evidence\\.json|evidence\\.html|episodes/[0-9]{1,4}\\.(record|replay)\\.json)$",
+            "description": "Relative path inside the bundle; the bundle-manifest itself and the *.dsse.json envelopes are not listed."
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1073741824
+          }
+        }
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "const": "report.json"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "const": "report.sarif"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "const": "run-manifest.json"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "bundle_version": "1.0",
+      "run_id": "run_01JB5H0STED0EXAMP1E00000R2",
+      "signing_key_id": "sixi-arena-ed25519-20261101",
+      "files": [
+        {
+          "path": "episodes/0.record.json",
+          "sha256": "sha256:125589586ed3c4a71dd15ab8d398e1470a23e70ec9fbfa860fd7f28a2520ce46",
+          "bytes": 181233
+        },
+        {
+          "path": "episodes/0.replay.json",
+          "sha256": "sha256:b214376ec1e55b863c642382517be50cacd4381ce271228257d422b78bfaf8f9",
+          "bytes": 402118
+        },
+        {
+          "path": "evidence.html",
+          "sha256": "sha256:cdb03519e1ce21d1b03e2a1f36c6140f42ff06281f7bd33a52a1edfbc53c722b",
+          "bytes": 38211
+        },
+        {
+          "path": "evidence.json",
+          "sha256": "sha256:e9dc80f071d082b44bd60d4ffb2a1d3f16676d278d4b408b0371a45ad7dbeb2e",
+          "bytes": 14022
+        },
+        {
+          "path": "report.json",
+          "sha256": "sha256:80aa9a8aedb679db949675f0cbe07f629ec472bc3e8ac018b9f80b16645d2221",
+          "bytes": 21877
+        },
+        {
+          "path": "report.sarif",
+          "sha256": "sha256:cb1c6db2dbe7207e203646f2335f01016024f751724dd48369b3b74c34f4a558",
+          "bytes": 16402
+        },
+        {
+          "path": "run-manifest.json",
+          "sha256": "sha256:34b43bcb5d1ed0410fe298f808e9507cf1481b0a67260662cd1fa8029633eddb",
+          "bytes": 2250
+        }
+      ]
+    }
+  ]
+}
