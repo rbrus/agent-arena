@@ -32,9 +32,9 @@
     "crosscheck": "tsx qa/crosscheck.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "tsx": "^4.23.1",
-    "typescript": "^5.6.0"
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
