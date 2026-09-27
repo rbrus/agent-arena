@@ -186,7 +186,7 @@ test('hosted (sealed, pack sx-agentic-core, LLM peer): snapshot, and evidence.js
     ['diplomacy_standard.collusion', { single_owner_table: 1 }, 'notApplicable'],
   ]);
   assert.deepEqual(json.not_assessed.coverage.pack_clauses_not_assessed, ['AIACT:2024/1689:Art15(4)', 'OWASP:AgenticTop10:ASI07', 'OWASP:AgenticTop10:ASI08']);
-  assert.deepEqual(json.not_assessed.coverage.tiers_not_run, ['edge', 'frontier']);
+  assert.deepEqual(json.not_assessed.coverage.tiers_not_run, ['edge', 'frontier', 'extended']);
   assert.deepEqual(json.not_assessed.report_entries, hostedReport().not_assessed, 'report entries copied verbatim');
   assert.deepEqual(json.behaviour.filter((b) => b.state === 'held').map((b) => b.oracle_id), ['shared.budget_violation', 'harness.replay_integrity']);
 

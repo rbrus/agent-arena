@@ -51,6 +51,12 @@
 //                (coverage.clauses ⊇ oracles[].clauses ∪ rules[].clauses, signing.md §11.3 step 6a) on every pack example and on
 //                the signed fixture payload, with must-rejects; the fixture's placeholder engine build and the harness
 //                `--engine-build` re-sign documented; signing.md M9 and errors.md rows.
+//  14. V2.10.0   (2.10.0) the `extended` budget tier: one tier list in every enum and copy, `league` refused and `extended`
+//                accepted in each, the extended limits in `budget_limits` / openapi `BudgetTierLimits` / the catalog example,
+//                the live queue `League` still three tiers, the anchor_id grammar without `extended`; the hosted caps
+//                (signing.md §3.2 A6: an extended run plays one episode; M10: a Diplomacy-family run at most 50, with
+//                `episode_secret_commitments.count` <= 50 and equal to `episodes`), on the report conditionals and on a
+//                verifier written from the rule text; the RESERVED.md, errors.md and signing.md prose.
 //
 // Dependency-free beyond what ascension/ already installs (ajv, js-yaml), resolved from there.
 // Run from the repo root:  node contracts/tools/contract-check.mjs  (or `npm run contracts:check` in the workspace)
@@ -1438,8 +1444,10 @@ if (!same(tmpl.map((r) => r.name), hostedEnv.job_template.map((r) => r.name))) f
 for (const r of hostedEnv.must_be_absent) if (r.pattern) { try { new RegExp(r.pattern); } catch { fail(`HOSTEDENV ${r.name}: pattern does not compile`); } }
 const dipCanon = new RegExp(hostedEnv.secrets.find((s) => s.name === 'ARENA_DIP_SECRET_<n>').pattern);
 const dipBad = new RegExp(hostedEnv.must_be_absent.find((s) => s.name === 'ARENA_DIP_SECRET_<x>').pattern);
-for (const [n, ok] of [['ARENA_DIP_SECRET_0', true], ['ARENA_DIP_SECRET_999', true], ['ARENA_DIP_SECRET_01', false], ['ARENA_DIP_SECRET_', false], ['ARENA_DIP_SECRET_x', false], ['ARENA_DIP_SECRET_10000', false]]) {
-  if (dipCanon.test(n) !== ok || dipBad.test(n) === ok) fail(`HOSTEDENV ${n}: the canonical and malformed ARENA_DIP_SECRET patterns disagree`);
+// (2.10.0, signing.md §3.2 M10) an accepted index is 0..49 (count <= 50); a canonical index of 50 or more is not malformed,
+// it is refused as n >= count. Malformed = not a canonical decimal index (leading zero, empty, not a number, 5+ digits).
+for (const [n, accepted, malformed] of [['ARENA_DIP_SECRET_0', true, false], ['ARENA_DIP_SECRET_9', true, false], ['ARENA_DIP_SECRET_10', true, false], ['ARENA_DIP_SECRET_49', true, false], ['ARENA_DIP_SECRET_50', false, false], ['ARENA_DIP_SECRET_999', false, false], ['ARENA_DIP_SECRET_01', false, true], ['ARENA_DIP_SECRET_', false, true], ['ARENA_DIP_SECRET_x', false, true], ['ARENA_DIP_SECRET_10000', false, true]]) {
+  if (dipCanon.test(n) !== accepted || dipBad.test(n) !== malformed) fail(`HOSTEDENV ${n}: expected accepted=${accepted} malformed=${malformed} from the ARENA_DIP_SECRET patterns`);
 }
 function imageProblem(value, m, platform) {
   if (value == null || value.trim() === '') return '/image_digest';
@@ -1497,7 +1505,7 @@ else {
 // §3.2 admission: every rule id present once.
 {
   const s32 = signingText.slice(signingText.indexOf('### 3.2 Hosted admission'), signingText.indexOf('## 4. '));
-  for (const id of ['A1', 'A2', 'A3', 'A4', 'A5', 'C1', 'C2', 'C3', 'C4', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8']) {
+  for (const id of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'C1', 'C2', 'C3', 'C4', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10']) {
     if ((s32.match(new RegExp(`^\\| ${id} \\|`, 'gm')) ?? []).length !== 1) fail(`ADMISSION signing.md §3.2 rule ${id} missing or duplicated`);
   }
 }
@@ -1564,7 +1572,7 @@ const V280_NEG = [
   ['episode: participation not_assessed without a reason', vEp, onPart(epPartNA, (v) => { delete v.reason_code; })],
   ['report: participation fail at warning (report mirror)', vRep, repPart((v, e) => { Object.assign(v, { verdict: 'fail', severity: 'warning', evidence_ref: { replay_hash: e.replay_hash, ticks: [0, 58], code: 'no_participation' } }); })],
   ['report: participation not_assessed as precondition_not_reached (report mirror)', vRep, repPart((v) => { delete v.measures; delete v.thresholds; Object.assign(v, { verdict: 'not_assessed', severity: 'note', reason_code: 'precondition_not_reached' }); })],
-  ['run_spec: budget tier `league` (reserved; not in 2.8.0 or 2.9.0)', vRun, mut(runOk, (r) => { r.budget_tier = 'league'; })],
+  ['run_spec: budget tier `league` (reserved in 2.8.0, never specified; the tier is `extended` since 2.10.0)', vRun, mut(runOk, (r) => { r.budget_tier = 'league'; })],
 ];
 for (const [label, validate, doc] of V280_NEG) if (validate(doc)) fail(`NEGATIVE accepted but must be rejected: ${label}`);
 for (const [label, doc] of [
@@ -1649,7 +1657,9 @@ if (readFileSync(join(CONTRACTS, 'fixtures', 'hosted_report.sarif'), 'utf8').inc
   if (/no seat-arrival deadline today|not sent by a 2\.7\.0 server/.test(ch)) fail('ASYNCAPI diplomacy_table still describes 4408 as reserved');
   const current = reservedText.slice(reservedText.indexOf('## Currently reserved'), reservedText.indexOf('## History'));
   if (/4408/.test(current)) fail('RESERVED 4408 is specified in 2.8.0 and must leave "Currently reserved"');
-  for (const w of ['**`diplomacy_standard.participation`**', '**Budget tier `league`**']) if (!current.includes(w)) fail(`RESERVED "Currently reserved" lacks ${w}`);
+  if (!current.includes('**`diplomacy_standard.participation`**')) fail('RESERVED "Currently reserved" lacks **`diplomacy_standard.participation`**');
+  // (2.10.0) the reserved `league` tier was specified as `extended`: it leaves "Currently reserved".
+  if (current.includes('**Budget tier `league`**')) fail('RESERVED the `league` tier was specified as `extended` in 2.10.0 and must leave "Currently reserved"');
   // Neutral Ground: seats are driver target with owner = provider slug; no sx-neutral-ground pack id anywhere in an example or fixture.
   for (const f of readdirSync(SCHEMAS).filter((x) => x.endsWith('.schema.json'))) {
     if (JSON.stringify(readJson(f).examples ?? []).includes('sx-neutral-ground')) fail(`NEUTRAL ${f}: an example uses the pack id sx-neutral-ground (not introduced, RESERVED.md)`);
@@ -1657,7 +1667,7 @@ if (readFileSync(join(CONTRACTS, 'fixtures', 'hosted_report.sarif'), 'utf8').inc
   const rsSeats = readJson('run_spec.schema.json').properties.seats;
   if (!/ALWAYS driver `target` with `owner` = its provider slug/.test(rsSeats.description)) fail('NEUTRAL run_spec seats: the Neutral Ground seat decision is not stated');
   if (!/stays the literal `primary`/.test(rsSeats.items.properties.owner.description)) fail('NEUTRAL run_spec seats[].owner: the primary owner decision is not stated');
-  if (readJson('run_spec.schema.json').properties.budget_tier.enum.includes('league')) fail('TIER league is reserved (not in 2.9.0) and must not be in run_spec budget_tier');
+  if (readJson('run_spec.schema.json').properties.budget_tier.enum.includes('league')) fail('TIER league was never specified (2.10.0: the tier is `extended`) and must not be in run_spec budget_tier');
 }
 
 // ---------------------------------------------------------------- 13. V2.9.0
@@ -1751,10 +1761,143 @@ if (packCoverageMissing(mut(pack, (p) => { p.coverage.clauses.push('OWASP:Agenti
   if (!ru.includes('(2.9.0)')) fail('ERRORS region_unavailable does not state the 2.9.0 region list');
 }
 
+// ---------------------------------------------------------------- 14. V2.10.0
+// 14a. one tier list everywhere a RunSpec-class tier is read. `league` (reserved 2.8.0) was never specified: the tier is
+// `extended` (Ds 15000, Dh 30000, allowance 540; derivation in CHANGELOG 2.10.0).
+const TIERS_2100 = ['edge', 'core', 'frontier', 'extended'];
+const PV = readJson('pack_variant.schema.json');
+const PKS = readJson('pack_manifest.schema.json');
+const EPS = readJson('episode_result.schema.json');
+const pkTiers = (() => { let found; const walk = (o) => { if (o && typeof o === 'object') for (const [k, v] of Object.entries(o)) { if (k === 'examples') continue; if (k === 'tiers' && v?.items?.enum) found = v.items.enum; walk(v); } }; walk(PKS.properties); return found; })();
+const tierCopies = [
+  ['run_spec budget_tier', RS.properties.budget_tier.enum],
+  ['report $defs.run_spec budget_tier', report.$defs.run_spec.properties.budget_tier.enum],
+  ['report budget_limits.tier', report.properties.budget_limits.properties.tier.enum],
+  ['episode_result budget.tier', EPS.properties.budget.properties.tier.enum],
+  ['report $defs.episode_result budget.tier', report.$defs.episode_result.properties.budget.properties.tier.enum],
+  ['evidence_report budget_tier', at(ER, ['properties', 'scope', 'properties', 'budget_tier', 'enum']) ?? (() => { let f; const w = (o) => { if (o && typeof o === 'object') for (const [k, v] of Object.entries(o)) { if (k === 'examples') continue; if (k === 'budget_tier' && v?.enum) f = v.enum; w(v); } }; w(ER.properties); return f; })()],
+  ['evidence_report tiers_not_run items', ER.properties.not_assessed.properties.coverage.properties.tiers_not_run.items.enum],
+  ['crosscheck_record budget_tier', (() => { let f; const w = (o) => { if (o && typeof o === 'object') for (const [k, v] of Object.entries(o)) { if (k === 'examples') continue; if (k === 'budget_tier' && v?.enum) f = v.enum; w(v); } }; w(XC.properties); return f; })()],
+  ['pack_manifest tiers items', pkTiers],
+  ['pack_variant tier', PV.properties.tier.enum],
+  ['openapi BudgetTier', oaDoc.components.schemas.BudgetTier?.enum],
+];
+for (const [label, e] of tierCopies) {
+  mirrorCount += 1;
+  if (JSON.stringify(e) !== JSON.stringify(TIERS_2100)) fail(`TIER ${label}: enum is not exactly ${TIERS_2100.join(', ')} (got ${JSON.stringify(e)})`);
+}
+if (ER.properties.not_assessed.properties.coverage.properties.tiers_not_run.maxItems !== TIERS_2100.length) fail('TIER evidence_report tiers_not_run maxItems must equal the number of tiers');
+// The live duel/raid queue and passport surfaces keep three tiers (extended is an evaluation-run tier only).
+if (JSON.stringify(oaDoc.components.schemas.League?.enum) !== JSON.stringify(['edge', 'core', 'frontier'])) fail('TIER openapi League (live queue) must stay edge, core, frontier');
+if (oaDoc.components.schemas.BudgetTierLimits?.properties?.tier?.$ref !== '#/components/schemas/BudgetTier') fail('TIER openapi BudgetTierLimits.tier must reference BudgetTier');
+// The extended limits.
+{
+  const bl = report.properties.budget_limits.properties;
+  const oaBl = oaDoc.components.schemas.BudgetTierLimits.properties;
+  for (const [k, v] of [['soft_deadline_ms', 15000], ['hard_deadline_ms', 30000], ['token_allowance', 540]]) {
+    if (!bl[k].enum.includes(v)) fail(`TIER report budget_limits.${k} lacks the extended value ${v}`);
+    if (!oaBl[k].enum.includes(v)) fail(`TIER openapi BudgetTierLimits.${k} lacks the extended value ${v}`);
+  }
+  const d = RS.properties.budget_tier.description;
+  for (const w of ['| dial | edge | core | frontier | extended |', '| 3000 ms | 15000 ms |', '| 6000 ms | 30000 ms |', '| 360 | 540 |', 'Ds = Dh / 2', '360 x 1.5 = 540', '`league`', 'signing.md §3.2 A6']) if (!d.includes(w)) fail(`TIER run_spec budget_tier description does not state ${w}`);
+  const dd = RS.properties.diplomacy.description;
+  if (!dd.includes('extended 3') || !dd.includes('extended (2.10.0) uses the frontier quotas')) fail('TIER run_spec diplomacy description: extended R and press quotas not stated');
+  const cat = oa.components.examples ? Object.values(oa.components.examples).flatMap((x) => x?.value?.budget_tiers ?? []) : [];
+  const extRow = cat.find((r) => r.tier === 'extended');
+  if (!extRow || extRow.soft_deadline_ms !== 15000 || extRow.hard_deadline_ms !== 30000 || extRow.token_allowance !== 540 || extRow.hard_miss_forfeit !== 3 || extRow.tick_cap !== 120) fail('TIER openapi catalog example: the extended row is missing or wrong');
+}
+const extBudget = { tier: 'extended', soft_deadline_ms: 15000, hard_deadline_ms: 30000, hard_miss_forfeit: 3, token_allowance: 540, tick_cap: 120, max_orders_per_unit: 1 };
+const asTier = (r, tier) => { r.run.spec.budget_tier = tier; for (const e of r.episodes) e.budget.tier = tier; r.budget_limits.tier = tier; if (tier === 'extended') Object.assign(r.budget_limits, { ...extBudget, max_inbound_frame_bytes: r.budget_limits.max_inbound_frame_bytes }); };
+const xcCell = XC.examples[0];
+const V2100_NEG = [
+  ['run_spec: budget_tier league', vRun, mut(runOk, (r) => { r.budget_tier = 'league'; })],
+  ['run_spec: budget_tier Extended (case)', vRun, mut(runOk, (r) => { r.budget_tier = 'Extended'; })],
+  ['report: run.spec.budget_tier league', vRep, mut(rep0, (r) => { r.run.spec.budget_tier = 'league'; })],
+  ['report: budget_limits.tier league', vRep, mut(rep0, (r) => { r.budget_limits.tier = 'league'; })],
+  ['report: budget_limits hard_deadline_ms 60000 (no such tier)', vRep, mut(rep0, (r) => { r.budget_limits.hard_deadline_ms = 60000; })],
+  ['episode_result: budget.tier league', vEp, mut(epFail, (e) => { e.budget.tier = 'league'; })],
+  ['evidence_report: budget_tier league', vER, mut(evid, (e) => { e.runs[0].budget_tier = 'league'; })],
+  ['evidence_report: tiers_not_run league', vER, mut(evid, (e) => { e.not_assessed.coverage.tiers_not_run.push('league'); })],
+  ['evidence_report: sarif_category with the league tier', vER, mut(evid, (e) => { e.runs[0].sarif_category = e.runs[0].sarif_category.replace(/\/(edge|core|frontier|extended)\//, '/league/'); })],
+  ['pack_variant: tier league', vPV, { format: 'arena-pack-variant/1', tier: 'league' }],
+  ['pack_manifest: tiers [league]', vPK, mut(pack, (p) => { p.scenarios[0].tiers = ['league']; })],
+  ['crosscheck_record: a cell at tier league', vXC, mut(xcCell, (x) => { x.cells[0].budget_tier = 'league'; })],
+  ['crosscheck_record: anchor_id at tier extended (no frozen anchor at extended)', vXC, mut(xrecA, (x) => { x.cells[anchorCell].legs.A.anchor_id = 'byzantine/extended/seed/1/squad/naive'; })],
+  // signing.md §3.2 A6: a hosted extended run plays one episode.
+  ['report: hosted extended run with run.spec.episodes 2 (A6)', vRep, mut(hRep, (r) => { asTier(r, 'extended'); r.run.spec.episodes = 2; r.run.spec.seeds = [r.run.spec.seeds[0], r.run.spec.seeds[0] + 1]; })],
+  ['report: hosted extended run with two episode results (A6)', vRep, mut(hRep, (r) => { asTier(r, 'extended'); r.episodes.push(clone(r.episodes[0])); r.episodes[1].episode_index = 1; })],
+  // signing.md §3.2 M10: a hosted Diplomacy-family run plays at most 50 episodes.
+  ['report: hosted diplomacy_standard run with run.spec.episodes 51 (M10)', vRep, mut(hRep, (r) => { r.run.spec.episodes = 51; })],
+  ['hosted_context: episode_secret_commitments.count 51 (M10)', vHC, mut(hCtx, (h) => { h.episode_secret_commitments = { ...(h.episode_secret_commitments ?? { digest: `sha256:${'0'.repeat(64)}` }), count: 51 }; })],
+];
+if (!evid.runs?.[0]?.sarif_category || !evid.runs?.[0]?.budget_tier) fail('TIER evidence_report examples[0] runs[0] lacks budget_tier or sarif_category (the must-rejects above mutate them)');
+for (const [label, validate, doc] of V2100_NEG) if (validate(doc)) fail(`NEGATIVE accepted but must be rejected: ${label}`);
+// Positive controls: extended is accepted wherever a tier is read, and the caps bind only hosted runs.
+for (const [label, validate, doc] of [
+  ['run_spec budget_tier extended', vRun, mut(runOk, (r) => { r.budget_tier = 'extended'; })],
+  ['report (local, 3 episodes) at extended', vRep, mut(rep0, (r) => asTier(r, 'extended'))],
+  ['report (hosted Diplomacy, 1 episode) at extended', vRep, mut(hRep, (r) => asTier(r, 'extended'))],
+  ['report (hosted Diplomacy) with run.spec.episodes 50', vRep, mut(hRep, (r) => { r.run.spec.episodes = 50; })],
+  ['report (local Diplomacy) with run.spec.episodes 51', vRep, mut(report.examples[1], (r) => { r.run.spec.episodes = 51; })],
+  ['episode_result budget.tier extended', vEp, mut(epFail, (e) => { e.budget.tier = 'extended'; })],
+  ['evidence_report budget_tier extended and its SARIF category', vER, mut(evid, (e) => { e.runs[0].budget_tier = 'extended'; e.runs[0].sarif_category = e.runs[0].sarif_category.replace(/\/(edge|core|frontier)\//, '/extended/'); })],
+  ['pack_variant tier extended', vPV, { format: 'arena-pack-variant/1', tier: 'extended' }],
+  ['crosscheck_record cell at extended', vXC, mut(xcCell, (x) => { x.cells[0].budget_tier = 'extended'; })],
+  ['hosted_context episode_secret_commitments.count 50', vHC, mut(hCtx, (h) => { h.episode_secret_commitments = { ...(h.episode_secret_commitments ?? { digest: `sha256:${'0'.repeat(64)}` }), count: 50 }; })],
+]) if (!validate(doc)) fail(`POSITIVE ${label} must validate: ${JSON.stringify(validate.errors?.slice(0, 2))}`);
+// 14b. the admission rules A6 and M10 against the RunSpec + manifest pair, written from the signing.md §3.2 text (the
+// schema cannot relate the manifest's commitments to the RunSpec it binds by digest).
+const DIP_FAMILY = (spec, pm) => spec.scenario_id === 'diplomacy_standard' || (spec.scenario_id.startsWith('sx_') && pm?.scenarios?.find((s) => s.id === spec.scenario_id)?.base === 'diplomacy_standard');
+function admissionProblems(spec, manifest, pm) {
+  const out = [];
+  if (spec.budget_tier === 'extended' && spec.episodes !== 1) out.push('A6 run_spec_invalid (episodes)');
+  if (DIP_FAMILY(spec, pm)) {
+    if (spec.episodes > 50) out.push('M10 hosted_context_invalid (episode_secret_commitments): episodes');
+    if (manifest.episode_secret_commitments?.count !== spec.episodes) out.push('M10 hosted_context_invalid (episode_secret_commitments): count');
+  }
+  return out;
+}
+{
+  const spec = hRep.run.spec;
+  if (admissionProblems(spec, hCtx, pack).length) fail(`ADMISSION the hosted example pair breaks A6/M10: ${admissionProblems(spec, hCtx, pack).join('; ')}`);
+  const ADM_NEG = [
+    ['extended, episodes 2', mut(spec, (s) => { s.budget_tier = 'extended'; s.episodes = 2; }), hCtx],
+    ['diplomacy, episodes 51 (count 51)', mut(spec, (s) => { s.episodes = 51; }), mut(hCtx, (h) => { h.episode_secret_commitments.count = 51; })],
+    ['diplomacy, count 2 for episodes 1', spec, mut(hCtx, (h) => { h.episode_secret_commitments.count = 2; })],
+    ['diplomacy extended, episodes 2 and count 2 (A6 binds before the 50 cap)', mut(spec, (s) => { s.budget_tier = 'extended'; s.episodes = 2; }), mut(hCtx, (h) => { h.episode_secret_commitments.count = 2; })],
+  ];
+  for (const [label, s, m] of ADM_NEG) if (!admissionProblems(s, m, pack).length) fail(`NEGATIVE admission accepted but must be refused: ${label}`);
+  for (const [label, s, m] of [
+    ['diplomacy core, episodes 50 and count 50', mut(spec, (x) => { x.episodes = 50; }), mut(hCtx, (h) => { h.episode_secret_commitments.count = 50; })],
+    ['diplomacy extended, one episode', mut(spec, (x) => { x.budget_tier = 'extended'; }), hCtx],
+    ['byzantine extended, one episode, no commitments', { ...runOk, budget_tier: 'extended', episodes: 1, seeds: [runOk.seeds[0]] }, { ...hCtx, episode_secret_commitments: undefined }],
+    ['byzantine core, 51 episodes (M10 is Diplomacy-family only)', { ...runOk, episodes: 51 }, { ...hCtx, episode_secret_commitments: undefined }],
+  ]) if (admissionProblems(s, m, pack).length) fail(`POSITIVE admission must pass: ${label}: ${admissionProblems(s, m, pack).join('; ')}`);
+  V2100_NEG.push(...ADM_NEG.map(([l]) => [`admission ${l}`]));
+}
+// 14c. prose.
+{
+  const signingText = readFileSync(join(CONTRACTS, 'signing.md'), 'utf8');
+  const errorsText = readFileSync(join(CONTRACTS, 'errors.md'), 'utf8');
+  const reservedText = readFileSync(join(CONTRACTS, 'RESERVED.md'), 'utf8');
+  const a6 = signingText.split('\n').find((l) => l.startsWith('| A6 |')) ?? '';
+  for (const w of ['`budget_tier: extended`', '`episodes` = 1', '51.5 minutes', '55 minutes', 'refresh path', '`extended_episodes_per_run`', '`run_spec_invalid` (`episodes`)']) if (!a6.includes(w)) fail(`SIGNING §3.2 A6 does not state ${w}`);
+  const m10 = signingText.split('\n').find((l) => l.startsWith('| M10 |')) ?? '';
+  for (const w of ['≤ 50', '`episode_secret_commitments.count` equals `episodes`', '1000', 'diplomacy_episodes_per_run', 'composes with A6', '`hosted_context_invalid` (`episode_secret_commitments`)']) if (!m10.includes(w)) fail(`SIGNING §3.2 M10 does not state ${w}`);
+  if (HC.properties.episode_secret_commitments.properties.count.maximum !== 50) fail('HOSTED hosted_context episode_secret_commitments.count maximum must be 50 (M10)');
+  const ple = errorsText.split('\n').find((l) => l.startsWith('| `plan_limit_exceeded` |')) ?? '';
+  if (!ple.includes('`extended_episodes_per_run`') || !ple.includes('`diplomacy_episodes_per_run`')) fail('ERRORS plan_limit_exceeded does not name the 2.10.0 limits');
+  const rsi = errorsText.split('\n').find((l) => l.startsWith('| `run_spec_invalid` |')) ?? '';
+  if (!rsi.includes('A6')) fail('ERRORS run_spec_invalid does not name rule A6');
+  const current = reservedText.slice(reservedText.indexOf('## Currently reserved'), reservedText.indexOf('## History'));
+  if (/`league`/.test(current)) fail('RESERVED the league tier is specified (as extended) in 2.10.0 and must not be listed as reserved');
+  if (!/2\.10\.0/.test(reservedText.slice(reservedText.indexOf('## History')))) fail('RESERVED History does not record the 2.10.0 league -> extended decision');
+}
+
 // ---------------------------------------------------------------- report
 if (failures.length) {
   console.error('Contract checks: FAIL');
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier reserved; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build).`);
+console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10).`);

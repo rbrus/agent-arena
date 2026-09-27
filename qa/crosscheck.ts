@@ -77,6 +77,11 @@ const REPO = join(ASC, '..');
 const BIN = join(ASC, 'packages', 'arena-cli', 'src', 'bin.ts');
 const SCHEMA_PATH = join(REPO, 'contracts', 'schemas', 'crosscheck_record.schema.json');
 
+/**
+ * The cross-check matrix tiers: the three tiers with frozen anchors (arena-scenarios ANCHORED_TIER_IDS).
+ * `extended` (contracts 2.10.0) is a RunSpec tier with no frozen anchor, so it is outside the matrix and
+ * outside the `anchor_id` grammar below (which keeps edge|core|frontier, as the contract does).
+ */
 export const TIERS = ['edge', 'core', 'frontier'] as const;
 export type Tier = (typeof TIERS)[number];
 export const GATE_SEEDS: readonly number[] = GATE_SEEDS_BYZANTINE; // 20260720,1,2,3,5
@@ -1090,6 +1095,10 @@ function parseArgs(argv: string[]): CrosscheckOptions & { json: boolean } {
   if (!m.get('digest')) throw new Error('--digest sha256:<64 hex> is required (the image index digest the record is for)');
   if (!m.get('out')) throw new Error('--out <dir> is required');
   const list = (k: string) => m.get(k)?.split(',').map((s) => s.trim()).filter(Boolean);
+  for (const t of list('tiers') ?? []) {
+    if (t === 'extended') throw new Error('--tiers extended: the cross-check matrix covers the anchored tiers only (edge, core, frontier); no anchor is frozen at extended (contracts 2.10.0)');
+    if (!(TIERS as readonly string[]).includes(t)) throw new Error(`--tiers takes edge, core, frontier (got ${t.slice(0, 20)})`);
+  }
   const trig = m.get('trigger');
   if (trig && !['pre_promotion', 'nightly', 'config_change'].includes(trig)) throw new Error('--trigger is pre_promotion, nightly or config_change');
   const plat = m.get('platform');

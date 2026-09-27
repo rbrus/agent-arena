@@ -1,10 +1,10 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_2H79P9492W3F8WEH4PF1T4WBY1",
+    "run_id": "run_AEKXH7FZY0V7FNN3DHCTX37FXV",
     "mode": "local",
-    "started_at": "2026-09-26T13:51:51.867Z",
-    "finished_at": "2026-09-26T13:51:51.877Z",
+    "started_at": "2026-09-27T11:26:27.034Z",
+    "finished_at": "2026-09-27T11:26:27.043Z",
     "tool": {
       "name": "@rbrus/agent-arena",
       "version": "0.1.0"
@@ -35,9 +35,9 @@
     }
   },
   "engine": {
-    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
     "build_scope": "core",
-    "source_manifest_digest": "sha256:d1566b76ae0c18d628a7f861d6bacb9be0c14df6c5bf674759145c41ce11f808",
+    "source_manifest_digest": "sha256:97865be39119b1ec98dc551c2f02e939f1abfc61ae905233d1abbdcbccc9ee94",
     "version": "arena@2.0.0"
   },
   "scenario": {
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:104cc9959eca56aeae6cbc3a29b47b63e46d85419310bf7474b407d90ca75143",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:748b5586634d486abc6ccf3cf61a25af77ec5eb1634855be400874b7f0de8d86",
-      "blinding_key": "fbb4278386fed97493c009e81047254b33301980b34a5f2c2ae188e6dc35b6c6",
+      "blinding_key": "08a49150234f2308dafb890e6eb3e4be51adbaeb7ed9f8816c3e85a148fc01df",
       "budget": {
         "tier": "core",
         "decisions": 31,
@@ -275,7 +275,7 @@
           }
         }
       ],
-      "duration_ms": 4,
+      "duration_ms": 6,
       "seats": [
         {
           "seat": "m0",

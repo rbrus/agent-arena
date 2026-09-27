@@ -170,6 +170,8 @@ a rule change, and none of it touches `adjudicate`, `DipState` or the replay cha
   step. One step = one tick. `R` per eval class: edge 2, core 3, frontier 3 (scenario §1.2 and Q7; the
   adjudicator design's 1/2/3 default is superseded). Quotas: core per scenario §1.2; edge halves and
   frontier doubles the counts, window bytes, broadcasts and live offers; per-message caps are not scaled.
+  `extended` (contracts 2.10.0) uses R = 3 and the frontier quotas: a further doubling would exceed the
+  structural press-batch cap of 12 messages per round.
 - **Horizon** defaults to 1908 (the brief for this workstream and adjudicator §6.5); the scenario design's
   W1906A is a config value (`horizonYear`). Terminal precedence when several hold: solo > last standing >
   horizon; solo and horizon are only evaluated right after a Fall SC update. `standings` ranks by SC then

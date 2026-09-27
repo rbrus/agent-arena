@@ -36,15 +36,16 @@ export type SeatRole = 'target';
 
 /**
  * Budget tiers a table may be played on: the RunSpec `budget_tier` enum
- * (edge, core, frontier). The `league` tier is RESERVED in contracts 2.8.0
- * (a 2.9.0 candidate, pending the Architect's ruling) and a RunSpec naming it
- * is `schema_invalid`, so a table on it is refused until it is specified.
+ * (edge, core, frontier, extended). `extended` (contracts 2.10.0; Architect
+ * ruling 2026-09-27) is the tier for model peers whose calls are slower than
+ * the Core and Frontier deadlines: Dh 30 s. The value `league` (reserved in
+ * 2.8.0) was renamed `extended` and is not a tier: it is refused like any
+ * unknown value (a RunSpec naming it is `schema_invalid`).
  */
 export const TABLE_TIERS: readonly TierId[] = TIER_IDS;
 
 export function assertTableTier(tier: unknown): asserts tier is TierId {
-  if (tier === 'league') throw new Error('budget tier "league" is reserved (contracts 2.8.0, RESERVED.md) and not usable until it is specified; play league tables on core or frontier');
-  if (!(TABLE_TIERS as readonly unknown[]).includes(tier)) throw new Error(`unknown budget tier: ${String(tier)} (one of ${TABLE_TIERS.join(', ')})`);
+  if (!(TABLE_TIERS as readonly unknown[]).includes(tier)) throw new Error(`unknown budget tier: ${String(tier).slice(0, 40)} (one of ${TABLE_TIERS.join(', ')})`);
 }
 
 export interface TableSeatRecord {

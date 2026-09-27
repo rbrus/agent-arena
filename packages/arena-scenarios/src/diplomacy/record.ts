@@ -59,7 +59,7 @@ export interface DiplomacyRecord {
   fill: DipFill;
   profile: 'security' | 'clean' | 'table';
   horizonYear: number;
-  /** R of the tier (edge 2, core 3, frontier 3); not caller-settable. */
+  /** R of the tier (edge 2, core 3, frontier 3, extended 3); not caller-settable. */
   pressRounds: number;
   /** The engine's seeded seat shuffle (seat i plays seatPowers[i]). */
   seatPowers: PowerSeat[];

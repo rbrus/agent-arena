@@ -907,6 +907,19 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       C.ok('C5', 'C5-ABSENT-FOR-MANIFEST', 'hosted_env.json absent_for_manifest: a credential with credential_mode none, an episode secret on a non-Diplomacy run, a seat credential without seats[] → refused (exit 3) with the table\'s field, values never echoed', rows.every((r) => r.ok) && !leak,
         `${rows.map((r) => `${r.field}: exit ${r.p.code}${r.ok ? '' : ' (field not named)'}`).join(' · ')}; echoed ${leak}`);
     });
+    await C.guard('C5', 'C5-EPISODE-CAPS', 'hosted episode caps (contracts 2.10.0)', async () => {
+      // signing.md §3.2 A6: an extended run plays one episode (Dh 30 s vs the 55-min run token);
+      // M10 (OQ-18): a Diplomacy-family run plays at most 50. Public CLI, refused before any I/O.
+      const ext = byzSpec({ budget_tier: 'extended', seeds: [20260720, 1], episodes: 2 } as Partial<RunSpecContract>);
+      const a = await cli(hostedInputs(ext, signManifest(unsignedManifest(ext, { run_id: run26('E') } as Partial<HostedContextContract>))), { ...(hostedEnv() as Record<string, string>) });
+      const dip = { scenario_id: 'diplomacy_standard', seeds: [20261115], episodes: 51, budget_tier: 'core', seat: { mode: 'power', position: 'germany' }, diplomacy: { profile: 'clean', horizon_year: 1901, fill: 'house' }, target: { transport: 'rest', url: `${ORIGIN}/arena/act`, auth: { scheme: 'bearer', ref: 'env:ARENA_TARGET_CREDENTIAL' } }, labels: { ci_run: 'phase9-gate' } } as unknown as RunSpecContract;
+      const fifty = Array.from({ length: 50 }, (_, i) => dipSecret(`cap-${i}`));
+      const b = await cli(hostedInputs(dip, signManifest(unsignedManifest(dip, { run_id: run26('E'), episode_secret_commitments: commitmentsFor(fifty) } as Partial<HostedContextContract>))), { ...(hostedEnv(Object.fromEntries(fifty.map((v, i) => [`ARENA_DIP_SECRET_${i}`, v]))) as Record<string, string>) });
+      const okA = a.code === 3 && a.stderr.includes('run_spec_invalid (episodes)');
+      const okB = b.code === 3 && b.stderr.includes('hosted_context_invalid (episode_secret_commitments)') && !(b.stdout + b.stderr).includes(fifty[0]);
+      C.ok('C5', 'C5-EPISODE-CAPS', 'hosted episode caps (contracts 2.10.0, signing.md §3.2): an extended run with 2 episodes is run_spec_invalid (episodes) (A6); a Diplomacy run with 51 episodes is hosted_context_invalid (episode_secret_commitments) (M10); both exit 3 before any I/O', okA && okB,
+        `extended ×2: exit ${a.code}${okA ? '' : ' (field not named)'} · diplomacy ×51: exit ${b.code}${okB ? '' : ' (field not named or secret echoed)'}`);
+    });
     {
       const leaks = hr.flatMap((x) => allText(x.out).filter((f) => f.text.includes(x.token) || f.text.includes(x.token.split('.')[2])).map((f) => `${x.g.id}/${f.path}`));
       const scrubbed = hr.every((x) => x.env.ARENA_TARGET_CREDENTIAL === undefined);

@@ -49,7 +49,7 @@ One tick is one engine step, and every step is one decision under the tier's Ds/
 | Retreat | one `retreat` step | `orders` (`R` / `D`) |
 | Adjustment | one `adjust` step | `orders` (`B` / `D` / `W`) |
 
-Press rounds R per tier: **edge 2, core 3, frontier 3**. They are not caller-settable. The game
+Press rounds R per tier: **edge 2, core 3, frontier 3, extended 3**. They are not caller-settable. The game
 runs from 1901 to a horizon year (1901–1908; contract default 1906; the engine goldens use 1904)
 unless a power reaches 18 centres first.
 
@@ -98,14 +98,17 @@ delivered to no one. An `offer` or `counter` with a clause that covers a movemen
 game's last one (`F<horizon>M`) is refused as `clause_beyond_horizon` (wire code since contracts 2.5.0) (engine code `clause_beyond_horizon`;
 since adapter 1.2.0 / `wot-dip-scenario/3`): the game ends before such a clause could be judged.
 
-| Press limit | `edge` | `core` | `frontier` |
-|---|---:|---:|---:|
-| Press rounds per movement phase | 2 | 3 | 3 |
-| Messages per round | 3 | 6 | 12 |
-| Messages per movement window | 6 | 12 | 24 |
-| Body bytes per movement window | 2,048 | 4,096 | 8,192 |
-| Broadcasts per movement window | 1 | 2 | 4 |
-| Live offers | 2 | 4 | 8 |
+| Press limit | `edge` | `core` | `frontier` | `extended` |
+|---|---:|---:|---:|---:|
+| Press rounds per movement phase | 2 | 3 | 3 | 3 |
+| Messages per round | 3 | 6 | 12 | 12 |
+| Messages per movement window | 6 | 12 | 24 | 24 |
+| Body bytes per movement window | 2,048 | 4,096 | 8,192 | 8,192 |
+| Broadcasts per movement window | 1 | 2 | 4 | 4 |
+| Live offers | 2 | 4 | 8 | 8 |
+
+`extended` (contract v2.10.0, hard deadline 30 s) keeps the `frontier` press limits. Doubling them again would
+give 24 messages per round, which is more than one press batch can hold (12).
 
 The same in every tier: press body at most 600 bytes after sanitisation (2,048 raw); offer note 200
 bytes; intent notes 1,024 bytes; at most 6 `asks` per message and 6 clauses per side of an offer;

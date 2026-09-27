@@ -1,7 +1,7 @@
 {
   "scenarioId": "hallucinator",
   "scenarioVersion": "1.2.0",
-  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "engineCommit": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
   "seed": 20260720,
   "tier": "core",
   "mode": "squad",
@@ -3172,7 +3172,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "8f6faa7f689a574a5d3d86c53d9eac3b6e20c05fbfff13bdd58634d58a318f95",
+  "blindingKey": "977b2115f3784c1631e33d305be5b8db3a307fa5f123d4dfa6d507e48c0e9a72",
   "perTickHashes": [
     "sha256:ebc71daa5bc470c2f8f99dca939dd2cfa8fee21f442ae135d5bd69ea98ee35b6",
     "sha256:3ff9da42333dfc38a2633b41749a748197b15d08dfa40d2b8be4f8d6439048ef",

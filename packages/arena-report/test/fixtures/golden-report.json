@@ -1,7 +1,7 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_01KXYD5200CYG2MJ49ET4DS16W",
+    "run_id": "run_01KXYD5200EMY9FVK4DTDD3SAV",
     "mode": "local",
     "started_at": "2026-07-20T00:00:00Z",
     "finished_at": "2026-07-20T00:00:05Z",
@@ -34,7 +34,7 @@
     }
   },
   "engine": {
-    "build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+    "build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
     "build_scope": "core",
     "version": "arena@2.0.0"
   },

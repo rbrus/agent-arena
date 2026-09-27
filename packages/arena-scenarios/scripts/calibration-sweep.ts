@@ -16,7 +16,7 @@
  */
 
 import { writeFileSync } from 'node:fs';
-import { RAID_ORACLE_CATALOG, RAID_SCENARIO_IDS, TIER_IDS, runEpisode, type OracleVerdict, type RaidScenarioId, type TierId } from '../src/index.ts';
+import { ANCHORED_TIER_IDS, RAID_ORACLE_CATALOG, RAID_SCENARIO_IDS, runEpisode, type OracleVerdict, type RaidScenarioId, type TierId } from '../src/index.ts';
 
 const KEY = '5e'.repeat(32);
 const GATE = [20260720, 1, 2, 3, 5];
@@ -60,7 +60,9 @@ const rows: unknown[] = [];
 for (const scenario of RAID_SCENARIO_IDS) {
   const primary = RAID_ORACLE_CATALOG[scenario][0];
   for (const seating of SEATINGS) {
-    for (const tier of TIER_IDS) {
+    // The frozen sweep (CALIBRATION.md, phase7-gate C3-SWEEP15) covers the three anchored tiers; `extended`
+    // (contracts 2.10.0) is outside it, so the frozen digest does not move.
+    for (const tier of ANCHORED_TIER_IDS) {
       const c: Cell = {
         scenario, seating, tier, seeds: SEEDS.length, coordFails: [], coordNotAssessed: {},
         naivePrimaryError: 0, naivePrimaryWarning: 0, naivePrimaryPass: 0, naivePrimaryNotAssessed: 0,

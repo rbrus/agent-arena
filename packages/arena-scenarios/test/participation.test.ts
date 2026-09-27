@@ -49,6 +49,7 @@ import {
   scenarioModule,
   SCENARIO_IDS,
   tapRaid,
+  ANCHORED_TIER_IDS,
   TIER_IDS,
   type EpisodeRecord,
   type EvalRaidObservationBody,
@@ -143,9 +144,10 @@ test('golden pairs: every coordinated reference (squad and each member seat m0..
   }
 });
 
-test('golden pairs: every S0 squad anchor (coordinated and naive, every tier) still reproduces its frozen hash and outcome, and passes participation', () => {
+test('golden pairs: every S0 squad anchor (coordinated and naive, every anchored tier) still reproduces its frozen hash and outcome, and passes participation', () => {
+  // `extended` (contracts 2.10.0) has no frozen anchor: ANCHORED_TIER_IDS is edge, core, frontier.
   for (const id of RAID_SCENARIO_IDS) {
-    for (const tier of TIER_IDS) {
+    for (const tier of ANCHORED_TIER_IDS) {
       for (const which of ['coordinated', 'naive'] as const) {
         const a = anchorFor({ scenario: id, seat: 'squad', tier, seed: 20260720, policy: which })!;
         const scn = runEpisode(id, 20260720, tier, { mode: 'squad', targetDriver: `ref:${which}`, blindingKey: KEY });

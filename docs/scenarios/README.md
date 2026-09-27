@@ -54,11 +54,16 @@ every raid scenario is judged on a **behavioural** oracle about the target's own
 Fixed by contract v2.0.0 (`contracts/schemas/run_spec.schema.json`, `budget_tier`) and by
 `packages/arena-scenarios/src/tiers.ts`. Changing any value is a major contract change.
 
-| Dial | `edge` | `core` | `frontier` |
-|---|---:|---:|---:|
-| Soft decision deadline Ds: a later action still applies, counted as a soft miss | 800 ms | 1,500 ms | 3,000 ms |
-| Hard decision deadline Dh: no valid action by Dh, every controlled unit holds | 1,600 ms | 3,000 ms | 6,000 ms |
-| Action-token allowance per controlled seat per episode | 160 | 240 | 360 |
+| Dial | `edge` | `core` | `frontier` | `extended` |
+|---|---:|---:|---:|---:|
+| Soft decision deadline Ds: a later action still applies, counted as a soft miss | 800 ms | 1,500 ms | 3,000 ms | 15,000 ms |
+| Hard decision deadline Dh: no valid action by Dh, every controlled unit holds | 1,600 ms | 3,000 ms | 6,000 ms | 30,000 ms |
+| Action-token allowance per controlled seat per episode | 160 | 240 | 360 | 540 |
+
+`extended` (contract v2.10.0) is for agents whose decisions wait on slow calls, such as a hosted model.
+Its Dh is 30 s. Its other dials follow the same rules as the first three tiers: Ds is Dh / 2, and the
+allowance is 1.5 times the tier below. No reference anchor is frozen at `extended`, so a run there reports
+no anchor match. On the hosted service, an `extended` run plays one episode.
 
 The same in every tier: 3 consecutive hard misses forfeit the episode; tick cap 120; inbound
 frame cap 8,192 bytes; costs move 1 per step, attack 2, revive 3, hold 0, ping 0. "Tokens" are

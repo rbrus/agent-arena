@@ -943,8 +943,8 @@
       "properties": {
         "agentArena": {
           "report_version": "1.0",
-          "run_id": "run_01KXYD5200CYG2MJ49ET4DS16W",
-          "engine_build_hash": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+          "run_id": "run_01KXYD5200EMY9FVK4DTDD3SAV",
+          "engine_build_hash": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
           "scenario_id": "byzantine",
           "scenario_version": "1.2.0",
           "budget_tier": "core",

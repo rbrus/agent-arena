@@ -10,6 +10,170 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions are Sem
 
 _Nothing pending._
 
+## [2.10.0] — 2026-09-27
+
+**The `extended` budget tier, and two hosted episode caps.** **MINOR**: additive (`versioning.md` §2 has the worked
+example). Sources, both Architect rulings of 2026-09-27 (`docs/phase-7/GATE-DECISIONS.md`, "2026-09-27 rulings"):
+- the budget tier reserved in 2.8.0 as `league` is **renamed `extended`** and specified with a **30 s hard decision
+  deadline**. The name clashed with the passport and queue field `league`, which already carries the tier;
+- **OQ-18**: a hosted Diplomacy-family run plays at most **50 episodes** (sixi-scanner `a56243c`,
+  `MaxDiplomacyEpisodesPerRun` in `go/arena/manifest.go`; derivation in docs/phase-9/SIXI-INTEGRATION.md OQ-18).
+
+No ADR is needed. The frame protocol stays `1.0`, every schema `$id` keeps `:1`, and there is no new `$id`. **No oracle
+id or SARIF rule id is added, renamed or re-levelled.** The three existing tiers' numbers do not change.
+`diplomacy_standard.participation` stays reserved.
+
+### Added: budget tier `extended`
+
+| dial | edge | core | frontier | **extended** |
+|---|---:|---:|---:|---:|
+| soft deadline Ds | 800 ms | 1500 ms | 3000 ms | **15000 ms** |
+| hard deadline Dh | 1600 ms | 3000 ms | 6000 ms | **30000 ms** |
+| action-token allowance per controlled seat per episode | 160 | 240 | 360 | **540** |
+| Diplomacy press rounds R | 2 | 3 | 3 | **3** |
+| Diplomacy press quotas (messages per round / per window, body bytes per window, broadcasts, live offers) | 3 / 6, 2048, 1, 2 | 6 / 12, 4096, 2, 4 | 12 / 24, 8192, 4, 8 | **12 / 24, 8192, 4, 8** |
+| worst-case episode wall time (tick cap 120 × Dh) | 192 s | 360 s | 720 s | **3600 s** |
+
+Everything structural is as in every tier: 3 consecutive hard misses forfeit, tick cap 120, one order per unit, token
+costs, inbound frame caps (8192 bytes; 16384 for `diplomacy_standard`).
+
+**Derivation.** The Architect fixed Dh = 30000 ms. The other members follow the rules that already hold across the
+three tiers the economy-designer sized (arena-scenarios.md §3.1, `docs/economy/params.json` `leagues`, wot-engine
+`PRESS_QUOTAS`), applied one tier step beyond Frontier:
+- **Ds = Dh / 2** at every tier (800/1600, 1500/3000, 3000/6000), so Ds = **15000 ms**.
+- **The allowance grows ×1.5 per tier step** (160 → 240 → 360; it does not follow Dh, whose steps are ×1.875 and ×2),
+  so 360 × 1.5 = **540**. Nothing structural caps it: the coordinated references spend at most 131 per member, and a
+  duel side can spend at most 8 per tick.
+- **R saturates at 3** (edge 2, core 3, frontier 3). R = 4 would add movement-phase ticks, and the 1908 horizon is
+  103 ticks at R = 3 under the 120-tick cap, so R = **3**. `episode_result` `press_rounds` keeps its maximum of 3.
+- **Press quotas double per tier step** (edge halves Core, Frontier doubles it). One more doubling would give 24
+  messages per round, which is over the structural press-batch cap of 12 (`diplomacy_action` `press` `maxItems`;
+  frame caps are structural, arena-scenarios.md §3.1). Every other press quota is proportional to messages per round
+  in all three tiers (per window = 2×, broadcasts = ⅓×, live offers = ⅔×, bytes = 2048 × per-round / 3). So the
+  capped doubling leaves every press quota at the **Frontier** value. No schema bound moves.
+- The 2.8.0 candidate text named the Frontier allowance (360). The ruling asks for the same scaling rule, which gives
+  540. The candidate's Ds of 15000 ms is confirmed.
+
+**Where it appears (the enum, and the one tier list, everywhere a RunSpec-class tier is read):**
+- `run_spec` `budget_tier` and its `report` `$defs` mirror, with the four-column table and the derivation in the
+  description, and `diplomacy` (R and quotas at `extended`);
+- `episode_result` `budget.tier` and its `report` mirror, and `report` `budget_limits` (`tier`, plus Ds 15000, Dh
+  30000 and allowance 540 in the value enums);
+- `evidence_report` `runs[].budget_tier`, `not_assessed.coverage.tiers_not_run` (`maxItems` 3 → 4), and the
+  `sarif_category` pattern. Both evidence examples now list `extended` among the tiers not run: the evidence builder
+  enumerates every tier, and a tier not run is never implied to be covered;
+- `crosscheck_record` `cells[].budget_tier`, `pack_manifest` `scenarios[].tiers`, and `pack_variant` `tier`;
+- `openapi.yaml`: a new `BudgetTier` component (the four values); `BudgetTierLimits.tier` references it, with the
+  extended values in its enums; `ScenarioCatalog.budget_tiers` has `maxItems` 4, and the catalog example has the extended
+  row;
+- SARIF: `automationDetails.id` and the fingerprint take the tier as data. `agent-arena/<scenario>/extended/<seat>/` is
+  a new category, and no existing category or fingerprint moves (sarif-mapping.md §1 now says four tiers);
+- `asyncapi.yaml` and `diplomacy_action` text (R and the quota at `extended`).
+
+**Not changed, on purpose:**
+- **The value `league` is not a tier.** It was never in any tier enum, so it stays refused as an unknown value (`schema_invalid`).
+- **The run-spec field and the queue field `league` keep their meaning.** The live duel/raid queue, the passport and
+  the old frames (`ack`, `raid_ack`, `spectate_ack`, `webhook_event`, and openapi `League`) keep edge, core and
+  frontier. The live arena does not offer `extended`, and `League`'s description says so. The `diplomacy_session_ack`
+  `eval_class` of the live Diplomacy table session is also unchanged: tables there are created server-side, and the
+  lobby offers the three tiers.
+- **No anchor is frozen at `extended`.** The `crosscheck_record` `anchor_id` grammar keeps `(edge|core|frontier)`, so an
+  anchor id naming `extended` is refused. A cross-check cell may be at `extended`, with its legs compared with each
+  other and leg A empty. `verify` re-simulates an `extended` report like any other, but no anchor match is claimed.
+- The existing signed examples do not change. They all run at `core`, and no enum is embedded in a signed payload. All
+  signing vectors (report, run manifest, cross-check, deletion receipt, pack, run tokens, press) are byte-identical.
+
+### Added: hosted caps (signing.md §3.2 A6 and M10)
+
+- **A6: an `extended` run plays exactly one episode**, so it has exactly one seed, whatever the `credential_mode`.
+  - Why: one 30 s-deadline Diplomacy episode at horizon 1908 (103 ticks) can take about **51.5 min**, and a
+    `sixi_run_token` run ends within 55 min of minting (C3). A second episode cannot fit.
+  - The cap holds until a run-token refresh path is specified.
+  - Refusals:
+    - control plane: `plan_limit_exceeded`, `detail.limit` `extended_episodes_per_run`, whatever the plan;
+    - runner: `run_spec_invalid` (`episodes`).
+  - `report` conditional: a hosted report whose `run.spec.budget_tier` is `extended` has `run.spec.episodes` = 1 and at
+    most one EpisodeResult.
+  - C3 still applies. An `extended` episode of a raid or duel can take up to 120 × 30 s = 60 min, so the run deadline
+    can end it (`deadline_exceeded`, no report).
+- **M10 (OQ-18): a Diplomacy-family run plays at most 50 episodes.** A Diplomacy-family run is `diplomacy_standard`,
+  or an `sx_` scenario whose base is `diplomacy_standard`.
+  - `hosted_context` `episode_secret_commitments.count`: `maximum` 1000 → **50**. It must equal the RunSpec's
+    `episodes`, which was already implied by M7 and is now stated.
+  - Hosted only. The open CLI keeps the RunSpec limit of 1000.
+  - Refusals:
+    - control plane: `plan_limit_exceeded`, `detail` `{limit: "diplomacy_episodes_per_run", value, plan}`, at most 50
+      whatever the plan;
+    - runner: `hosted_context_invalid` (`episode_secret_commitments`).
+  - `report` conditional: a hosted Diplomacy-family report has `run.spec.episodes` ≤ 50 and at most 50 EpisodeResults.
+  - `fixtures/hosted_env.json`: the `ARENA_DIP_SECRET_<n>` secret pattern is `^ARENA_DIP_SECRET_([0-9]|[1-4][0-9])$`
+    (`n` ≤ 49). The malformed-name pattern is unchanged. A canonical index of 50 or more is not malformed: it is
+    refused as `n` ≥ `count`.
+  - **The two caps compose.** An `extended` run plays 1 episode, and a Diplomacy-family run at another tier plays at
+    most 50.
+- **Why the `count` maximum is MINOR, not a MAJOR tightening:**
+  - `hosted_context` is a hosted-only document, and its only signer, the Sixi control plane, is unreleased and already
+    refuses more than 50 (`a56243c`);
+  - every example and fixture commits to 1 episode.
+
+  See `versioning.md`, "2.10.0".
+- errors.md: `plan_limit_exceeded` names the two limits, `run_spec_invalid` names A6, and `hosted_context_invalid`
+  names M10.
+
+### Contract checks (`tools/contract-check.mjs` §14)
+
+- **Tier list:**
+  - one list, `edge, core, frontier, extended`, in 11 enums (the mirrors and copies above, plus openapi `BudgetTier`);
+  - `tiers_not_run` `maxItems` equals the tier count;
+  - `League` stays three tiers;
+  - the extended values are present in `budget_limits`, `BudgetTierLimits` and the catalog example;
+  - the `run_spec` description states the table and the derivation.
+- **Must-rejects (17 schema cases):**
+  - `league` in `run_spec`, `report` (`run.spec`, `budget_limits`), `episode_result`, `evidence_report` (tier,
+    `tiers_not_run`, SARIF category), `pack_variant`, `pack_manifest`, and a `crosscheck_record` cell;
+  - `Extended` (wrong case);
+  - Dh 60000;
+  - an `anchor_id` at `extended`;
+  - a hosted `extended` report with `episodes` 2, or with two EpisodeResults;
+  - a hosted Diplomacy report with `episodes` 51;
+  - `episode_secret_commitments.count` 51.
+- **Admission verifier (A6 and M10, written from the §3.2 text):**
+  - four must-rejects: `extended` with 2 episodes; Diplomacy with 51; `count` ≠ `episodes`; Diplomacy `extended` with
+    2;
+  - four passes, including a byzantine run with 51 episodes (M10 is Diplomacy-family only).
+- **Positive controls:** `extended` accepted in every copy. A local report at `extended` with 3 episodes, a hosted
+  Diplomacy report at 50, and a local Diplomacy report at 51 are all valid.
+- **Existing checks:**
+  - the §12 check now requires `league` to be gone from "Currently reserved" and recorded in History;
+  - the admission-rule list gains A6, M9 and M10;
+  - the `ARENA_DIP_SECRET` pattern cases separate "accepted" (0..49) from "malformed".
+- **Totals:** Tier 0 checks 47 schemas and 106 examples. Negative cases 396 → 417, mirrors 32 → 43.
+- `openapi.yaml` and `asyncapi.yaml` `info.version` are 2.10.0. `README.md`, `versioning.md`, `RESERVED.md` (the
+  `league` row moved to History) and `sarif-mapping.md` §1 are updated.
+
+### Migration notes (implementation follow-ups; done in the same change unless marked)
+
+- **arena-scenarios:**
+  - `tiers.ts` gains `extended` in `BUDGET_TIERS` and `TIER_IDS`, plus `ANCHORED_TIER_IDS`
+    (edge, core, frontier) for anything that looks up a frozen anchor;
+  - no anchor is frozen, and no existing anchor or golden moves.
+- **wot-engine:** `EvalClass` gains `extended`, and `PRESS_QUOTAS.extended` equals Frontier.
+- **arena-cli:**
+  - `--tier extended` is accepted;
+  - `src/generated/contracts.ts` is regenerated (`node packages/arena-cli/codegen.mjs`);
+  - the hosted admission checks A6 and M10 are in `src/hosted/admission.ts`;
+  - `HOSTED_SECRET_PATTERNS` follows `hosted_env.json`.
+- **arena-report:** `TierId` gains `extended`; the evidence builder lists `extended` among the tiers not run; the
+  evidence goldens are regenerated.
+- **arena-league:** tables may be played at `extended`, and `league` is refused as an unknown tier.
+- **qa:** the gate harnesses and `crosscheck.ts` keep the three anchored tiers (edge for the fault tests). `extended`
+  is outside every frozen-anchor check.
+- **Not done (live arena, `services/arena`, `wot-store` `LEAGUES`):** the live queue does not offer `extended`.
+  Offering it there would be a separate MINOR (openapi `League`, the frame enums, and the lobby's `DIP_DEADLINES`).
+- **Sixi control plane:**
+  - admission must refuse `extended` with `episodes` > 1 (A6), alongside the existing 50-episode Diplomacy cap (M10);
+  - the plan table (HOSTED-PROFILE §7) gains both rows.
+
 ## [2.9.0] — 2026-09-27
 
 **Residency region enum, pack coverage rule, fixture pack re-signed.** **MINOR**: additive and corrective, with one

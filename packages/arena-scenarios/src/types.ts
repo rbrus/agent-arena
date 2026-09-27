@@ -26,7 +26,8 @@ export type ScenarioId =
 
 export type RaidScenarioId = Exclude<ScenarioId, 'grid_tactics' | 'diplomacy_standard'>;
 
-export type TierId = 'edge' | 'core' | 'frontier';
+/** Budget tiers (contracts run_spec `budget_tier`); `extended` since contracts 2.10.0. */
+export type TierId = 'edge' | 'core' | 'frontier' | 'extended';
 /** Diplomacy seats: the seven powers, full lower-case names (contracts 2.1.0 wire ids). */
 export type PowerSeat = 'austria' | 'england' | 'france' | 'germany' | 'italy' | 'russia' | 'turkey';
 /** `auto` is a seat REQUEST only (power mode): resolved from the seed at init, never recorded. */

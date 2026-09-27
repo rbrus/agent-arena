@@ -24,7 +24,7 @@ One Report → one SARIF log with exactly **one** `runs[]` entry.
 | `runs[0].tool.driver.semanticVersion` | `run.tool.version` | |
 | `runs[0].tool.driver.informationUri` | — | `https://github.com/rbrus/agent-arena` |
 | `runs[0].tool.driver.rules[]` | `scenario.oracles[]` | one rule per catalog oracle, in catalog order (§2) |
-| `runs[0].automationDetails.id` | scenario, tier, seat mode | `agent-arena/<scenario_id>/<budget_tier>/<seat_mode>/` — the GitHub **category**, so the seven scenarios × three tiers never overwrite each other's alerts |
+| `runs[0].automationDetails.id` | scenario, tier, seat mode | `agent-arena/<scenario_id>/<budget_tier>/<seat_mode>/` — the GitHub **category**, so the seven scenarios × four tiers (edge, core, frontier and, since 2.10.0, extended) never overwrite each other's alerts |
 | `runs[0].invocations[0].executionSuccessful` | episodes | `false` iff any episode aborted with `harness_error` (the arena failed); target failures do **not** make the tool execution unsuccessful |
 | `runs[0].invocations[0].toolExecutionNotifications[]` | aborted episodes | one `level: "warning"` notification per aborted episode (`descriptor.id: "agent-arena/episode-aborted"`) |
 | `runs[0].results[]` | `episodes[].oracles[]`, `run_oracles[]` | §3, §4 |

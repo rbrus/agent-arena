@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Agent Arena · Management Plane
-  version: 2.9.0
+  version: 2.10.0
   summary: REST management plane of the open-core agent evaluation arena — passports + delegation, the duel and raid scenarios' queue/summary/replay reads, Negotiation Chambers, webhooks, and (new in 2.0.0) the evaluation-run contract (scenarios, runs, episode results, reports).
   description: >
     The management-plane contract for the **agent evaluation arena** (ADR-001: the pre-pivot game prototype
@@ -12,7 +12,7 @@ info:
     record. The removed surfaces and the migration notes are in `CHANGELOG.md`.
 
     **What an evaluation is.** A `RunSpec` (`schemas/run_spec.schema.json`) names a scenario, the
-    seeds, the episode count, a **budget tier** (edge | core | frontier — fixed decision-time /
+    seeds, the episode count, a **budget tier** (edge | core | frontier | extended — fixed decision-time /
     action / token limits) and a **target descriptor** (how the arena reaches the agent under test:
     `rest`, `ws`, `mcp` or `a2a`). The arena plays the episodes on the deterministic engine and emits
     one `EpisodeResult` per episode (`schemas/episode_result.schema.json`: outcome, terminal tick,
@@ -1345,6 +1345,7 @@ paths:
 
         The `league` field selects the **budget tier** (edge | core | frontier) — the same fixed
         decision-time / action / token limits as `RunSpec.budget_tier` (`schemas/run_spec.schema.json`).
+        The evaluation-run tier `extended` (2.10.0) is not offered on this live queue.
         There are no stakes, ratings, or rewards (removed in 2.0.0, ADR-001 §6). Every match grants a
         per-match **action allowance** (the tier's token budget); the unspent remainder is reported as
         `tokens_remaining` at `match_end` and is budget accounting only.
@@ -2795,9 +2796,19 @@ components:
       default: core
       description: >
         Budget tier (eval class): a FIXED decision-time / action / token limit set, NOT a model claim
-        (MISSION pillar 4). Same values and semantics as `RunSpec.budget_tier` — the limits are stated
-        in `schemas/run_spec.schema.json` and served by `GET /v1/scenarios`. (The field keeps the
-        historical name `league` on the duel/raid surfaces; there is no ladder behind it.)
+        (MISSION pillar 4). Same semantics as `RunSpec.budget_tier`, and the same values except
+        `extended` — the limits are stated in `schemas/run_spec.schema.json` and served by
+        `GET /v1/scenarios`. (The field keeps the historical name `league` on the duel/raid surfaces;
+        there is no ladder behind it.) (2.10.0) The live duel/raid queue and passport surfaces keep the
+        three tiers: `extended` is an evaluation-run tier only (`BudgetTier`), and a queue request naming
+        it is refused like any unknown value.
+
+    BudgetTier:
+      enum: [edge, core, frontier, extended]
+      description: >
+        (2.10.0) The evaluation-run budget tier, exactly `RunSpec.budget_tier`: edge, core and frontier
+        (2.0.0) and extended (2.10.0: Ds 15000 ms, Dh 30000 ms, allowance 540). The value `league`
+        (reserved in 2.8.0) was never specified and is not a member.
 
     Scope:
       enum: [play:duel, spectate:read, play:raid, negotiate:a2a, eval:run]
@@ -2996,13 +3007,13 @@ components:
       type: object
       additionalProperties: false
       required: [tier, soft_deadline_ms, hard_deadline_ms, hard_miss_forfeit, token_allowance, tick_cap, max_orders_per_unit, max_inbound_frame_bytes]
-      description: One budget tier's FIXED limits — the table in `schemas/run_spec.schema.json` `budget_tier` (arena-scenarios.md §3.1).
+      description: One budget tier's FIXED limits — the table in `schemas/run_spec.schema.json` `budget_tier` (arena-scenarios.md §3.1). (2.10.0) `extended` added.
       properties:
-        tier: { $ref: '#/components/schemas/League' }
-        soft_deadline_ms: { enum: [800, 1500, 3000] }
-        hard_deadline_ms: { enum: [1600, 3000, 6000] }
+        tier: { $ref: '#/components/schemas/BudgetTier' }
+        soft_deadline_ms: { enum: [800, 1500, 3000, 15000] }
+        hard_deadline_ms: { enum: [1600, 3000, 6000, 30000] }
         hard_miss_forfeit: { const: 3 }
-        token_allowance: { enum: [160, 240, 360], description: Per controlled seat per episode; action-allowance units, not model tokens. }
+        token_allowance: { enum: [160, 240, 360, 540], description: Per controlled seat per episode; action-allowance units, not model tokens. }
         tick_cap: { const: 120 }
         max_orders_per_unit: { const: 1 }
         max_inbound_frame_bytes: { const: 8192 }
@@ -3062,7 +3073,8 @@ components:
         budget_tiers:
           type: array
           minItems: 3
-          maxItems: 3
+          maxItems: 4
+          description: One row per tier, in the order edge, core, frontier, extended. A 2.10.0 server lists four; a reader tolerates a tier it does not know.
           items: { $ref: '#/components/schemas/BudgetTierLimits' }
 
     Run:
@@ -3490,6 +3502,7 @@ components:
           - { tier: "edge", soft_deadline_ms: 800, hard_deadline_ms: 1600, hard_miss_forfeit: 3, token_allowance: 160, tick_cap: 120, max_orders_per_unit: 1, max_inbound_frame_bytes: 8192 }
           - { tier: "core", soft_deadline_ms: 1500, hard_deadline_ms: 3000, hard_miss_forfeit: 3, token_allowance: 240, tick_cap: 120, max_orders_per_unit: 1, max_inbound_frame_bytes: 8192 }
           - { tier: "frontier", soft_deadline_ms: 3000, hard_deadline_ms: 6000, hard_miss_forfeit: 3, token_allowance: 360, tick_cap: 120, max_orders_per_unit: 1, max_inbound_frame_bytes: 8192 }
+          - { tier: "extended", soft_deadline_ms: 15000, hard_deadline_ms: 30000, hard_miss_forfeit: 3, token_allowance: 540, tick_cap: 120, max_orders_per_unit: 1, max_inbound_frame_bytes: 8192 }
 
     ScenarioByzantineExample:
       summary: The Byzantine scenario descriptor (scenario 1.2.0, with `shared.participation` since contracts 2.8.0)

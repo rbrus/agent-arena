@@ -332,7 +332,8 @@ const BASE_LIMITATIONS = ['live_agent_nondeterminism', 'egress_ip_behaviour', 'a
 
 /** The published gate seeds (`seeds: fixed`). */
 const GATE_SEEDS = [20260720, 1, 2, 3, 5];
-const TIERS: readonly TierId[] = ['edge', 'core', 'frontier'];
+/** Every tier (contracts 2.10.0 adds `extended`): a tier not run is listed, never implied covered. */
+const TIERS: readonly TierId[] = ['edge', 'core', 'frontier', 'extended'];
 const SEVERITY_RANK: Record<Severity, number> = { error: 0, warning: 1, note: 2 };
 const PACK_RANK: Record<PackSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 

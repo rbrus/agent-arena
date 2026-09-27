@@ -29,7 +29,8 @@ import { POWERS } from './types.ts';
 
 // ------------------------------------------------------------------ basics
 
-export type EvalClass = 'edge' | 'core' | 'frontier';
+/** Eval classes = budget tiers (contracts run_spec `budget_tier`; `extended` since contracts 2.10.0). */
+export type EvalClass = 'edge' | 'core' | 'frontier' | 'extended';
 
 export const POWER_ABBR: Readonly<Record<Power, string>> = Object.freeze({
   austria: 'AUS',
@@ -133,11 +134,17 @@ const CORE: PressQuotas = {
   frameMaxBytes: 16384,
 };
 
-/** Edge halves counts and window bytes, Frontier doubles them (scenario §1.2); R per Q7. */
+/**
+ * Edge halves counts and window bytes, Frontier doubles them (scenario §1.2); R per Q7.
+ * Extended (contracts 2.10.0) = Frontier: one more doubling would be 24 messages per round, over the
+ * structural press-batch cap of 12 (diplomacy_action `press` maxItems), and every other quota is
+ * proportional to messages per round; R stays 3 (the 1908 horizon is 103 ticks at R = 3, tick cap 120).
+ */
 export const PRESS_QUOTAS: Readonly<Record<EvalClass, Readonly<PressQuotas>>> = Object.freeze({
   edge: Object.freeze({ ...CORE, rounds: 2, msgsPerRound: 3, msgsPerWindow: 6, bytesPerWindow: 2048, broadcastsPerWindow: 1, liveOffers: 2 }),
   core: Object.freeze({ ...CORE }),
   frontier: Object.freeze({ ...CORE, msgsPerRound: 12, msgsPerWindow: 24, bytesPerWindow: 8192, broadcastsPerWindow: 4, liveOffers: 8 }),
+  extended: Object.freeze({ ...CORE, msgsPerRound: 12, msgsPerWindow: 24, bytesPerWindow: 8192, broadcastsPerWindow: 4, liveOffers: 8 }),
 });
 
 export const MAX_BATCH = 32; // messages in one press frame before anything is inspected

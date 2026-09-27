@@ -81,7 +81,8 @@ export interface RunFlags {
   specFileLocation?: string;
 }
 
-export const TIERS = ['edge', 'core', 'frontier'] as const;
+/** The RunSpec `budget_tier` enum (contracts 2.10.0 adds `extended`; `league` was never a tier). */
+export const TIERS = ['edge', 'core', 'frontier', 'extended'] as const;
 /** G-55 feature check: does this build's report schema carry the additive `run.hosted.observed_truncated` marker? */
 export const OBSERVED_TRUNCATED_IN_CONTRACT = reportSchemaHasHostedMember('observed_truncated');
 /** Where a hosted run writes the manifest it ran from (contracts `run.hosted.run_manifest.path`). */
@@ -233,7 +234,7 @@ export async function runCommand(f: RunFlags, argv: readonly string[]): Promise<
   const isDip = scenario === DIPLOMACY;
   if (!isDip && f.horizon !== undefined) throw misconfig('--horizon applies to diplomacy_standard only.', `drop --horizon (${scenario} episodes end at their own terminal or the 120-tick cap).`);
   const tier = (f.tier ?? 'core') as (typeof TIERS)[number];
-  if (!TIERS.includes(tier)) throw misconfig('--tier must be edge, core or frontier.');
+  if (!TIERS.includes(tier)) throw misconfig('--tier must be edge, core, frontier or extended.');
   const seeds = parseSeeds(f.seeds);
   const episodes = f.episodes === undefined ? seeds.length : Number(f.episodes);
   if (!Number.isInteger(episodes) || episodes < 1 || episodes > 1000) throw misconfig('--episodes must be an integer 1..1000.');

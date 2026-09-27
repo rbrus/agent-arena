@@ -512,7 +512,8 @@
             "enum": [
               "edge",
               "core",
-              "frontier"
+              "frontier",
+              "extended"
             ]
           },
           "seat_mode": {
@@ -601,7 +602,7 @@
           },
           "sarif_category": {
             "type": "string",
-            "pattern": "^agent-arena/[a-z][a-z0-9_]{0,39}/(edge|core|frontier)/(duel|member|squad|power)/$"
+            "pattern": "^agent-arena/[a-z][a-z0-9_]{0,39}/(edge|core|frontier|extended)/(duel|member|squad|power)/$"
           },
           "report_sha256": {
             "type": "string",
@@ -1276,12 +1277,13 @@
           "properties": {
             "tiers_not_run": {
               "type": "array",
-              "maxItems": 3,
+              "maxItems": 4,
               "items": {
                 "enum": [
                   "edge",
                   "core",
-                  "frontier"
+                  "frontier",
+                  "extended"
                 ]
               }
             },
@@ -2142,7 +2144,8 @@
         "coverage": {
           "tiers_not_run": [
             "edge",
-            "frontier"
+            "frontier",
+            "extended"
           ],
           "seat_modes_not_run": [],
           "pack_clauses_not_assessed": [
@@ -2548,7 +2551,8 @@
         "coverage": {
           "tiers_not_run": [
             "edge",
-            "frontier"
+            "frontier",
+            "extended"
           ],
           "seat_modes_not_run": [],
           "pack_clauses_not_assessed": [

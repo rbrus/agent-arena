@@ -155,7 +155,8 @@
             "enum": [
               "edge",
               "core",
-              "frontier"
+              "frontier",
+              "extended"
             ]
           },
           "seat_mode": {
@@ -717,7 +718,7 @@
                     "type": "string",
                     "maxLength": 128,
                     "pattern": "^[a-z][a-z0-9_]{0,39}/(edge|core|frontier)/seed/(0|[1-9][0-9]{0,9})(/[a-z0-9][a-z0-9_.:@-]{0,39}){2,12}$",
-                    "description": "(2.5.0, optional; 2.7.0: pattern made precise, maxLength raised from 80 to 128 so the Diplomacy anchors fit) The frozen anchor's name in `anchors.ts` as a slug: the name lower-cased, each run of characters outside `[a-z0-9_.:@-]` replaced by one `/`, leading and trailing `/` removed. Every anchor name starts `<scenario> <tier> seed <seed>` and then names the seating and the reference policy, so an id reads `<scenario>/<tier>/seed/<seed>/<seating…>/<policy>[/<qualifier>…]`: for example `byzantine/core/seed/1/squad/naive/gate` (a gate-seed row), `deadlock/edge/seed/20260720/member/m1/coordinated`, `grid_tactics/core/seed/20260720/a/reflex/vs/silver`, or `diplomacy_standard/core/seed/20261115/germany/robust/fill/engine/horizon/1904/engine/golden`. The seat and the policy are part of the id, so the anchors of a coordinated and a naive fill at the same scenario, tier and seed never share one. (Until 2.7.0 the example was `byzantine/core/squad/20260720`, which no runner wrote and which could not tell the two apart.)"
+                    "description": "(2.5.0, optional; 2.7.0: pattern made precise, maxLength raised from 80 to 128 so the Diplomacy anchors fit) The frozen anchor's name in `anchors.ts` as a slug: the name lower-cased, each run of characters outside `[a-z0-9_.:@-]` replaced by one `/`, leading and trailing `/` removed. Every anchor name starts `<scenario> <tier> seed <seed>` and then names the seating and the reference policy, so an id reads `<scenario>/<tier>/seed/<seed>/<seating…>/<policy>[/<qualifier>…]`: for example `byzantine/core/seed/1/squad/naive/gate` (a gate-seed row), `deadlock/edge/seed/20260720/member/m1/coordinated`, `grid_tactics/core/seed/20260720/a/reflex/vs/silver`, or `diplomacy_standard/core/seed/20261115/germany/robust/fill/engine/horizon/1904/engine/golden`. The seat and the policy are part of the id, so the anchors of a coordinated and a naive fill at the same scenario, tier and seed never share one. (Until 2.7.0 the example was `byzantine/core/squad/20260720`, which no runner wrote and which could not tell the two apart.) (2.10.0) The tier segment stays edge, core or frontier: no anchor is frozen at `extended`, so an anchor_id naming it is refused, while a cell's `budget_tier` may be `extended` (legs compared with each other, leg A empty)."
                   }
                 },
                 "allOf": [

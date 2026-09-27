@@ -25,7 +25,7 @@
  * data-only:
  *
  *   { "format": "arena-pack-variant/1",
- *     "tier": "edge" | "core" | "frontier",         optional: the ONE tier the variant always runs at
+ *     "tier": "edge" | "core" | "frontier" | "extended",  optional: the ONE tier the variant always runs at
  *     "seeds": [uint32, …],                          optional: the variant's fixed seeds (1..1000)
  *     "oracle_thresholds": { "<base>.<oracle>": 0..1 } optional: pass thresholds of the base's oracles }
  *
@@ -66,7 +66,7 @@ export function openCliPackRefusal(scenarioId: string): CliError {
 
 export const isPackScenarioId = (id: string): boolean => id.startsWith('sx_');
 
-export type TierId = 'edge' | 'core' | 'frontier';
+export type TierId = 'edge' | 'core' | 'frontier' | 'extended';
 
 export interface VariantParams {
   tier?: TierId;
@@ -169,7 +169,7 @@ export function packCoverageMissing(pm: {
   return out;
 }
 
-const TIERS: readonly TierId[] = ['edge', 'core', 'frontier'];
+const TIERS: readonly TierId[] = ['edge', 'core', 'frontier', 'extended'];
 
 /** Parse and bound a variant parameter file (`arena-pack-variant/1`) against its base scenario. */
 export function parseVariantParams(raw: Buffer, base: string, where: string): VariantParams {
@@ -186,7 +186,7 @@ export function parseVariantParams(raw: Buffer, base: string, where: string): Va
   if (extra.length) throw packUnavailable(`${where} has members outside the variant parameter surface (${extra.slice(0, 4).map((k) => k.slice(0, 32)).join(', ')}).`);
   const out: VariantParams = {};
   if (v.tier !== undefined) {
-    if (!TIERS.includes(v.tier as TierId)) throw packUnavailable(`${where}: tier must be edge, core or frontier.`);
+    if (!TIERS.includes(v.tier as TierId)) throw packUnavailable(`${where}: tier must be edge, core, frontier or extended.`);
     out.tier = v.tier as TierId;
   }
   if (v.seeds !== undefined) {

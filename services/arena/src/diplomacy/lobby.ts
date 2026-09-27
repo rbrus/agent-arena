@@ -53,8 +53,15 @@ import { DiplomacyTable, type DipSeatSide, type DipSeatSpec } from './table.ts';
 import { dipFirstError, dipMaxBytes, dipValidators } from './validators.ts';
 import { DIPLOMACY_SCENARIO_ID } from './wire.ts';
 
+/**
+ * The eval classes the live table session offers: the `diplomacy_session_ack` `eval_class` enum.
+ * `extended` (contracts 2.10.0) is an evaluation-run tier only (CLI, hosted runner, Neutral Ground
+ * harness); the live lobby does not offer it.
+ */
+export type LiveDipEvalClass = Exclude<DipEvalClass, 'extended'>;
+
 /** Ds / Dh per eval class; mirrors arena-scenarios/src/tiers.ts (Phase 7 A3). */
-export const DIP_DEADLINES: Readonly<Record<DipEvalClass, { softMs: number; hardMs: number }>> = Object.freeze({
+export const DIP_DEADLINES: Readonly<Record<LiveDipEvalClass, { softMs: number; hardMs: number }>> = Object.freeze({
   edge: { softMs: 800, hardMs: 1600 },
   core: { softMs: 1500, hardMs: 3000 },
   frontier: { softMs: 3000, hardMs: 6000 },
@@ -109,7 +116,7 @@ export interface DipConn {
 
 export interface CreateTableInput {
   seats: Readonly<Record<Power, DipSeatSpec>>;
-  cls?: DipEvalClass;
+  cls?: LiveDipEvalClass;
   seed?: number;
   horizonYear?: number;
   seatPowers?: readonly Power[];
@@ -243,6 +250,7 @@ export function createDiplomacyLobby(opts: DiplomacyLobbyOptions): DiplomacyLobb
       throw new Error('createTable: horizonYear must be 1901..1908 (contracts 2.1.0)');
     }
     const cls = input.cls ?? 'core';
+    if (!Object.hasOwn(DIP_DEADLINES, cls)) throw new Error(`createTable: eval class must be edge, core or frontier on the live table session (got ${String(cls).slice(0, 20)})`);
     const d = DIP_DEADLINES[cls];
     const tableId = newTableId();
     const episode = input.episode ?? { episodeId: newEpisodeId(), secret: randomBytes(32).toString('hex') };

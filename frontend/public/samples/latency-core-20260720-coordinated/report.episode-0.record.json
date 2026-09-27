@@ -1,7 +1,7 @@
 {
   "scenarioId": "latency",
   "scenarioVersion": "1.2.0",
-  "engineCommit": "sha256:683adc05a1a1de5b960b8da68348dea1407a6432e4fe0bb392cbe2027965b016",
+  "engineCommit": "sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075",
   "seed": 20260720,
   "tier": "core",
   "mode": "squad",
@@ -1762,7 +1762,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "fbb4278386fed97493c009e81047254b33301980b34a5f2c2ae188e6dc35b6c6",
+  "blindingKey": "08a49150234f2308dafb890e6eb3e4be51adbaeb7ed9f8816c3e85a148fc01df",
   "perTickHashes": [
     "sha256:60598ebfe61b15217514b10faf90ac1c879056320288980127fd1d9579c4f64e",
     "sha256:b32ccf47aa87dd99a2bca8b4cf928f080179dc82699520bfd159778df316eb06",

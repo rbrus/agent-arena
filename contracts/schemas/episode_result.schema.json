@@ -428,7 +428,8 @@
           "enum": [
             "edge",
             "core",
-            "frontier"
+            "frontier",
+            "extended"
           ]
         },
         "decisions": {

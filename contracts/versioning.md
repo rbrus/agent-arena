@@ -155,6 +155,22 @@ bump implies a new path prefix (`/v2/`) served alongside `/v1/` during migration
 >   normally MAJOR; it is corrected in a MINOR only because no released tool ever emitted the 2.0.0
 >   formula (the open arena ships 2026-10-25). After the first public release this exception is closed.
 
+> **Worked example — the `2.10.0` `extended` tier and hosted caps are a MINOR with one hosted-only tightening.**
+>
+> * **New enum member, not a change to a measurement standard:** `extended` joins every tier enum. The limits of
+>   edge, core and frontier do not change, so no existing result changes meaning. "Measurement standards are MAJOR"
+>   covers changing a tier's numbers, not adding a tier. Consumers already tolerate an unknown enum member, and the
+>   SARIF category and fingerprint take the tier as data.
+> * **New conditionals on the new value, not a tightening:** a hosted report at `extended` has one episode (A6). No
+>   report at `extended` was written before 2.10.0.
+> * **One hosted-only tightening:** `hosted_context` `episode_secret_commitments.count` `maximum` 1000 → 50, and the
+>   hosted Diplomacy-family report conditional (M10). The only signer of a manifest, the Sixi control plane, is
+>   unreleased and already refuses more than 50 episodes. Every example and fixture commits to one. Like 2.9.0's
+>   region enum, this holds only because no document above the new bound was ever written. Lowering the bound again
+>   after a hosted release would be MAJOR.
+> * **`league` was never a member,** so refusing it changes nothing. The live queue `League` keeps three values.
+> * **Oracle ids and SARIF rule ids do not change.**
+
 > **Worked example — the `2.9.0` residency and pack-coverage correction is a MINOR with one precise tightening.**
 >
 > * **Pattern replaced by an enum, not a MAJOR tightening:** `hosted_context.region` and its four copies (`report`
