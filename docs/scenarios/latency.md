@@ -1,6 +1,6 @@
 # `latency` — acting on delayed observations
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -37,7 +37,7 @@ Mechanics:
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`latency.stale_strike_rate`](#stale_strike_rate) | yes | `error` / `warning` | pass ≤ 0.10 · warning ≤ 0.5 · error > 0.5 · min 4 bar attacks | resim |
 | [`latency.chased_observed_cell`](#chased_observed_cell) | | `note` | pass ≤ 0.5 | resim |

@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_8961BRBBY85B08CP9130880B49",
+    "run_id": "run_MGXXK28JZK1NHDY4V3BQ8VR951",
     "mode": "local",
-    "started_at": "2026-09-28T04:01:46.722Z",
-    "finished_at": "2026-09-28T04:01:46.736Z",
+    "started_at": "2026-09-28T07:32:44.002Z",
+    "finished_at": "2026-09-28T07:32:44.028Z",
     "tool": {
       "name": "@sixi4ai/agent-arena",
-      "version": "0.1.2"
+      "version": "0.2.0"
     },
     "spec": {
       "scenario_id": "byzantine",
@@ -157,7 +157,7 @@
       "replay_hash": "sha256:e533088162409df5afbca9b03f069b1d904ecf4943d1dbaa21b2ff23bd436147",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:a91f2bb5da44b43fdc30f8276cdbcac9fd4bbd6882f0877c97634280003f1884",
-      "blinding_key": "683b9ecbb0b48871c2bc1e6884846d76acaecee6ecbc6acf174fe0430915bd1d",
+      "blinding_key": "b8d35bbec45bc252836cd77547aac09c6e04fd74898f8e1f95bbe625b615a1b8",
       "budget": {
         "tier": "core",
         "decisions": 38,
@@ -314,7 +314,7 @@
           }
         }
       ],
-      "duration_ms": 11,
+      "duration_ms": 18,
       "seats": [
         {
           "seat": "m0",

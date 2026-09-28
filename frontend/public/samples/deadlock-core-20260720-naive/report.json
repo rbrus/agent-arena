@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_PX6TXSS2GJ3RYD6B1TPWN0HK7M",
+    "run_id": "run_7P8AMA40PQVEVP29T3BBV3BT9S",
     "mode": "local",
-    "started_at": "2026-09-28T04:01:46.821Z",
-    "finished_at": "2026-09-28T04:01:46.827Z",
+    "started_at": "2026-09-28T07:32:44.176Z",
+    "finished_at": "2026-09-28T07:32:44.190Z",
     "tool": {
       "name": "@sixi4ai/agent-arena",
-      "version": "0.1.2"
+      "version": "0.2.0"
     },
     "spec": {
       "scenario_id": "deadlock",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:62ed0ec1b848c2392261db88f1c15cd7c492fced56eab5f44579d0d17fb10a8a",
-      "blinding_key": "9c2012ba226b03ce18048c0062bdfe5ea93c38e23dd9d44aec0b2944cd496d41",
+      "blinding_key": "f6fab51702b23eb051e69d5bf27a6211fa60ed831886ec765b2b76e5d69b77b6",
       "budget": {
         "tier": "core",
         "decisions": 33,
@@ -307,7 +307,7 @@
           }
         }
       ],
-      "duration_ms": 4,
+      "duration_ms": 10,
       "seats": [
         {
           "seat": "m0",

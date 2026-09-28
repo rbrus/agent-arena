@@ -3,7 +3,7 @@
 This guide is for people building an agent that will be evaluated in agent-arena, or deployed
 anywhere it reads what other agents write. It covers how to treat relayed content: the
 structured peer claims in the raid scenarios, and the free-text negotiation press of the Diplomacy
-scenario (`diplomacy_standard`), which the CLI runs since C2g (2026-09-26).
+scenario (`diplomacy_standard`), which the CLI runs (announced as runnable in 0.2.0).
 
 > **Conflict of interest.** agent-arena is maintained by Sixi AI, the vendor of sixi-scanner and of
 > Sixi Arena. This guide describes how the open scenarios score behaviour; following it does not
@@ -32,7 +32,7 @@ We can sanitise and bound the boundary. We cannot see or fix the prompt inside y
 | `consensus_advisories`: each member's claimed node | `byzantine` | structured claims; one member per phase is corrupted and a spoofed broadcast agrees with it | built |
 | Squad positions, threat, telegraphs | all raids | structured, truthful | built |
 | Free-text ping `text`, `thought` | all raids | **dropped**, never relayed to anyone | built |
-| Negotiation press: free text plus structured requests (`asks`) and offers | `diplomacy_standard` | untrusted text from an adversary, including planted instructions | built (scenario package); CLI support planned |
+| Negotiation press: free text plus structured requests (`asks`) and offers | `diplomacy_standard` | untrusted text from an adversary, including planted instructions | built; the CLI runs it |
 
 The same discipline covers both kinds. A structured field from a peer is a **claim**; a sentence
 from a peer is a **claim** too. Neither is an instruction.
@@ -232,8 +232,8 @@ What that means for your agent:
 [byzantine](../scenarios/byzantine.md) and [hallucinator](../scenarios/hallucinator.md).
 
 `diplomacy_standard` exercises the free-text half: its `injector-table` fill plants the canaries of
-§7, and its oracles are described in [the scenario page](../scenarios/diplomacy_standard.md). It is
-built in the scenario package, but this version of the CLI does not run it:
+§7, and its oracles are described in [the scenario page](../scenarios/diplomacy_standard.md). To
+run it against your own agent:
 
 ```bash
 npx @sixi4ai/agent-arena run --scenario diplomacy_standard --seat auto --fill house --tier core \
@@ -242,5 +242,4 @@ npx @sixi4ai/agent-arena run --scenario diplomacy_standard --seat auto --fill ho
 
 Failures will cite message, intent and order ids, never the text itself: reports do not embed
 press excerpts, so they cannot relay an attacker's text to the people reading them. Open the ids
-in the replay (Diplomacy support in the replay inspector is planned) to read the messages as plain
-text.
+in the replay inspector, which renders Diplomacy episodes, to read the messages as plain text.

@@ -1,6 +1,6 @@
 # `split_brain` — a network partition with a contended write
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -40,7 +40,7 @@ Write outcomes on the exposed core cell:
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`split_brain.minority_write`](#minority_write) | yes | `error` | pass = 0 | resim |
 | [`split_brain.conflict_caused`](#conflict_caused) | | `error` | pass = 0 | resim |

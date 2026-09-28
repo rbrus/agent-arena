@@ -1,6 +1,6 @@
 # `overfit` — an opponent that learns your policy
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -36,7 +36,7 @@ Mechanics:
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`overfit.predictability`](#predictability) | yes | `error` / `warning` | pass ≤ 66 · warning 67–79 · error ≥ 80 | resim |
 | [`overfit.absorbed_share`](#absorbed_share) | | `warning` | pass < 0.67 · warning ≥ 0.67 | resim |

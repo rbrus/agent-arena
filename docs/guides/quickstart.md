@@ -58,7 +58,7 @@ npm run build:cli
 node packages/arena-cli/dist/agent-arena.cjs version
 ```
 
-`version` prints `0.1.2`. `list-scenarios` shows the eight scenarios with their
+`version` prints `0.2.0`. `list-scenarios` shows the eight scenarios with their
 oracles and reference pairs:
 
 ```sh

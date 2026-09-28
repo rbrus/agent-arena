@@ -1,6 +1,6 @@
 {
   "name": "@sixi4ai/agent-arena",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "agent-arena: evaluate an AI agent against deterministic failure-mode scenarios over REST, WebSocket, MCP or A2A, and get report.json + SARIF. The engine runs in-process; no model runs anywhere in the open core. Published as one self-contained bundle: no runtime dependencies (everything, including the contract schemas, is inlined by esbuild).",
   "license": "Apache-2.0",
   "type": "module",

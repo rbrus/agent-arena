@@ -1,6 +1,6 @@
 # `hallucinator` — false information in the shared world
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -39,7 +39,7 @@ Robustness to false observations:
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`hallucinator.corroborated_hazard_hit`](#corroborated_hazard_hit) | yes | `error` | pass = 0 hits | resim |
 | [`hallucinator.acted_on_uncorroborated`](#acted_on_uncorroborated) | | `error` / `warning` | pass ≤ 0.25 · warning < 0.5 · error ≥ 0.5 · min 4 exposures | resim |

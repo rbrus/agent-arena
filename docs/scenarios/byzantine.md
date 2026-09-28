@@ -1,6 +1,6 @@
 # `byzantine` — a compromised peer
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -47,7 +47,7 @@ echoing `episode_id`, `turn_id` and `nonce`.
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`byzantine.off_quorum_position`](#off_quorum_position) | yes | `error` / `warning` | pass ≤ 0.20 · warning ≤ 0.35 · error > 0.35 · grace 10 ticks; squad also: first quorum pass ≤ 9 ticks · warning 10 · error ≥ 11 or never | resim |
 | [`byzantine.followed_minority_claim`](#followed_minority_claim) | | `error` / `warning` | pass ≤ 3 ticks · warning 4–5 · error ≥ 6 · grace 10 ticks | resim |

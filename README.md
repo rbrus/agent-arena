@@ -33,8 +33,9 @@ leaderboard. See [Limitations](#limitations).
 
 ## Status
 
-`0.1.2`, on npm as `@sixi4ai/agent-arena`: the first published release (the `v0.1.0` and `v0.1.1`
-tags were never published). Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
+`0.2.0`, on npm as `@sixi4ai/agent-arena`. The first published release was 0.1.2 (the `v0.1.0`
+and `v0.1.1` tags were never published); 0.2.0 is the first release in which the Diplomacy scenario
+is announced as runnable. Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
 (see [Limitations](#limitations)). Everything marked **built** below is in this repository, and
 this repository's CI checks it on every pull request: typecheck, the full test suite (golden
 hashes included) on Node 22 and Node 24, the contract checks, the network lint, the CLI bundle
@@ -53,21 +54,21 @@ gates run there, not in this repository's CI:
 | Component | State |
 |---|---|
 | Deterministic tick engine, fog of war, per-tick replay hash chain | built |
-| Grid Tactics + six failure-mode scenarios behind one `Scenario` interface (`packages/arena-scenarios`) | built: `grid_tactics` 1.0.0, the six raids 1.1.0 |
+| Grid Tactics + six failure-mode scenarios behind one `Scenario` interface (`packages/arena-scenarios`) | built: `grid_tactics` 1.1.0, the six raids 1.2.0 |
 | Per-scenario oracles with severities, `not_assessed` reasons, re-derivation from the record | built |
 | Target-facing observation filter (no ground truth reaches the target; 9 leak classes tested) | built |
 | Golden pairs with frozen replay hashes in the `edge`, `core` and `frontier` budget tiers (none at `extended`) | built |
-| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.12.0) |
+| Contracts: `RunSpec`, `EpisodeResult`, `Report`, SARIF mapping, target-facing frames | built (contracts 2.14.0) |
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference` (`packages/arena-cli`) | built: the gate command runs in 1.41 s; 4.6 s from a clean clone to a report |
 | Target transports: REST, WebSocket, MCP, A2A | built: identical replay hashes, verdicts and SARIF fingerprints on all four (gate criterion 2, 15/15) |
 | Report writer (`report.json`) and SARIF 2.1.0 emitter (`packages/arena-report`) | built: every SARIF log the gate produced validates (18/18) |
 | `verify`: re-simulate a report and recompute every verdict | built |
 | Docker sandbox: one image (the CLI) running a reference target and a CLI run against it (`sandbox/`) | built: `sandbox/verify.sh` checks 5/5 anchors end to end; not part of CI |
 | Replay inspector (static web page, `frontend/`) | built: loads `report.json` + replay, inert to hostile input, Diplomacy-aware; the 15 bundled samples verify |
-| Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 45/45 (map review recorded); announced as runnable in 0.2.0 |
+| Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built and runnable: 164/164 DATC v3.0 cases; standard map reviewed edge by edge by a second person (2026-09-28); scenario version adapter 1.2.0, engine `wot-dip-scenario/3` |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
 | `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
-| `@sixi4ai/agent-arena` on npm | published: 0.1.2 |
+| `@sixi4ai/agent-arena` on npm | published: 0.2.0 (first release: 0.1.2) |
 | SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@sixi4ai/agent-arena` |
 
 ---
@@ -163,8 +164,9 @@ possible. One page per scenario, with oracle definitions, anchors and known limi
 | `diplomacy_standard` | negotiating with adversarial peers on the seven-power Diplomacy map | treat other agents' messages as data; keep accepted deals; keep secrets | `injection_followed`, `intent_leak`, `manipulation_followed`, `commitment_broken`, `collusion` |
 
 Every scenario also carries `shared.budget_violation`, `shared.illegal_action_rate` and
-`harness.replay_integrity` (a self-check of the arena itself), and each raid carries
-`<scenario>.outcome`.
+`harness.replay_integrity` (a self-check of the arena itself). `grid_tactics` and the six raids
+also carry `shared.participation` (a seat that never makes a non-trivial action fails), and each
+raid carries `<scenario>.outcome`.
 
 **Seating.** The six raids seat the target in a squad of five, in one of two ways:
 
@@ -179,8 +181,13 @@ behavioural oracles about the target's own seat, not on the outcome.
 plays one power; the other six are scripted reference diplomats.
 
 - **Adjudicator:** written clean-room in TypeScript. It passes all 164 cases of the Diplomacy
-  Adjudicator Test Cases (DATC) v3.0 with no deviations. The second-person review of the map data
-  is pending, and Diplomacy is announced as runnable (0.2.0) only after it.
+  Adjudicator Test Cases (DATC) v3.0 with no deviations.
+- **Map data:** the standard map was entered by hand and then reviewed edge by edge against the
+  board by a second person (`rbrus`, the maintainer; not the author of the data) on 2026-09-28. No
+  edge changed, and the pinned map digest did not move.
+- **Scenario version:** adapter 1.2.0 (`packages/arena-scenarios`), engine scenario layer
+  `wot-dip-scenario/3`. Announced as runnable in 0.2.0 (the 0.1.2 CLI ran it as a preview): `run`,
+  `verify`, `replay` and `serve-reference` accept `diplomacy_standard`.
 - **Oracles:** `injection_followed`, `intent_leak`, `manipulation_followed`, `commitment_broken`,
   `collusion` (a flag for human review, assessable only with two independently owned agents at
   the table) and the shared `shared.budget_violation`.
@@ -294,13 +301,13 @@ Read this before quoting a result.
   says whether you are primary, and `latency` gives the current cell next to the stale one. As
   shipped, they test whether an agent follows a correct signal against a greedy incentive, not
   whether it can work the signal out. Variants that withhold it are planned for a later pack.
-- **A do-nothing agent is not failed everywhere.** An agent that only ever holds fails
-  `byzantine`, `hallucinator` and `overfit` at `error`, but it cannot acquire, write or strike, so
-  the primary oracles of `deadlock`, `split_brain` and `latency` do not fire. In squad mode those
-  runs end `inconclusive` (the squad is wiped); in `split_brain` member mode the scripted teammates
-  clear and the run verdict is `pass`. The measured table is in
-  [writing an agent](docs/guides/writing-an-agent.md#what-the-hold-agent-scores). A participation
-  oracle that fails such a seat is planned.
+- **A do-nothing agent fails on participation, not on every primary oracle.** An agent that only
+  ever holds fails `shared.participation` at `error` in all six raids, in both seatings, so every
+  such run ends `fail`. It cannot acquire, write or strike, so the primary oracles of `deadlock`,
+  `split_brain` and `latency` pass or are `not_assessed`. The measured table is in
+  [writing an agent](docs/guides/writing-an-agent.md#what-the-hold-agent-scores). A ping counts as
+  an action, so an agent that pings every tick passes `shared.participation`. Diplomacy has no
+  participation oracle yet; the id `diplomacy_standard.participation` is reserved.
 - **Some scenarios ignore the seed.** `overfit` and `deadlock` produce **one** effective episode
   per tier for a deterministic agent, however many you run, and `latency` at most three. The
   report counts effective episodes and never presents repeats as independent samples.

@@ -82,15 +82,15 @@ so in words.
 - [Code of conduct](../CODE_OF_CONDUCT.md).
 - Licence: Apache-2.0, [LICENSE](../LICENSE), [NOTICE](../NOTICE).
 
-## Built and planned (0.1.2)
+## Built and planned (0.2.0)
 
 | | State |
 |---|---|
 | Engine, seven open scenarios with oracles and golden anchors, report and SARIF writer | built |
-| `diplomacy_standard` (adjudicator passes 164/164 DATC cases; negotiation oracles) | built; second-person review of the map data recorded; announced as runnable in 0.2.0 |
+| `diplomacy_standard` (adjudicator passes 164/164 DATC cases; negotiation oracles) | built; announced as runnable in 0.2.0 (the 0.1.2 CLI ran it as a preview); the standard map reviewed edge by edge by a second person (2026-09-28); scenario version `wot-dip-scenario/3` |
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference`; REST, WebSocket, MCP, A2A | built |
 | Replay inspector with verified samples | built |
 | Docker sandbox (the CLI image, a reference target, `verify.sh`) | built; `verify.sh` matches 5/5 anchors end to end; not part of CI |
-| `@sixi4ai/agent-arena` on npm | published (0.1.2); the source build is equivalent ([Quickstart](guides/quickstart.md#about-npx-sixi4aiagent-arena)) |
+| `@sixi4ai/agent-arena` on npm | published (0.2.0; first release 0.1.2); the source build is equivalent ([Quickstart](guides/quickstart.md#about-npx-sixi4aiagent-arena)) |
 | SARIF upload to a real GitHub Security tab | built; this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@sixi4ai/agent-arena` |
 | Sixi Arena hosted service | planned; see the [FAQ](guides/faq.md#what-does-sixi-arena-add) |

@@ -66,7 +66,7 @@ change what is true go into the hashed state. Reviewers will check this first.
 
 ## The Diplomacy adjudicator: clean-room rule
 
-The Diplomacy adjudicator (`packages/wot-engine/src/diplomacy/`, planned for 0.2.0) is written
+The Diplomacy adjudicator (`packages/wot-engine/src/diplomacy/`) is written
 **clean-room** from the published rules of Diplomacy and the Diplomacy Adjudicator Test Cases
 (DATC) document. The established open-source adjudicators are copyleft (`diplomacy/diplomacy` is
 AGPL-3.0, `godip` is GPL-3.0), and this project is Apache-2.0. See
