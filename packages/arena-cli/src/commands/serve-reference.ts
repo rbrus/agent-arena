@@ -5,6 +5,10 @@
  * diplomacy_standard: `--policy robust|credulous|injector|house` (coordinated /
  * naive are aliases of robust / credulous), `--agent-seed` = the served agents'
  * tie-break salt (default 20261115, the goldens' seed; see reference/diplomacy.ts).
+ *
+ * `--ownership-token <sixi-verify=…>` (env ARENA_OWNERSHIP_TOKEN; the flag wins) also serves
+ * the Sixi Arena ownership proof at GET /.well-known/sixi-verify (reference/ownership-proof.ts).
+ * Off by default; the value is never printed.
  */
 
 import { SCENARIO_IDS } from 'arena-scenarios';
@@ -12,6 +16,7 @@ import { DIPLOMACY } from '../diplomacy.ts';
 import { misconfig } from '../errors.ts';
 import { DIP_DEFAULT_AGENT_SEED, DIP_SERVED_POLICIES } from '../reference/diplomacy.ts';
 import { dipPolicyOf, referenceNames, type ServePolicy } from '../reference/policy.ts';
+import { OWNERSHIP_PROOF_PATH, resolveOwnershipToken } from '../reference/ownership-proof.ts';
 import { startReferenceServer, type ReferenceServer } from '../reference/serve.ts';
 import type { HostedReferenceOptions } from '../reference/run-token.ts';
 import { loadPublicKeySet } from '../keys.ts';
@@ -39,6 +44,10 @@ export interface ServeFlags {
   runTokenIssuer?: string;
   /** --hosted: refuse requests without a run token (default: tokenless requests are served, for the open legs). */
   requireRunToken?: boolean;
+  /** Sixi ownership token (`sixi-verify=` + 32 hex) served at /.well-known/sixi-verify; wins over the env. */
+  ownershipToken?: string;
+  /** Where ARENA_OWNERSHIP_TOKEN is read from (default process.env). */
+  env?: Record<string, string | undefined>;
 }
 
 const VERIFIED_ORIGIN = /^(https|wss):\/\/[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?)*(:[0-9]{1,5})?$/;
@@ -101,10 +110,11 @@ export async function serveReferenceCommand(f: ServeFlags): Promise<ReferenceSer
   }
   if (allowedOrigins.length) warn(`--allow-origin: web pages from ${allowedOrigins.join(', ')} can drive this reference agent from a browser.`);
   const hosted = hostedOptions(f);
+  const ownershipToken = resolveOwnershipToken(f.ownershipToken, f.env ?? process.env);
   if (hosted) info(`hosted reference: Host must name ${hosted.verifiedOrigin}; run tokens verified (${hosted.runTokenKeys.length} pinned key(s))${hosted.requireToken ? ', required' : '; tokenless requests are served (open legs)'}`);
   let server: ReferenceServer;
   try {
-    server = await startReferenceServer({ port, host: host === 'localhost' ? '127.0.0.1' : host, policy, scenario: f.scenario, allowedOrigins, ...(isDip ? { agentSeed } : {}), ...(hosted ? { hosted } : {}) });
+    server = await startReferenceServer({ port, host: host === 'localhost' ? '127.0.0.1' : host, policy, scenario: f.scenario, allowedOrigins, ...(isDip ? { agentSeed } : {}), ...(hosted ? { hosted } : {}), ...(ownershipToken !== undefined ? { ownershipToken } : {}) });
   } catch (e) {
     const code = (e as { code?: string }).code;
     throw misconfig(`cannot listen on ${host}:${port} (${code ?? 'error'}).`, code === 'EADDRINUSE' ? 'pick another --port, or stop what is using it.' : 'check --host and --port.');
@@ -112,7 +122,7 @@ export async function serveReferenceCommand(f: ServeFlags): Promise<ReferenceSer
   const names = referenceNames()[f.scenario ?? 'byzantine'];
   const dipName = { robust: 'robust-diplomat', credulous: 'credulous-diplomat', injector: 'injector', house: 'house-diplomat' }[dipPolicyOf(policy)];
   const shown = isDip ? `${policy}: ${dipName}, tie-break salt ${agentSeed}` : `${policy}${f.scenario ? `: ${names?.[policy as 'coordinated']}` : ''}`;
-  if (isJson()) outJson({ ok: true, policy, scenario: f.scenario ?? 'any', port: server.port, urls: server.urls, ...(isDip ? { agent_seed: agentSeed } : {}) });
+  if (isJson()) outJson({ ok: true, policy, scenario: f.scenario ?? 'any', port: server.port, urls: server.urls, ...(isDip ? { agent_seed: agentSeed } : {}), ...(ownershipToken !== undefined ? { ownership_proof: OWNERSHIP_PROOF_PATH } : {}) });
   else {
     out(`reference agent (${shown}, scripted, no model) on ${host}:${server.port}`);
     out(`  rest  ${server.urls.rest}`);
@@ -120,6 +130,7 @@ export async function serveReferenceCommand(f: ServeFlags): Promise<ReferenceSer
     out(`  mcp   ${server.urls.mcp}   (tool arena_act)`);
     out(`  a2a   ${server.urls.a2a}`);
     out(`  health ${server.urls.healthz}`);
+    if (ownershipToken !== undefined) out(`  proof ${server.urls.healthz.replace(/\/healthz$/, OWNERSHIP_PROOF_PATH)}   (Sixi ownership token; value not shown)`);
     info(
       isDip
         ? `try: agent-arena run --scenario ${DIPLOMACY} --seat germany --fill table:commitment --horizon 1904 --seeds ${agentSeed} --target ${server.urls.rest.replace(/\/$/, '')}`

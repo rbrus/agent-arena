@@ -65,6 +65,10 @@ Usage:
                               [--hosted --verified-origin <https://host[:port]> --run-token-key <pem|jwk|jwks>
                                [--run-token-issuer <iss>] [--require-run-token]]   (cross-check reference origin:
                                Host allowlist + sixi_run_token verification, bound to X-Agent-Arena-Run)
+                              [--ownership-token <sixi-verify=…>]   (or env ARENA_OWNERSHIP_TOKEN; the flag wins:
+                               serves the Sixi Arena ownership proof as text/plain at GET /.well-known/sixi-verify,
+                               no auth; proves control of the host to Sixi and nothing else; never printed;
+                               default off, no route)
 
 run options:
   --scenario <id>          grid_tactics | hallucinator | overfit | byzantine | deadlock | split_brain | latency
@@ -387,6 +391,7 @@ export async function main(argv: string[], o: CliOptions = {}): Promise<number> 
         'run-token-key': { type: 'string' },
         'run-token-issuer': { type: 'string' },
         'require-run-token': { type: 'boolean' },
+        'ownership-token': { type: 'string' },
       });
       setOutputMode({ json: !!v.json, quiet: !!v.quiet });
       await serveReferenceCommand({
@@ -403,6 +408,7 @@ export async function main(argv: string[], o: CliOptions = {}): Promise<number> 
         runTokenKey: v['run-token-key'] as string | undefined,
         runTokenIssuer: v['run-token-issuer'] as string | undefined,
         requireRunToken: !!v['require-run-token'],
+        ownershipToken: v['ownership-token'] as string | undefined,
       });
       return -1; // keep serving
     }
