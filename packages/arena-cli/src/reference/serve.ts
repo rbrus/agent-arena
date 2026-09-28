@@ -8,6 +8,8 @@
  *   POST /mcp                                  mcp (streamable HTTP, JSON responses; tool `arena_act`)
  *   GET  /.well-known/agent-card.json          a2a agent card (also /.well-known/agent.json)
  *   POST /a2a                                  a2a JSON-RPC (`message/send`)
+ *   GET  /.well-known/sixi-verify              Sixi ownership proof, ONLY with --ownership-token
+ *                                              (reference/ownership-proof.ts); 404 otherwise
  *
  * Every endpoint calls the same `ReferenceAgent.respond()`, so the transport
  * cannot change a decision. Binds 127.0.0.1 unless told otherwise, and refuses
@@ -19,6 +21,7 @@ import { randomUUID } from 'node:crypto';
 import { serve, type InboundRequest, type OutboundResponse, type RunningServer } from '../net/index.ts';
 import { VERSION } from '../build-info.ts';
 import { ReferenceAgent, type ServePolicy } from './policy.ts';
+import { OWNERSHIP_PROOF_PATH, ownershipProofResponse } from './ownership-proof.ts';
 import { hostedReferenceAdmission, type HostedReferenceOptions } from './run-token.ts';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -45,6 +48,12 @@ export interface ReferenceServerOptions {
    * A2A card then names the endpoint on the verified origin (TLS terminates in front).
    */
   hosted?: HostedReferenceOptions;
+  /**
+   * The Sixi ownership token (already validated: resolveOwnershipToken). When set, GET
+   * /.well-known/sixi-verify answers it as text/plain, without auth; when unset there is no
+   * such route. Never logged and never part of the returned server object.
+   */
+  ownershipToken?: string;
 }
 
 export const DEFAULT_MAX_MCP_SESSIONS = 64;
@@ -169,6 +178,7 @@ export async function startReferenceServer(o: ReferenceServerOptions): Promise<R
     return json(200, { jsonrpc: '2.0', id: msg.id, result: { kind: 'message', role: 'agent', messageId: randomUUID(), parts: [{ kind: 'data', data: out }] } });
   };
 
+  const ownershipToken = o.ownershipToken;
   let port = o.port;
   const host = o.host ?? '127.0.0.1';
   const card = (req: InboundRequest): OutboundResponse => {
@@ -195,8 +205,9 @@ export async function startReferenceServer(o: ReferenceServerOptions): Promise<R
     port: o.port,
     bodyTimeoutMs: o.bodyTimeoutMs,
     allowedOrigins: o.allowedOrigins ?? [],
-    ...(o.hosted ? { admit: hostedReferenceAdmission(o.hosted) } : {}),
+    ...(o.hosted ? { admit: hostedReferenceAdmission(o.hosted, o.ownershipToken !== undefined ? [OWNERSHIP_PROOF_PATH] : []) } : {}),
     onRequest(req) {
+      if (ownershipToken !== undefined && req.path === OWNERSHIP_PROOF_PATH) return ownershipProofResponse(req.method, ownershipToken);
       if (req.method === 'GET' && req.path === '/healthz') return json(200, { ok: true, policy: o.policy, scenario: o.scenario ?? 'any', decisions: agent.decisions });
       if (req.method === 'GET' && (req.path === '/.well-known/agent-card.json' || req.path === '/.well-known/agent.json')) return card(req);
       if (req.method === 'POST' && req.path === '/mcp') return mcp(req);

@@ -16,7 +16,10 @@
  *     configured issuer when one is configured;
  *   - refuses unauthenticated requests only with `--require-run-token`.
  * Every refusal is the same `401 invalid_token` (no verification oracle).
- * `/healthz` is exempt (liveness probes carry neither).
+ * `/healthz` is exempt (liveness probes carry neither). `tokenExemptPaths` (the Sixi
+ * ownership proof, `/.well-known/sixi-verify`, when --ownership-token is set) keep the Host
+ * check but a plain GET/HEAD of them (not a WebSocket upgrade) never needs or checks a run
+ * token: Sixi's ownership gate fetches the proof without one.
  */
 
 import { verify as edVerify } from 'node:crypto';
@@ -117,14 +120,16 @@ export function allowedHosts(origin: string): string[] {
 const INVALID = { status: 401 as const, error: 'invalid_token', headers: { 'www-authenticate': 'Bearer error="invalid_token"' } };
 
 /** The admission function for `net/server.ts` `admit`. */
-export function hostedReferenceAdmission(o: HostedReferenceOptions) {
+export function hostedReferenceAdmission(o: HostedReferenceOptions, tokenExemptPaths: readonly string[] = []) {
   const hosts = allowedHosts(o.verifiedOrigin);
   const audience = new URL(o.verifiedOrigin).origin.replace(/^wss:/, 'https:');
   const audiences = [o.verifiedOrigin, audience];
-  return (req: { path: string; headers: Record<string, string | undefined> }) => {
+  return (req: { method?: string; path: string; headers: Record<string, string | undefined> }) => {
     if (req.path === '/healthz') return null;
     const host = (req.headers.host ?? '').toLowerCase();
     if (!hosts.includes(host)) return { status: 421 as const, error: 'misdirected_request' };
+    // A plain GET/HEAD only: a WebSocket upgrade on the same path would reach the agent (ws is any path).
+    if (tokenExemptPaths.includes(req.path) && (req.method === 'GET' || req.method === 'HEAD') && req.headers.upgrade === undefined) return null;
     const auth = req.headers.authorization;
     if (auth === undefined) return o.requireToken ? INVALID : null;
     const m = /^Bearer ([A-Za-z0-9_.-]+)$/.exec(auth);
