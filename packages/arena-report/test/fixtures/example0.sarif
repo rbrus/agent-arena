@@ -5,7 +5,7 @@
     {
       "tool": {
         "driver": {
-          "name": "@rbrus/agent-arena",
+          "name": "@sixi4ai/agent-arena",
           "semanticVersion": "0.1.0",
           "informationUri": "https://github.com/rbrus/agent-arena",
           "rules": [

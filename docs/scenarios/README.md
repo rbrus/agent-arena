@@ -9,10 +9,10 @@ scenario does **not** test.
 > deterministic predicate over a hash-committed replay of scripted reference agents; nothing is
 > scored by a model or by a person.
 
-**State as of 0.1.1.** Built: the scenarios, their oracles and the
+**State as of 0.1.2.** Built: the scenarios, their oracles and the
 frozen anchors (`packages/arena-scenarios`), the CLI that runs them against your agent over REST,
 WebSocket, MCP or A2A (`packages/arena-cli`), the report and SARIF writer, the Docker sandbox and
-the replay inspector. The CLI is on npm as `@rbrus/agent-arena` since 0.1.1, and the source is
+the replay inspector. The CLI is on npm as `@sixi4ai/agent-arena` since 0.1.2, and the source is
 public at [github.com/rbrus/agent-arena](https://github.com/rbrus/agent-arena). The Phase 7
 release gate is open (82/82 checks in the development repository); the Phase 8 (Diplomacy) gate is
 at 44/45, the open check being the second-person map review.
@@ -134,8 +134,8 @@ repeats of the same class; report the distribution, not the best run.
 ## Running a scenario
 
 Every page ends with a "Run it" section. The commands use the source-checkout form, which works
-after `npm ci && npm run build:cli`. With the npm package `@rbrus/agent-arena`,
-`npx @rbrus/agent-arena` (or an installed `agent-arena`) replaces
+after `npm ci && npm run build:cli`. With the npm package `@sixi4ai/agent-arena`,
+`npx @sixi4ai/agent-arena` (or an installed `agent-arena`) replaces
 `node packages/arena-cli/dist/agent-arena.cjs`. The
 [CLI README](../../packages/arena-cli/README.md) and `agent-arena --help` are authoritative; any
 difference between them and these pages is a bug in these pages.

@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_C2J3F7YHWXJMFWJ148QHQ4CQ46",
+    "run_id": "run_VHNJ8P1AAQSDDP7N77B8Z8APWV",
     "mode": "local",
-    "started_at": "2026-09-27T11:26:26.741Z",
-    "finished_at": "2026-09-27T11:26:26.760Z",
+    "started_at": "2026-09-28T04:01:46.598Z",
+    "finished_at": "2026-09-28T04:01:46.616Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.0"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "overfit",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:731ccfcd4ed56a23c712c23f4f62cea7d453f0e31f911b5c70ade782666be076",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:2290f30ce2949738a3f04cbac7014a9ceddd6b165361347bb098a069017b8d0f",
-      "blinding_key": "2f7f2860f6f6e6dcb41b37cd54417bf0c03c6a5c110bb58cf9a7c4d2a8c98d38",
+      "blinding_key": "f8b07bb9d674e1fe181d1c7cff5394179152a614519c57e323996c54391281d2",
       "budget": {
         "tier": "core",
         "decisions": 73,

@@ -4,11 +4,11 @@ Evaluate an AI agent against deterministic failure-mode scenarios, over REST, We
 
 ## Install
 
-Needs Node.js 22 or later. On npm as `@rbrus/agent-arena`; the bin is `agent-arena`.
+Needs Node.js 22 or later. On npm as `@sixi4ai/agent-arena`; the bin is `agent-arena`.
 
 ```sh
-npm i -g @rbrus/agent-arena          # then: agent-arena <command> …
-npx @rbrus/agent-arena <command> …   # without installing
+npm i -g @sixi4ai/agent-arena          # then: agent-arena <command> …
+npx @sixi4ai/agent-arena <command> …   # without installing
 ```
 
 `agent-arena serve-reference --port 8080` serves the included reference target, so the run below
@@ -28,7 +28,7 @@ npx agent-arena run --scenario byzantine --seat squad --target http://localhost:
 npx agent-arena verify arena-report/report.json
 ```
 
-`npm ci` links the `agent-arena` bin before anything is built. Until `npm run build:cli` has run, `npx agent-arena` exits 2 and says to run it. `node packages/arena-cli/dist/agent-arena.cjs` works in place of `npx agent-arena`. With the npm package, skip `npm ci` and `npm run build:cli` and use `agent-arena` or `npx @rbrus/agent-arena`. For a run that needs no network at all, pass `--target ref:coordinated`.
+`npm ci` links the `agent-arena` bin before anything is built. Until `npm run build:cli` has run, `npx agent-arena` exits 2 and says to run it. `node packages/arena-cli/dist/agent-arena.cjs` works in place of `npx agent-arena`. With the npm package, skip `npm ci` and `npm run build:cli` and use `agent-arena` or `npx @sixi4ai/agent-arena`. For a run that needs no network at all, pass `--target ref:coordinated`.
 
 The defaults are the gate run: the five gate seeds `20260720,1,2,3,5`, one episode each, the `core` tier. Each episode whose replay hash equals a frozen golden anchor is marked `anchor: match`.
 
@@ -64,7 +64,7 @@ The target plays one of the seven powers; the other six are scripted reference d
 
 ```
 npm run target:reference -- --scenario diplomacy_standard --policy robust --port 8080
-npx @rbrus/agent-arena run --scenario diplomacy_standard --seat germany --fill table:commitment \
+npx @sixi4ai/agent-arena run --scenario diplomacy_standard --seat germany --fill table:commitment \
     --horizon 1904 --seeds 20261115 --target http://localhost:8080
 #   … episode 0 seed 20261115 germany: survived at tick 44  sha256:a445a17f…  transcript sha256:25ff9b01…  anchor: match (…)
 ```
@@ -106,9 +106,9 @@ Every SARIF result points at the RunSpec file, repo-relative (`contracts/sarif-m
 `engine.build_hash` is scoped (`engine.build_scope`): every scenario except `diplomacy_standard` records scope `core`, which excludes `src/diplomacy/**`, so a Diplomacy change does not invalidate a core report. The bundle embeds only per-file hashes of the engine sources (`engine.source_manifest_digest` names that manifest); it never embeds the sources.
 
 ```
-npx @rbrus/agent-arena verify arena-report/report.json --key sixi-report-signing.pub.pem   # sealed report
-npx @rbrus/agent-arena verify bundle/report.json --hosted --key pinned                    # sealed Sixi report, against the bundled report key
-npx @rbrus/agent-arena version --json                                                     # engine build hashes of this build
+npx @sixi4ai/agent-arena verify arena-report/report.json --key sixi-report-signing.pub.pem   # sealed report
+npx @sixi4ai/agent-arena verify bundle/report.json --hosted --key pinned                    # sealed Sixi report, against the bundled report key
+npx @sixi4ai/agent-arena version --json                                                     # engine build hashes of this build
 ```
 
 ## Hosted mode (Sixi Arena runner only)
@@ -158,7 +158,7 @@ agent-arena verify --hosted-seal /run/arena/out --expect-manifest-digest sha256:
 
 ```text
 report.json: digest statement (196608 bytes, sha256:…) verified with sixi-arena-ed25519-…
-report.sarif: raw signature (17857 bytes) verified with sixi-arena-ed25519-…
+report.sarif: raw signature (17859 bytes) verified with sixi-arena-ed25519-…
 ```
 
 With `--json` the result carries `signed_forms`, e.g. `{"report.json": "digest_statement", "report.sarif": "raw", "bundle-manifest.json": "raw"}` (`verify --hosted`: `report.json` only; pre-seal: `{}`). Every refusal is `signature_invalid`, exit 2, as `signature_invalid: <reason>: <file>: <detail>`, where the reason is one of `payload_type`, `raw_over_threshold`, `payload_mismatch`, `statement_malformed`, `subject_type`, `length_mismatch`, `digest_mismatch`, `binding`, `form_mismatch`, `key` or `signature`. The CLI replays every vector of `contracts/fixtures/digest_statement_vectors.json` in its tests.
@@ -204,7 +204,7 @@ The runner image is the open image and Sixi never rebuilds it, so the keys it tr
 
 ## Security posture
 
-- **One guarded network layer** (`src/net/`). Every socket of every transport is checked inside its DNS `lookup` hook, against every returned address, on every new connection. Loopback, private, CGNAT, ULA, IPv4-mapped/NAT64/6to4/Teredo, link-local and metadata addresses are blocked. `--allow-private` opens private ranges; link-local needs `--allow-link-local`. A loopback address you type (`localhost`, `127.0.0.1`, `[::1]`) is a logged, loopback-only opt-in. A hostname that merely resolves to a private address stays blocked. Redirects are refused (`--follow-redirects`: same origin only, max 3 hops, each re-checked). Proxy environment variables are ignored. Responses are capped in bytes and time. A WebSocket connection is capped per frame (64 KiB), in unread frames (16) and unread bytes (256 KiB), and in total bytes (16 MiB) and messages (4096) per episode; a target that exceeds a cap is disconnected with close code 1008 and a reason, and the decision is recorded as `too_large`. `npm run lint:net -w @rbrus/agent-arena` fails on any network or process primitive outside `src/net/` (including `createRequire`, `process.getBuiltinModule`, `child_process`, computed `globalThis[...]` access). It also bundles the CLI in memory and fails if a bundled npm package is not on its allowlist, or if any bundled source outside `src/net/` imports a network module.
+- **One guarded network layer** (`src/net/`). Every socket of every transport is checked inside its DNS `lookup` hook, against every returned address, on every new connection. Loopback, private, CGNAT, ULA, IPv4-mapped/NAT64/6to4/Teredo, link-local and metadata addresses are blocked. `--allow-private` opens private ranges; link-local needs `--allow-link-local`. A loopback address you type (`localhost`, `127.0.0.1`, `[::1]`) is a logged, loopback-only opt-in. A hostname that merely resolves to a private address stays blocked. Redirects are refused (`--follow-redirects`: same origin only, max 3 hops, each re-checked). Proxy environment variables are ignored. Responses are capped in bytes and time. A WebSocket connection is capped per frame (64 KiB), in unread frames (16) and unread bytes (256 KiB), and in total bytes (16 MiB) and messages (4096) per episode; a target that exceeds a cap is disconnected with close code 1008 and a reason, and the decision is recorded as `too_large`. `npm run lint:net -w @sixi4ai/agent-arena` fails on any network or process primitive outside `src/net/` (including `createRequire`, `process.getBuiltinModule`, `child_process`, computed `globalThis[...]` access). It also bundles the CLI in memory and fails if a bundled npm package is not on its allowlist, or if any bundled source outside `src/net/` imports a network module.
 - **Credentials** are references: `--auth env:NAME`, or `--auth secret:name` for a mode-600 file in `$AGENT_ARENA_SECRETS_DIR`. The value lives only in process memory and is sent only to the origin you typed. It never appears in a log, report, SARIF, replay, error or the RunSpec on disk. `--token`, `--header` and similar flags, `user:pass@` URLs and credential-looking query parameters are refused.
   - An `env:` variable is deleted from the process environment as soon as it is read.
   - A secret file is opened once, without following symlinks. Its type, mode and size are checked on the open descriptor.

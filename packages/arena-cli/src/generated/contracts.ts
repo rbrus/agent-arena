@@ -7,11 +7,11 @@
 
 // ---- run_spec.schema.json (wot:run_spec:1) ----
 /**
- * What to evaluate and how: one scenario, N seeded episodes, one fixed budget tier, one seat mode, one target. Consumed identically by the local CLI (`npx @rbrus/agent-arena run --spec run.json`) and the hosted runner (POST /v1/runs). Caller-supplied and untrusted: every string is bounded and the spec is validated before any connection to the target is attempted. Contains no secret (target.auth.ref is a reference). Since 2.2.0 an optional `seats[]` adds externally driven seats (K7).
+ * What to evaluate and how: one scenario, N seeded episodes, one fixed budget tier, one seat mode, one target. Consumed identically by the local CLI (`npx @sixi4ai/agent-arena run --spec run.json`) and the hosted runner (POST /v1/runs). Caller-supplied and untrusted: every string is bounded and the spec is validated before any connection to the target is attempted. Contains no secret (target.auth.ref is a reference). Since 2.2.0 an optional `seats[]` adds externally driven seats (K7).
  */
 export interface RunSpecContract {
 /**
- * Scenario to run, from the catalog (GET /v1/scenarios, `npx @rbrus/agent-arena list-scenarios`). Scenarios are DATA, not an enum. The open set at 2.0.0 (arena-scenarios.md): grid_tactics, hallucinator, overfit, byzantine, deadlock, split_brain, latency; since 2.1.0 also `diplomacy_standard` (the seven-power standard-map Diplomacy scenario). Never contains '.', and `shared`/`harness` are reserved oracle namespaces. Since 2.2.0 the prefix `sx_` is a reserved namespace for Sixi Arena pack scenarios (RESERVED.md): an `sx_` id is data over an open scenario module (its `base`, recorded in the Report as `scenario.base_scenario_id`), runs only on the hosted runner, and the open CLI refuses it before any I/O with `scenario_pack_unavailable` (errors.md §1c, exit 3). The schema accepts `sx_` ids; which base rules apply is resolved by the runner from the pack manifest (pack_manifest.schema.json).
+ * Scenario to run, from the catalog (GET /v1/scenarios, `npx @sixi4ai/agent-arena list-scenarios`). Scenarios are DATA, not an enum. The open set at 2.0.0 (arena-scenarios.md): grid_tactics, hallucinator, overfit, byzantine, deadlock, split_brain, latency; since 2.1.0 also `diplomacy_standard` (the seven-power standard-map Diplomacy scenario). Never contains '.', and `shared`/`harness` are reserved oracle namespaces. Since 2.2.0 the prefix `sx_` is a reserved namespace for Sixi Arena pack scenarios (RESERVED.md): an `sx_` id is data over an open scenario module (its `base`, recorded in the Report as `scenario.base_scenario_id`), runs only on the hosted runner, and the open CLI refuses it before any I/O with `scenario_pack_unavailable` (errors.md §1c, exit 3). The schema accepts `sx_` ids; which base rules apply is resolved by the runner from the pack manifest (pack_manifest.schema.json).
  */
 scenario_id: string
 /**
@@ -125,7 +125,7 @@ header_name?: string
  */
 label?: string
 /**
- * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @rbrus/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
+ * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @sixi4ai/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
  */
 ownership_attested?: boolean
 }
@@ -189,7 +189,7 @@ header_name?: string
  */
 label?: string
 /**
- * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @rbrus/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
+ * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @sixi4ai/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
  */
 ownership_attested?: boolean
 }
@@ -245,7 +245,7 @@ header_name?: string
  */
 label?: string
 /**
- * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @rbrus/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
+ * (2.1.0) The caller attests that it owns, or is authorised to test, the target. The local CLI sets it with `npx @sixi4ai/agent-arena run --i-own-this-target`. The runner REFUSES a target whose URL does not resolve to a loopback address unless this is true (CLI: exit before any connection; hosted: 422 target_ownership_unattested). Loopback targets (localhost, 127.0.0.0/8, ::1) need no attestation. The schema keeps the field optional so every 2.0.0 RunSpec stays valid; the requirement is a runner rule (errors.md §1c). Recorded in the Report (`run.spec` and `run.target_ownership`).
  */
 ownership_attested?: boolean
 }

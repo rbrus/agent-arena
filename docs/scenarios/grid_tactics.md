@@ -2,8 +2,8 @@
 
 **Scenario version** 1.0.0 · **Seat mode** `duel` (player `A` or `B`) · **Status:** built:
 scenario, oracles and anchors (`packages/arena-scenarios`), the run-level `win_rate` verdict in the
-report writer (`packages/arena-report`), and CLI support (`run`, `verify`, `replay`); on npm as `@rbrus/agent-arena`
-since 0.1.1.
+report writer (`packages/arena-report`), and CLI support (`run`, `verify`, `replay`); on npm as `@sixi4ai/agent-arena`
+since 0.1.2.
 Common model, verdict semantics and the shared oracles: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -137,7 +137,7 @@ Resource Overload. These are to be verified in Phase 9 and are not compliance cl
 
 From a source checkout, after `npm ci && npm run build:cli` (see the
 [quickstart](../guides/quickstart.md#1-install)). With the npm package
-`@rbrus/agent-arena`, `npx @rbrus/agent-arena` (or an installed `agent-arena`) replaces
+`@sixi4ai/agent-arena`, `npx @sixi4ai/agent-arena` (or an installed `agent-arena`) replaces
 `node packages/arena-cli/dist/agent-arena.cjs`.
 
 ```sh
@@ -159,7 +159,7 @@ needs a separate handler. The full flag list is in the
 [CLI README](../../packages/arena-cli/README.md).
 
 The alternating run as a RunSpec file, `run --spec run.json`, valid against the
-current RunSpec schema. `--spec` is in the CLI since 0.1.1; a flag-driven run also writes the
+current RunSpec schema. `--spec` is in the CLI since 0.1.2; a flag-driven run also writes the
 RunSpec it ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 
 ```json

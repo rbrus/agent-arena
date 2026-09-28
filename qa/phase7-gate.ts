@@ -1066,7 +1066,7 @@ export async function runGate(opts: GateOptions = {}): Promise<GateResult> {
       sh('npm', ['run', 'typecheck'], { timeoutMs: 600_000 }),
       sh('npm', ['run', 'contracts:tier0']),
       sh('npm', ['run', 'contracts:check']),
-      sh('npm', ['run', 'lint:net', '-w', '@rbrus/agent-arena']),
+      sh('npm', ['run', 'lint:net', '-w', '@sixi4ai/agent-arena']),
       sh(join(ASC, 'frontend', 'node_modules', '.bin', 'vitest'), ['run'], { cwd: join(ASC, 'frontend'), timeoutMs: 300_000 }),
     ]);
     M['C5 typecheck'] = `${(tc.ms / 1000).toFixed(1)} s`;

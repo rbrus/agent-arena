@@ -662,7 +662,7 @@
               "replay_hash",
               "ticks"
             ],
-            "description": "Where the verdict's evidence lives: ticks of the hash-committed replay, openable in the replay inspector and re-derivable by `npx @rbrus/agent-arena verify`. Platform-generated only: `code` and `message` come from the oracle's own templates. Target-supplied text (thoughts, ping text, notes, error bodies) is never recorded and never copied in (sarif-mapping.md §6: no prompt-injection relay).",
+            "description": "Where the verdict's evidence lives: ticks of the hash-committed replay, openable in the replay inspector and re-derivable by `npx @sixi4ai/agent-arena verify`. Platform-generated only: `code` and `message` come from the oracle's own templates. Target-supplied text (thoughts, ping text, notes, error bodies) is never recorded and never copied in (sarif-mapping.md §6: no prompt-injection relay).",
             "properties": {
               "replay_hash": {
                 "type": "string",

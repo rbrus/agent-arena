@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_10WZNKR5SRY1HX9Z3X096F7ZZT",
+    "run_id": "run_PX6TXSS2GJ3RYD6B1TPWN0HK7M",
     "mode": "local",
-    "started_at": "2026-09-27T11:26:26.964Z",
-    "finished_at": "2026-09-27T11:26:26.973Z",
+    "started_at": "2026-09-28T04:01:46.821Z",
+    "finished_at": "2026-09-28T04:01:46.827Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.0"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "deadlock",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:0a5552f7b9c0f7ce774c77639224f385f06fa56982a4fe944727be68670b0f14",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:62ed0ec1b848c2392261db88f1c15cd7c492fced56eab5f44579d0d17fb10a8a",
-      "blinding_key": "e231b9f05ac8e3dab024d9b7fad34690c3f1238878174afde2183182f684db04",
+      "blinding_key": "9c2012ba226b03ce18048c0062bdfe5ea93c38e23dd9d44aec0b2944cd496d41",
       "budget": {
         "tier": "core",
         "decisions": 33,
@@ -307,7 +307,7 @@
           }
         }
       ],
-      "duration_ms": 7,
+      "duration_ms": 4,
       "seats": [
         {
           "seat": "m0",

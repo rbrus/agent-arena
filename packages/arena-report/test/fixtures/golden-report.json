@@ -6,8 +6,8 @@
     "started_at": "2026-07-20T00:00:00Z",
     "finished_at": "2026-07-20T00:00:05Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.1"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "byzantine",

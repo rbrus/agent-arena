@@ -309,7 +309,7 @@ async function main() {
       const first = (e?.errors ?? [])[0];
       const where = first?.location ? `${first.location.file}:${first.location.line}: ` : '';
       console.error(`lint:net: cannot bundle src/bin.ts to check the bundle inputs: ${where}${first?.text ?? String(e?.message ?? e).split('\n')[0]}`);
-      console.error('Next: fix the build first (npm run build -w @rbrus/agent-arena); the bundle check cannot pass on a tree that does not bundle.');
+      console.error('Next: fix the build first (npm run build -w @sixi4ai/agent-arena); the bundle check cannot pass on a tree that does not bundle.');
       process.exit(1);
     }
     failed = report(checkMetafile(meta, readInput), 'in the bundle inputs') || failed;

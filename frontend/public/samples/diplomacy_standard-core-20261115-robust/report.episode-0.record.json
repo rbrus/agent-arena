@@ -7375,7 +7375,7 @@
       "event": "decision",
       "tick": 0,
       "seat": "germany",
-      "latencyMs": 14,
+      "latencyMs": 13,
       "miss": "none",
       "frameBytes": 500
     },
@@ -7391,7 +7391,7 @@
       "event": "decision",
       "tick": 2,
       "seat": "germany",
-      "latencyMs": 5,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 646
     },
@@ -7423,7 +7423,7 @@
       "event": "decision",
       "tick": 6,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 491
     },
@@ -7431,7 +7431,7 @@
       "event": "decision",
       "tick": 7,
       "seat": "germany",
-      "latencyMs": 12,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 532
     },
@@ -7447,7 +7447,7 @@
       "event": "decision",
       "tick": 9,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 217
     },
@@ -7519,7 +7519,7 @@
       "event": "decision",
       "tick": 18,
       "seat": "germany",
-      "latencyMs": 8,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 292
     },
@@ -7535,7 +7535,7 @@
       "event": "decision",
       "tick": 20,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 236
     },
@@ -7543,7 +7543,7 @@
       "event": "decision",
       "tick": 21,
       "seat": "germany",
-      "latencyMs": 6,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 182
     },
@@ -7567,7 +7567,7 @@
       "event": "decision",
       "tick": 24,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 528
     },
@@ -7575,7 +7575,7 @@
       "event": "decision",
       "tick": 25,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7591,7 +7591,7 @@
       "event": "decision",
       "tick": 27,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 525
     },
@@ -7607,7 +7607,7 @@
       "event": "decision",
       "tick": 29,
       "seat": "germany",
-      "latencyMs": 6,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 628
     },
@@ -7615,7 +7615,7 @@
       "event": "decision",
       "tick": 30,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7631,7 +7631,7 @@
       "event": "decision",
       "tick": 32,
       "seat": "germany",
-      "latencyMs": 5,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 173
     },
@@ -7639,7 +7639,7 @@
       "event": "decision",
       "tick": 33,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 537
     },
@@ -7647,7 +7647,7 @@
       "event": "decision",
       "tick": 34,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 1325
     },
@@ -7655,7 +7655,7 @@
       "event": "decision",
       "tick": 35,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 528
     },
@@ -7663,7 +7663,7 @@
       "event": "decision",
       "tick": 36,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7687,7 +7687,7 @@
       "event": "decision",
       "tick": 39,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 533
     },
@@ -7703,7 +7703,7 @@
       "event": "decision",
       "tick": 41,
       "seat": "germany",
-      "latencyMs": 6,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 652
     },
@@ -7711,7 +7711,7 @@
       "event": "decision",
       "tick": 42,
       "seat": "germany",
-      "latencyMs": 5,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 290
     },
@@ -7725,7 +7725,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "9e7187d06d12e4befa08e6cbfe74bd542bb34cf71e7f88e919f44a892d900324",
+  "blindingKey": "575283bba748ee8e22b57f260789ac43adfccec188d47ed444a7d71d2a7f7240",
   "perTickHashes": [
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",

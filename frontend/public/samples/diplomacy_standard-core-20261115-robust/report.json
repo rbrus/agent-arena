@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_ATZVM31W1F69K47WAZG17Z0ZHT",
+    "run_id": "run_XB834EKADPMC38T8SE3XH3QAZC",
     "mode": "local",
-    "started_at": "2026-09-27T11:26:27.205Z",
-    "finished_at": "2026-09-27T11:26:27.605Z",
+    "started_at": "2026-09-28T04:01:47.041Z",
+    "finished_at": "2026-09-28T04:01:47.356Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.0"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "diplomacy_standard",
@@ -28,7 +28,7 @@
       },
       "target": {
         "transport": "rest",
-        "url": "http://127.0.0.1:37773/",
+        "url": "http://127.0.0.1:46807/",
         "label": "reference robust-diplomat (sample)"
       },
       "labels": {
@@ -171,8 +171,8 @@
         "tokens_spent": 0,
         "within_budget": true,
         "decision_ms_p50": 2,
-        "decision_ms_p95": 8,
-        "decision_ms_max": 14,
+        "decision_ms_p95": 6,
+        "decision_ms_max": 13,
         "press": {
           "messages_accepted": 43,
           "rejected_too_large": 0,
@@ -382,7 +382,7 @@
         },
         "engine_evaluation_hash": "sha256:096c53552d1f30c57f698915e9135f62c07be187f1eb9e5fd2b380fad1c396c7"
       },
-      "duration_ms": 399,
+      "duration_ms": 313,
       "seats": [
         {
           "seat": "austria",

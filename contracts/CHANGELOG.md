@@ -10,6 +10,50 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions are Sem
 
 _Nothing pending._
 
+## [2.14.0] — 2026-09-28
+
+**The open CLI's tool identity is `@sixi4ai/agent-arena`.** **MINOR**: one string value in examples, a fixture and
+normative text; no schema constraint, `$id`, error code, oracle id or SARIF rule id changes. `versioning.md` §2 has the
+worked example. Source: GATE-DECISIONS NPM-1 (2026-09-28): the npm scope `@rbrus` is not the Architect's, so the package
+`@rbrus/agent-arena` is never published and the first npm release is `@sixi4ai/agent-arena` 0.1.2. The GitHub
+repository stays `rbrus/agent-arena`, the bin stays `agent-arena`.
+
+### Changed
+
+- **sarif-mapping.md §1**: `runs[0].tool.driver.name` (from `run.tool.name`) is `@sixi4ai/agent-arena` for the open CLI,
+  no longer an "e.g."; `informationUri` stays `https://github.com/rbrus/agent-arena`. The §8 excerpt follows.
+- **Examples and fixtures**: `run.tool.name` in `report.schema.json` examples[0]–[3], the OpenAPI Report example,
+  `evidence_report.schema.json` `producer.tool.name` in both examples, and `fixtures/hosted_report.sarif`. Every
+  install and command line in the schema descriptions, `openapi.yaml` and `README.md` reads `npx @sixi4ai/agent-arena`.
+- **contract-check §19** asserts the identity at every site, the unchanged `informationUri`, agreement with the CLI's
+  package name and the report writer's `TOOL_NAME`, and that no contract file but this changelog names the previous scope.
+
+### Re-signed (test vectors; the tool name is inside signed payloads)
+
+The tool name is a member of the signed `report.schema.json` examples[2] and of the bytes of
+`fixtures/hosted_report.sarif`, so their vectors move. Regenerated with `tools/signing-vectors.mjs` and
+`tools/digest-statement-vectors.mjs` (same RFC 8032 TEST 1 key, deterministic Ed25519). Every other vector is
+byte-identical: the hosted_context and crosscheck_record vectors, the deletion receipt, the pack envelope, the run tokens,
+the press signatures and the large bundle-manifest payload.
+
+| Vector | Before | After |
+|---|---|---|
+| `signing_vectors.json` report examples[2] `jcs_sha256` (14378 → 14380 bytes) | `sha256:c5b8ae431713adcd719d11475c71a4ec1961079fe11337201ac77eebd68f5a65` | `sha256:c75db013f7a456a82c6c200d61cedf50e256776f49e75547716e7058d9ead875` |
+| `fixtures/hosted_report.sarif` (17857 → 17859 bytes; `digest_statement_vectors.json` `payloads.sarif`) | `sha256:fb4312525f231ec84d661f6fb46a2e72c804c3f14af5fbb734142ae19052266a` | `sha256:80f2ec63880648334a49ec26fd6fdf76c431200ff6d4db36124c5b2533c9d947` |
+| `digest_statement_vectors.json` `accept-embedded-report-digest` `statement_jcs_sha256` | `sha256:aabfbb2bd72b556665d7976a1b15fe3f5155a07a568ba79551d172fb0809a45e` | `sha256:34a9e1be5b2899ae841862d3bd7808d7463b30eedb9e7f6aeca75ff570454bdf` |
+
+Envelopes and signatures move with them in `accept-raw-sarif`, `accept-digest-sarif`, `accept-embedded-report-raw`,
+`accept-embedded-report-digest`, `reject-embedded-form-mismatch`, `reject-embedded-form-removed` and
+`reject-embedded-form-raw-with-digest-signature`; each still verifies (or rejects) for the reason it names. A consumer
+that vendors these files (the Sixi Go verifier's `testdata/contracts/`) re-vendors 2.14.0.
+
+### Not changed
+
+- **Replay hashes, transcript hashes, evaluation hashes and SARIF fingerprints.** None of them hashes the tool name; the
+  frozen anchors and the replay inspector's sample hashes do not move.
+- `$id`s, the frame protocol `1.0`, oracle ids, SARIF rule ids and levels, error codes.
+- The evidence report's `producer.contracts_version` now says `2.14.0`, as every release before it moved it.
+
 ## [2.13.0] — 2026-09-27
 
 **The evidence renderer's inputs, its command, and its three refusal codes.** **MINOR**: one new `$id`, three new error
