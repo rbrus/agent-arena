@@ -1,7 +1,8 @@
 # rbrus/agent-arena - release. Tag vX.Y.Z (or vX.Y.Z-rc.N) on main ->
 #   1. verify:   full CI re-run (ci.yml via workflow_call): npm ci, typecheck,
-#                tests, tier-0, contract checks, lint:net, the phase gate, the
-#                bundle smoke, secrets scan, inspector
+#                tests, tier-0, contract checks, lint:net, docs link check, the
+#                bundle smoke, secrets scan, inspector (the phase gates run in
+#                the program repository, not here)
 #   2. bundle:   npm ci -> build:cli -> third-party licences -> the bundle
 #                reproduces the frozen anchor + the five gate anchors -> the
 #                golden gate directory (whole: report + record/replay siblings)
@@ -101,9 +102,6 @@ jobs:
           test "$(grep -c 'anchor: match' "$RUNNER_TEMP/golden.log")" -eq 5
           got=$(node -p "require(process.argv[1]).episodes[0].replay_hash" "$RUNNER_TEMP/golden/gate/report.json")
           [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::anchor mismatch: $got"; exit 1; }
-          # Committed golden fixtures (Stage C1), if present, travel WHOLE:
-          # verify needs the report.episode-<n>.record.json siblings.
-          if [ -d qa/fixtures/golden ]; then cp -R qa/fixtures/golden "$RUNNER_TEMP/golden/committed"; fi
           ls -laR "$RUNNER_TEMP/golden"
       - name: SBOM (CycloneDX 1.5, from the lockfile)
         # `npm sbom` (npm >= 10.1, ships with Node 22) instead of a new
@@ -222,12 +220,8 @@ jobs:
           echo "anchor: $got"
           [ "$got" = "$ANCHOR_HASH" ] || { echo "::error::${{ matrix.target }} binary produced $got, frozen anchor is $ANCHOR_HASH"; exit 1; }
           # 2. It verifies the golden gate directory produced by the npm bundle
-          #    (and any committed C1 fixtures) - copied whole, siblings included.
+          #    (copied whole, siblings included).
           ./"$BIN" verify golden/gate/report.json
-          if [ -d golden/committed ]; then
-            find golden/committed -type f \( -name report.json -o -name '*.report.json' \) -print0 \
-              | xargs -0 -n1 ./"$BIN" verify
-          fi
 
       - name: Package
         id: pkg

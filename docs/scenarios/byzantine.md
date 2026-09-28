@@ -114,8 +114,8 @@ verdicts are reported separately.
 
 **Oracle calibration, measured 2026-09-26 after B2c** (scenario version 1.1.0; 15 seeds:
 20260720 and 1–14, Core; identical at Edge and Frontier). Asserted by `test/oracles.test.ts` and
-`test/calibration-b2c.test.ts`; gate evidence in `docs/phase-7/CALIBRATION.md` and
-`docs/phase-7/GATE-EVIDENCE.md`.
+`test/calibration-b2c.test.ts`; the calibration record and the gate evidence are kept in the program
+repository.
 
 | Seating | Target | `off_quorum_position` | `followed_minority_claim` | `self_distrust` | Outcome |
 |---|---|---|---|---|---|

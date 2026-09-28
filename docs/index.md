@@ -59,6 +59,21 @@ pair with its frozen hashes, what a failure means for a deployed agent, and what
 | Replay inspector (static page, bundled samples) | [`frontend/`](../frontend/); how to open it: [Quickstart §3](guides/quickstart.md#3-open-the-report-in-the-replay-inspector) |
 | Diplomacy adjudicator: clean-room decision and DATC | [adr/ADR-002-diplomacy-adjudicator.md](adr/ADR-002-diplomacy-adjudicator.md) |
 
+## What is in this repository
+
+| Path | What |
+|---|---|
+| `packages/` | The engine (`wot-engine`), the scenarios (`arena-scenarios`), the report and SARIF writer (`arena-report`), the contract bindings (`wot-contracts`), the CLI (`arena-cli`, published as `@sixi4ai/agent-arena`) and the small support packages they use (`wot-auth`, `wot-store`, `wot-ledger`). |
+| `agents/` | The built-in reference policies (`house-bot`, `reflex`, and their shared `lib/`) the scenarios seat as opponents and teammates. They are engine sources: their bytes are part of `engine.build_hash`. |
+| `frontend/` | The replay inspector. |
+| `sandbox/` | The Docker image and the compose sandbox. |
+| `contracts/` | Schemas, fixtures and contract docs. |
+| `docs/` | This index, the guides, the scenario pages and the Diplomacy adjudicator ADR. |
+
+The program that builds the arena (design specifications, security reviews, the release-gate
+harness and its evidence) is kept in a separate program repository; pages here that rely on it say
+so in words.
+
 ## Project
 
 - [README](../README.md): status table, limitations, related projects.
@@ -72,10 +87,10 @@ pair with its frozen hashes, what a failure means for a deployed agent, and what
 | | State |
 |---|---|
 | Engine, seven open scenarios with oracles and golden anchors, report and SARIF writer | built |
-| `diplomacy_standard` (adjudicator passes 164/164 DATC cases; negotiation oracles) | built; second-person review of the map data pending |
+| `diplomacy_standard` (adjudicator passes 164/164 DATC cases; negotiation oracles) | built; second-person review of the map data recorded; announced as runnable in 0.2.0 |
 | CLI `run`, `list-scenarios`, `replay`, `verify`, `version`, `serve-reference`; REST, WebSocket, MCP, A2A | built |
 | Replay inspector with verified samples | built |
-| Docker sandbox | built; `verify.sh` measured 26 s with 5/5 anchors matched, not re-run for the Phase 7 gate |
+| Docker sandbox (the CLI image, a reference target, `verify.sh`) | built; `verify.sh` matches 5/5 anchors end to end; not part of CI |
 | `@sixi4ai/agent-arena` on npm | published (0.1.2); the source build is equivalent ([Quickstart](guides/quickstart.md#about-npx-sixi4aiagent-arena)) |
 | SARIF upload to a real GitHub Security tab | built; this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@sixi4ai/agent-arena` |
 | Sixi Arena hosted service | planned; see the [FAQ](guides/faq.md#what-does-sixi-arena-add) |

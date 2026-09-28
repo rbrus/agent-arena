@@ -3,13 +3,14 @@
 # (docs/phase-7/EXTRACTION.md, section 3). It runs only in the public layout.
 #
 # Script contract (EXTRACTION.md section 9). Root package.json provides
-#   contracts:tier0, contracts:check, typecheck, test, gate, build:cli,
+#   contracts:tier0, contracts:check, typecheck, test, build:cli,
 #   licenses:third-party, target:reference, sarif:validate
 # and the @sixi4ai/agent-arena workspace provides lint:net. build:cli bundles to
 # packages/arena-cli/dist/agent-arena.cjs.
 #
-# `gate` fails with "phase7 gate not built" until qa/phase7-gate.ts exists
-# (Stage C1). That is deliberate: CI must not report a gate it did not run.
+# The Phase 7/8/9 release gates (qa/) run in the program repository only; this
+# repository carries what is needed to use the arena, and CI checks exactly that.
+# Job names are required status checks in branch protection: do not rename them.
 name: ci
 
 on:
@@ -76,26 +77,8 @@ jobs:
       - name: Network lint (no network call outside packages/arena-cli/src/net/)
         run: npm run lint:net -w @sixi4ai/agent-arena
 
-      # The gate's C5-INSPECTOR check runs frontend/node_modules/.bin/vitest;
-      # without this install it fails with "exit -2; no summary" (EXTRACTION-DRYRUN.md).
-      - name: Install inspector deps for the gate (lockfile-exact)
-        working-directory: frontend
-        run: npm ci --no-audit --no-fund
-
-      - name: Phase gate (qa/phase7-gate.ts)
-        run: npm run gate
-        env:
-          # The gate writes machine-readable evidence here; uploaded below.
-          ARENA_GATE_OUT: ${{ runner.temp }}/gate
-
-      - name: Upload gate evidence
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gate-evidence-node${{ matrix.node }}
-          path: ${{ runner.temp }}/gate
-          if-no-files-found: warn
-          retention-days: 14
+      - name: Docs link check (every relative Markdown link resolves)
+        run: node .github/scripts/md-link-check.mjs
 
   cli-bundle:
     name: cli bundle smoke
@@ -129,10 +112,6 @@ jobs:
           smoke="$RUNNER_TEMP/smoke"
           mkdir -p "$smoke"
           cp packages/arena-cli/dist/agent-arena.cjs "$smoke/"
-          # A committed golden fixture set (Stage C1) is copied WHOLE: verify
-          # re-simulates from the sibling report.episode-<n>.record.json files,
-          # so copying only the report would make it unverifiable (exit 2).
-          if [ -d qa/fixtures/golden ]; then cp -R qa/fixtures/golden "$smoke/golden-committed"; fi
           cd "$smoke"
           node agent-arena.cjs --version
           node agent-arena.cjs list-scenarios
@@ -147,10 +126,6 @@ jobs:
           # Move the WHOLE output directory, then verify from the new place.
           cp -R gate golden-fresh
           node agent-arena.cjs verify golden-fresh/report.json
-          if [ -d golden-committed ]; then
-            find golden-committed -type f \( -name report.json -o -name '*.report.json' \) -print0 \
-              | xargs -0 -n1 node agent-arena.cjs verify
-          fi
 
       - name: npm pack dry run (what would be published)
         working-directory: packages/arena-cli

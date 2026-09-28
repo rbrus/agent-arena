@@ -281,9 +281,11 @@ describe('G-48 under ARENA_HOSTED only run --hosted, verify --hosted-seal and ve
     const v = await runCli(['version'], env);
     assert.equal(v.code, 0, v.stderr);
   });
-  test('the sandbox arena server refuses to start under ARENA_HOSTED (sandbox/index.ts startDevServer)', async () => {
+  // The dial-in dev server (sandbox/index.ts) is not in the public repository; the check runs where it exists.
+  const devServer = join(WORKSPACE, 'sandbox', 'index.ts');
+  test('the sandbox arena server refuses to start under ARENA_HOSTED (sandbox/index.ts startDevServer)', { skip: existsSync(devServer) ? false : 'sandbox/index.ts is not in this tree' }, async () => {
     const script = join(scratch(), 'start.mts');
-    writeFileSync(script, `const m = await import(${JSON.stringify(join(WORKSPACE, 'sandbox', 'index.ts'))});\ntry { const s = await m.startDevServer({ port: 0 }); await s.close(); console.log('STARTED'); } catch (e) { console.log(String(e.message).slice(0, 40)); }\n`);
+    writeFileSync(script, `const m = await import(${JSON.stringify(devServer)});\ntry { const s = await m.startDevServer({ port: 0 }); await s.close(); console.log('STARTED'); } catch (e) { console.log(String(e.message).slice(0, 40)); }\n`);
     const { spawnSync } = await import('node:child_process');
     const out = spawnSync(process.execPath, ['--import', 'tsx', script], { cwd: WORKSPACE, env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', WOT_ENV: 'test', ARENA_HOSTED: '1' }, encoding: 'utf8', timeout: 60_000 });
     assert.match(out.stdout, /^hosted_mode_only: ARENA_HOSTED is set/m, out.stdout + out.stderr);

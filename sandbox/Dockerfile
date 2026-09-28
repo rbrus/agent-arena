@@ -1,11 +1,13 @@
 # syntax=docker/dockerfile:1.7
 #
-# agent-arena image: ONE image, two commands ("the sim is the spec").
+# agent-arena image: ONE image, ONE program ("the sim is the spec").
 #
-#   default entrypoint   node /app/agent-arena.cjs ...    the CLI (run, verify,
-#                                                          serve-reference, ...)
-#   arena server         node /app/arena-server.mjs       passports + gateway +
-#                                                          arena WSS dial-in planes
+#   entrypoint   node /app/agent-arena.cjs ...   the CLI (run, verify,
+#                                                 serve-reference, ...)
+#
+# The image carries the CLI only. The dial-in arena server (passports,
+# gateway and the WSS planes) is not built into it: the hosted runner never
+# starts it, and it is not part of the public repository.
 #
 # This image is what `docker compose up` runs locally AND what the Phase 9
 # hosted runner (Sixi Arena) must run, unchanged, pinned by digest. A hosted
@@ -23,10 +25,7 @@
 #   docker build -f sandbox/Dockerfile -t agent-arena:local \
 #     --build-context contracts=../contracts .          # from ascension/
 #
-# The image carries NO secrets and NO dev switches (threat-model-arena G-1/G-4):
-# with WOT_ENV unset the arena server runs as production and refuses to start
-# without WOT_SECRET_PEPPER + WOT_JWT_PRIVATE_JWK, and refuses WOT_DEV_AUTH=1.
-# The local opt-in lives only in sandbox/.env (from .env.example).
+# The image carries NO secrets and NO dev switches (threat-model-arena G-1/G-4).
 
 # Base images pinned by multi-arch index digest (amd64 + arm64). Bump both
 # together, deliberately: the Node major is part of the determinism contract.
@@ -43,7 +42,8 @@ FROM scratch AS contracts
 COPY contracts/ /
 
 # ---------------------------------------------------------------------------
-# build: npm ci -> typecheck -> test -> bundles. Any failure fails the image.
+# build: npm ci -> typecheck -> anchor self-test -> CLI bundle. Any failure
+# fails the image.
 # ---------------------------------------------------------------------------
 FROM ${BUILD_IMAGE} AS build
 WORKDIR /src
@@ -69,16 +69,14 @@ RUN npm run build:cli \
  && node sandbox/check-anchors.mjs --report /tmp/gate-selftest/report.json --anchors sandbox/anchors.json \
  && node packages/arena-cli/bin/agent-arena.cjs verify /tmp/gate-selftest/report.json \
  && rm -rf /tmp/gate-selftest /tmp/gate-selftest.json
-# The CLI bundle (packages/arena-cli, B1; script contract EXTRACTION §9) and
-# the arena-server bundle (sandbox/build-server.mjs).
-RUN npm run build:cli \
- && node sandbox/build-server.mjs --outdir /out
+# The CLI bundle (packages/arena-cli, B1; script contract EXTRACTION §9).
+RUN npm run build:cli && mkdir -p /out
 RUN set -eu; \
     cp packages/arena-cli/dist/agent-arena.cjs /out/agent-arena.cjs; \
     cp sandbox/healthcheck.mjs /out/healthcheck.mjs; \
     mkdir -p /out/contracts && cp -r /src/contracts/schemas /out/contracts/schemas; \
     # arena-report reads the contracts release from CHANGELOG.md next to
-    # schemas/ at module load (evidence.ts); the arena server reads it from here.
+    # schemas/ at module load (evidence.ts). The CLI uses its embedded copy.
     cp /src/contracts/CHANGELOG.md /out/contracts/CHANGELOG.md; \
     npm run --if-present licenses:third-party -- --out /out/THIRD_PARTY_LICENSES.txt; \
     for f in LICENSE NOTICE; do \
@@ -96,7 +94,7 @@ FROM ${RUNTIME_IMAGE} AS runtime
 ARG VERSION=0.0.0-dev
 ARG REVISION=unknown
 LABEL org.opencontainers.image.title="agent-arena" \
-      org.opencontainers.image.description="Agent Arena: CLI runner + arena server. The same image runs the local sandbox and the hosted runner." \
+      org.opencontainers.image.description="Agent Arena CLI runner. The same image runs the local sandbox and the hosted runner." \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}"
@@ -108,8 +106,8 @@ ENV NODE_ENV=production \
     WOT_DEV_KEYS_DIR=/tmp/wot-dev-keys
 # NO WOT_CONTRACTS_DIR here: it is on the hosted runner's must-be-absent list
 # (contracts/fixtures/hosted_env.json), and `run --hosted` refuses when it is
-# set. Neither bundle needs it: the CLI serves contracts/ from its embedded
-# snapshot, and the arena server finds /app/contracts by walking up from /app.
+# set. The CLI does not need it: it serves contracts/ from its embedded
+# snapshot.
 # verify.sh asserts the image's default env against that list.
 # 65532 = distroless "nonroot"; stated explicitly so a base swap cannot
 # silently make the image run as root.

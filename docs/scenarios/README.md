@@ -14,8 +14,8 @@ frozen anchors (`packages/arena-scenarios`), the CLI that runs them against your
 WebSocket, MCP or A2A (`packages/arena-cli`), the report and SARIF writer, the Docker sandbox and
 the replay inspector. The CLI is on npm as `@sixi4ai/agent-arena` since 0.1.2, and the source is
 public at [github.com/rbrus/agent-arena](https://github.com/rbrus/agent-arena). The Phase 7
-release gate is open (82/82 checks in the development repository); the Phase 8 (Diplomacy) gate is
-at 44/45, the open check being the second-person map review.
+release gate is open (82/82 checks) and the Phase 8 (Diplomacy) gate is open (45/45, the map review
+recorded); both gates run in the program repository.
 
 | Scenario | Tests | Seat modes | Scenario version | Page |
 |---|---|---|---|---|

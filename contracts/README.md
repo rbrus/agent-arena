@@ -79,7 +79,7 @@ record; `CHANGELOG.md` lists every removal with a migration note; `versioning.md
 - **`not_assessed` is never a pass**, in the Report summary and in SARIF.
 - **No ground truth reaches the target.** The encounter egress frames are whitelist projections:
   no `real` flags, blinded reading ids, advisories in member order, hidden Split-Brain members absent,
-  an opaque episode id (docs/design/arena-scenarios.md §1.4). `tools/contract-check.mjs` has negative
+  an opaque episode id (scenario design specification §1.4, in the program repository). `tools/contract-check.mjs` has negative
   cases for each leak.
 - **Targets are untrusted, and so is everything they send.** The RunSpec holds no secret (auth is a
   `env:`/`secret:` reference, enforced by pattern); target free text is dropped before recording and

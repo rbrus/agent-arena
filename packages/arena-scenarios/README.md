@@ -1,6 +1,6 @@
 # arena-scenarios
 
-The `Scenario` interface (docs/design/arena-scenarios.md §4) over the **unmodified**
+The `Scenario` interface (specified in the scenario design document in the program repository) over the **unmodified**
 `wot-engine`: the Grid Tactics duel and the six failure-mode encounters as
 evaluations of a target agent. Pure: no I/O on a per-tick path, no clock, no
 `Math.random` (the tests poison all three while an episode and its oracles run).
@@ -75,7 +75,7 @@ Squad mode uses collective measures where the failure is collective:
 `byzantine.off_quorum_position` is the engine's own `ground_shift` adjudication, and
 Overfit is damage-weighted. Everything else uses the worst member.
 
-B2c calibration (scenario version **1.1.0**, `docs/phase-7/CALIBRATION.md`) closed the
+B2c calibration (scenario version **1.1.0**; the calibration record is in the program repository) closed the
 three recorded reference findings and two catalog issues:
 
 | Change | Kind | Why |

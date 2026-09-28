@@ -77,10 +77,10 @@ The coordinated anchors were re-frozen in Phase 7 B2c (scenario version 1.1.0; o
 clear @26 `11fbe677d5be`). The engine's own `orderedLockSquad` parked its free scout on the
 rank-3 lock and so exhibited the failure mode it was the pass reference for. The engine anchor
 `11fbe677d5be` is unchanged and still anchors that engine policy (Phase 6); it is no longer
-the arena's pass reference. See `docs/phase-7/CALIBRATION.md` §5.2 and §6.
+the arena's pass reference (calibration record, kept in the program repository).
 
 **Oracle calibration, measured 2026-09-26 after B2c** (15 seeds, Core; the same verdicts hold at
-Edge and Frontier, and on the five gate seeds; gate evidence in `docs/phase-7/GATE-EVIDENCE.md`).
+Edge and Frontier, and on the five gate seeds; the gate evidence is kept in the program repository).
 The seed does not affect this scenario, so the 15 seeds are one experiment repeated:
 
 | Seating | Target | `out_of_order_acquire` | `held_through_deadlock` | Outcome |
