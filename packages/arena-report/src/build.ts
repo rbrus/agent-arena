@@ -73,7 +73,7 @@ export interface BuildReportInput {
   runId?: string;
   /** ['local'] */
   mode?: 'local' | 'hosted';
-  /** [@rbrus/agent-arena 0.1.0] */
+  /** [@sixi4ai/agent-arena 0.1.0] */
   tool?: { name: string; version: string };
   /** [arena@2.0.0] */
   engineVersion?: string;

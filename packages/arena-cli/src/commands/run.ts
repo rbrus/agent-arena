@@ -8,7 +8,7 @@
 import { join, resolve } from 'node:path';
 import { anchorFor as frozenAnchorFor, GATE_SEEDS_BYZANTINE, SCENARIO_IDS, scenarioModule, type DipFill, type EpisodeRecord, type ScenarioId, type SeatId, type TargetDriver } from 'arena-scenarios';
 import { engineBuildFor, ENGINE_VERSION, USER_AGENT, VERSION } from '../build-info.ts';
-import { validateReportSchema, type HostedRecord, type NotAssessedEntry } from 'arena-report';
+import { TOOL_NAME, validateReportSchema, type HostedRecord, type NotAssessedEntry } from 'arena-report';
 import { assertNoLiteralSecrets, loadCredential, parseAuthFlags, redactUrl, type AuthSpec } from '../credentials.ts';
 import { DIP_FILL_LABEL, DIP_IN_PROCESS, DIPLOMACY, dipValidity, parseDipFlags, profileOfFill, type DipRunOptions } from '../diplomacy.ts';
 import { CliError, describeError, misconfig, runError } from '../errors.ts';
@@ -564,7 +564,7 @@ export async function executeRun(p: ExecutePlan): Promise<RunResult> {
     finishedAt,
     runId,
     engineVersion: ENGINE_VERSION,
-    tool: { name: '@rbrus/agent-arena', version: VERSION },
+    tool: { name: TOOL_NAME, version: VERSION },
     targetOwnership: p.ownership,
     seats: results.map((ep, i) => targetSeatInputs(records[i], ep)),
     ...(hosted ? { mode: 'hosted' as const, hosted: hostedRecord, notAssessed: hosted.notAssessed(results) } : {}),

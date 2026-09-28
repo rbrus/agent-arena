@@ -106,7 +106,7 @@ test('every accepted vector names its form on the verified line; the statement f
   const lines = V.vectors
     .filter((v) => v.expect.result === 'accept')
     .map((v) => signedFormLine(v.kind === 'detached' ? verifyDetachedEnvelope(v.envelope, served(v), TYPE[v.file]!, V.context, KEYS, v.file) : verifyEmbeddedSignature(documentOf(v), TYPE[v.file]!, KEYS, v.file, v.envelope)));
-  assert.ok(lines.includes('report.sarif: raw signature (17857 bytes) verified with sixi-arena-ed25519-20261101'));
+  assert.ok(lines.includes('report.sarif: raw signature (17859 bytes) verified with sixi-arena-ed25519-20261101'));
   assert.ok(lines.includes(`bundle-manifest.json: digest statement (80070 bytes, ${V.payloads.large!.sha256}) verified with sixi-arena-ed25519-20261101`));
   assert.ok(lines.some((l) => /^report\.json: digest statement \(\d+ bytes, sha256:[0-9a-f]{64}\) verified with sixi-arena-ed25519-20261101$/.test(l)));
 });

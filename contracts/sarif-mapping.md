@@ -20,7 +20,7 @@ One Report → one SARIF log with exactly **one** `runs[]` entry.
 | SARIF | Source in the Report | Rule |
 |---|---|---|
 | `version` | — | `"2.1.0"` |
-| `runs[0].tool.driver.name` | `run.tool.name` | e.g. `@rbrus/agent-arena` |
+| `runs[0].tool.driver.name` | `run.tool.name` | `@sixi4ai/agent-arena` for the open CLI, its npm package name (2.14.0, GATE-DECISIONS NPM-1). The informationUri below does not change with it. GitHub code scanning groups alerts by tool name, so alerts uploaded under an earlier name stay under that name; they are not merged into the new tool's |
 | `runs[0].tool.driver.semanticVersion` | `run.tool.version` | |
 | `runs[0].tool.driver.informationUri` | — | `https://github.com/rbrus/agent-arena` |
 | `runs[0].tool.driver.rules[]` | `scenario.oracles[]` | one rule per catalog oracle, in catalog order (§2) |
@@ -275,7 +275,7 @@ logical location `<scenario_id>/run` and no `episode_index`.
 | `locations[0].physicalLocation.region.startLine` | `1` |
 | `locations[0].logicalLocations[0]` | `{ fullyQualifiedName: "<scenario_id>/episode/<i>/seat/<seat>", kind: "object" }` |
 | `partialFingerprints` | §5 |
-| `properties.agentArena` | `{ episode_index, seed, seat, verdict, basis, replay_hash, transcript_hash?, reason_code?, measures?, thresholds?, evidence_ticks?, evidence_ids?, review_required? }`, in this order — enough to open the tick in the replay inspector (`npx @rbrus/agent-arena replay <replay_hash>`). The 2.1.0 members: `transcript_hash` when the EpisodeResult carries one (every result of a Diplomacy episode); `evidence_ids`, the `evidence_ref.items[].id` list in item order (message, order, intent, commitment and canary ids; never their text), keeping only ids matching `^[A-Za-z0-9][A-Za-z0-9_:./#-]{0,79}$` and omitted when none remain; `review_required: true` when the verdict carries it. A run-level result has no `episode_index`, `seed`, `seat` or `transcript_hash` |
+| `properties.agentArena` | `{ episode_index, seed, seat, verdict, basis, replay_hash, transcript_hash?, reason_code?, measures?, thresholds?, evidence_ticks?, evidence_ids?, review_required? }`, in this order — enough to open the tick in the replay inspector (`npx @sixi4ai/agent-arena replay <replay_hash>`). The 2.1.0 members: `transcript_hash` when the EpisodeResult carries one (every result of a Diplomacy episode); `evidence_ids`, the `evidence_ref.items[].id` list in item order (message, order, intent, commitment and canary ids; never their text), keeping only ids matching `^[A-Za-z0-9][A-Za-z0-9_:./#-]{0,79}$` and omitted when none remain; `review_required: true` when the verdict carries it. A run-level result has no `episode_index`, `seed`, `seat` or `transcript_hash` |
 
 **Review-required results (2.1.0).** For a `fail` of a rule whose verdict has `review_required: true`,
 `message.text` ends with the fixed sentence `Review required: statistical signal, not proof; inspect
@@ -362,7 +362,7 @@ ninth not-assessed verdict. The three results shown, their rule indexes and thei
     {
       "tool": {
         "driver": {
-          "name": "@rbrus/agent-arena",
+          "name": "@sixi4ai/agent-arena",
           "semanticVersion": "0.1.0",
           "informationUri": "https://github.com/rbrus/agent-arena",
           "rules": [

@@ -5,7 +5,7 @@
 # Script contract (EXTRACTION.md section 9). Root package.json provides
 #   contracts:tier0, contracts:check, typecheck, test, gate, build:cli,
 #   licenses:third-party, target:reference, sarif:validate
-# and the @rbrus/agent-arena workspace provides lint:net. build:cli bundles to
+# and the @sixi4ai/agent-arena workspace provides lint:net. build:cli bundles to
 # packages/arena-cli/dist/agent-arena.cjs.
 #
 # `gate` fails with "phase7 gate not built" until qa/phase7-gate.ts exists
@@ -74,7 +74,7 @@ jobs:
         run: npm run contracts:check
 
       - name: Network lint (no network call outside packages/arena-cli/src/net/)
-        run: npm run lint:net -w @rbrus/agent-arena
+        run: npm run lint:net -w @sixi4ai/agent-arena
 
       # The gate's C5-INSPECTOR check runs frontend/node_modules/.bin/vitest;
       # without this install it fails with "exit -2; no summary" (EXTRACTION-DRYRUN.md).

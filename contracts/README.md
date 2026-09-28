@@ -1,4 +1,4 @@
-# `contracts/` — Agent Arena (contracts `2.13.0`)
+# `contracts/` — Agent Arena (contracts `2.14.0`)
 
 **The API is the product.** This directory is the merge-before-implementation contract of the open-core
 agent evaluation arena (ADR-001). It is the **single source of truth**: the services validate against
@@ -46,7 +46,7 @@ record; `CHANGELOG.md` lists every removal with a migration note; `versioning.md
 ## The evaluation run (new in `2.0.0`)
 
 ```
-  RunSpec (schemas/run_spec.schema.json)          ─▶  local CLI: npx @rbrus/agent-arena run --spec run.json
+  RunSpec (schemas/run_spec.schema.json)          ─▶  local CLI: npx @sixi4ai/agent-arena run --spec run.json
     scenario_id · seeds[] · episodes                   hosted:    POST /v1/runs   (scope eval:run, Phase 9)
     budget_tier: edge | core | frontier | extended  (fixed Ds / Dh / token allowance per controlled seat)
     seat: duel | member(m0..m4, fill) | squad
@@ -72,7 +72,7 @@ record; `CHANGELOG.md` lists every removal with a migration note; `versioning.md
 
 - **Pillar 9: the referee runs no model.** Every opponent, boss and reference squadmate is scripted, and
   every `resim` verdict is a pure function of `(seed, tier, inputs, blinding key)`, recomputed
-  bit-for-bit by `npx @rbrus/agent-arena verify`. No field anywhere implies platform-side inference.
+  bit-for-bit by `npx @sixi4ai/agent-arena verify`. No field anywhere implies platform-side inference.
   "Tokens" are the engine's action-allowance units, never model tokens.
 - **Budget tiers are measurement standards.** Their limits are fixed in `run_spec` `budget_tier`;
   changing one is MAJOR + ADR (results would stop being comparable).
@@ -247,6 +247,10 @@ js-yaml already installed under `ascension/`):
    prose (HOSTED-PROFILE §2.7 step 6 names the command, the mounts, `create-only`, the four exits and never
    `bundle-manifest.json`; signing.md §5.3 step 4 names the renderer and the report-only facts; errors.md §1d has the three
    rows at exit 2 with the `not_rendered:<code>` next step; Appendix A lists them).
+17. **2.14.0** — the tool identity: every `tool.name` / `tool.driver.name` in a schema example, an OpenAPI example,
+   `fixtures/hosted_report.sarif` and the sarif-mapping.md excerpt is `@sixi4ai/agent-arena`, every `informationUri` is
+   still the GitHub repository; the CLI's package name and the report writer's `TOOL_NAME` agree; no contract file but
+   `CHANGELOG.md` names the previous npm scope.
 
 Recommended wiring (platform-engineer, Phase-7 A5): run both in the CI job that runs Tier 0.
 

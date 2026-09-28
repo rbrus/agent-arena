@@ -138,7 +138,7 @@ test('golden (local, open scenarios, no packs): renders every template section, 
   assert.ok(markdown.includes('`grid_tactics` | open | `not_requested`'));
   assert.ok(markdown.includes('**Seat modes not run:** `member`.'));
   // The exact verify command of the shipped CLI.
-  assert.ok(markdown.includes(`npx @rbrus/agent-arena@${TOOL_VERSION} verify report.json `));
+  assert.ok(markdown.includes(`npx @sixi4ai/agent-arena@${TOOL_VERSION} verify report.json `));
   assert.ok(markdown.includes('Unsigned copy: a local report carries no seal.'));
 });
 
@@ -196,7 +196,7 @@ test('hosted (sealed, pack sx-agentic-core, LLM peer): snapshot, and evidence.js
   assert.ok(markdown.includes('Seat `france` was played by a Sixi-operated peer (`sixi-attack/negotiator@1.0.0`, model as reported by `example-provider`, unverified). Its moves are recorded inputs. `verify` re-simulated the game from them, and the peer model was not re-run.'));
 
   // Reproducibility and signature blocks.
-  assert.ok(markdown.includes('npx @rbrus/agent-arena@0.3.0 verify report.json --hosted --key sixi-arena-ed25519-20261101.jwk.json'));
+  assert.ok(markdown.includes('npx @sixi4ai/agent-arena@0.3.0 verify report.json --hosted --key sixi-arena-ed25519-20261101.jwk.json'));
   assert.ok(markdown.includes(`\`${json.build.crosscheck.ref}\``), 'cross-check record id in the reproducibility statement');
   assert.ok(markdown.includes('| `run_01JB5H0STED0EXAMP1E00000R2` | `sixi-arena-ed25519-20261101` | `sha256:c1da86382029d8944a901ef9d80e00ac9e4928216311231d81072eab36c08f37` |'));
   assert.ok(markdown.includes(`Hosted addendum: ${json.disclosure.hosted_addendum}`));

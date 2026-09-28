@@ -36,8 +36,8 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 | Engine build hash | `sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075`, scope `core` |
 | Engine version and commit | `arena@2.0.0` (commit not recorded) |
 | Runner image | `ghcr.io/rbrus/agent-arena@sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`, platform manifest `sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2` (`linux/arm64`) |
-| Tool | `@rbrus/agent-arena@0.1.0` |
-| Contracts version | `2.13.0` (the contract this renderer validates against), report format `1.0` |
+| Tool | `@sixi4ai/agent-arena@0.1.0` |
+| Contracts version | `2.14.0` (the contract this renderer validates against), report format `1.0` |
 | Scenario versions | `byzantine@1.2.0` |
 | Scenario packs | none: open scenarios only |
 | Clause corpus | none: no pack in scope, so no clause mapping |
@@ -159,16 +159,16 @@ This run can be checked by anyone holding the bundle, with the open-source CLI, 
 
 ```bash
 # 1. The seal (offline): save the public key sixi-arena-ed25519-20261101 from the published key set as a JWK file, then
-npx @rbrus/agent-arena@0.1.0 verify report.json --hosted --key sixi-arena-ed25519-20261101.jwk.json
+npx @sixi4ai/agent-arena@0.1.0 verify report.json --hosted --key sixi-arena-ed25519-20261101.jwk.json
 
 # 2. Re-simulation: every replay_hash, outcome and resim verdict is recomputed from the seeds and the recorded inputs
-npx @rbrus/agent-arena@0.1.0 verify report.json          # 0 verified · 1 mismatch · 2 unverifiable · 3 other engine build
+npx @sixi4ai/agent-arena@0.1.0 verify report.json          # 0 verified · 1 mismatch · 2 unverifiable · 3 other engine build
 ```
 
 Re-run `run_01JB5H0STED0TEST000000000A` live against your own endpoint with the same seeds:
 
 ```bash
-npx @rbrus/agent-arena@0.1.0 run \
+npx @sixi4ai/agent-arena@0.1.0 run \
     --scenario byzantine \
     --tier core \
     --seat squad \
@@ -225,8 +225,8 @@ Delete earlier from the dashboard, or with `DELETE /api/arena/runs/run_01JB5H0ST
 
 | File | sha256 | Envelope |
 |---|---|---|
-| `report.json` | `sha256:71120d232551cda3ca2c4c3d5c79b3b77b79842795d6f161f1b5d2a6547907ef` | `report.json.dsse.json` |
-| `report.sarif` | `sha256:9b43ac97d1ee5c977acca591fe715de3664771f460819badbcf0e422bd01247b` | `report.sarif.dsse.json` |
+| `report.json` | `sha256:951a5387189168868dc2514a1d02b2211ee27f5e71c27aa9fc0d681b6238eea0` | `report.json.dsse.json` |
+| `report.sarif` | `sha256:1e6bac9c8873928840c1d7239fd4dfe25cbea4f99b06e0a558c03fb7c098ab11` | `report.sarif.dsse.json` |
 
 Key set published at `https://sixi.example/.well-known/arena-jwks.json`.
 

@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_JET7TYHZ4GRAWR30HDAMQRSDT6",
+    "run_id": "run_3MGCXHP99NSB91RN7XB3RYF1PS",
     "mode": "local",
-    "started_at": "2026-09-27T11:26:26.603Z",
-    "finished_at": "2026-09-27T11:26:26.637Z",
+    "started_at": "2026-09-28T04:01:46.468Z",
+    "finished_at": "2026-09-28T04:01:46.499Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.0"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "hallucinator",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:584b6d339ab958e9a02130297c32adce444a5f18d41a62af92b99d748d78cf77",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:e0ba9bd85feb205ff02ef08a52a8c21d1bc7cd1c343eb215ed9a283000e2f0ea",
-      "blinding_key": "977b2115f3784c1631e33d305be5b8db3a307fa5f123d4dfa6d507e48c0e9a72",
+      "blinding_key": "295b0430e5b9d471b61565d6e44225d78aaff35745f37fe7b292602c69dad1fd",
       "budget": {
         "tier": "core",
         "decisions": 61,
@@ -281,7 +281,7 @@
           }
         }
       ],
-      "duration_ms": 23,
+      "duration_ms": 20,
       "seats": [
         {
           "seat": "m0",

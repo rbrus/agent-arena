@@ -1928,7 +1928,7 @@
           "platform": "linux/amd64"
         },
         "tool": {
-          "name": "@rbrus/agent-arena",
+          "name": "@sixi4ai/agent-arena",
           "version": "0.3.0"
         },
         "contracts_version": "2.2.0",
@@ -2329,7 +2329,7 @@
           "platform": "linux/amd64"
         },
         "tool": {
-          "name": "@rbrus/agent-arena",
+          "name": "@sixi4ai/agent-arena",
           "version": "0.3.0"
         },
         "contracts_version": "2.2.0",

@@ -14,7 +14,7 @@
 #                reproduces the anchor -> GHCR push -> digest as a job output,
 #                in the step summary and in the release notes -> build-provenance
 #                attestation + cosign keyless signature
-#   5. npm:      npm publish --provenance of @rbrus/agent-arena (irreversible,
+#   5. npm:      npm publish --provenance of @sixi4ai/agent-arena (irreversible,
 #                so it runs only after 3 and 4 are green; `npm-publish`
 #                environment with a required reviewer)
 #   6. release:  GitHub release with binaries, SHA256SUMS, SBOM, image digest
@@ -114,7 +114,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/sbom"
           npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
-            -w @rbrus/agent-arena > "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
+            -w @sixi4ai/agent-arena > "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
           node -e "const b=require(process.argv[1]); if(b.bomFormat!=='CycloneDX'||!b.components?.length) process.exit(1); console.log(b.bomFormat, b.specVersion, b.components.length, 'components')" \
             "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -419,7 +419,7 @@ jobs:
             echo "<!-- agent-arena:artifacts -->"
             echo "**Container image** (same image as the hosted runner): \`${IMAGE_NAME}@${IMAGE_DIGEST}\`"
             echo
-            echo "- npm: \`@rbrus/agent-arena@${VERSION}\` (with npm provenance)"
+            echo "- npm: \`@sixi4ai/agent-arena@${VERSION}\` (with npm provenance)"
             echo "- Binaries: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win-x64 (Node ${SEA_NODE_VERSION} SEA). Each reproduced the frozen anchor \`${ANCHOR_HASH}\` on its own runner."
             echo "- SBOM: \`agent-arena-${VERSION}.cdx.json\` (CycloneDX 1.5)."
             echo "- Verify: \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`; image: \`cosign verify ${IMAGE_NAME}@${IMAGE_DIGEST} --certificate-identity-regexp '^https://github.com/${GITHUB_REPOSITORY}/' --certificate-oidc-issuer https://token.actions.githubusercontent.com\`"

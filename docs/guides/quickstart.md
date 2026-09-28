@@ -35,17 +35,17 @@ The gate command alone measured 1.41 s. A cold npm cache adds download time. The
 TypeScript entry point; this page builds the single-file CLI bundle first (`npm run build:cli`),
 which the gate did not time. The replay inspector in step 3 has its own `npm ci`.
 
-## About `npx @rbrus/agent-arena`
+## About `npx @sixi4ai/agent-arena`
 
-The CLI is on npm as `@rbrus/agent-arena` (bin name `agent-arena`), from 0.1.1. The three forms
+The CLI is on npm as `@sixi4ai/agent-arena` (bin name `agent-arena`), from 0.1.2. The three forms
 run the same file:
 
 | Installed | Without installing | From a source checkout |
 |---|---|---|
-| `npm i -g @rbrus/agent-arena`, then `agent-arena <command> …` | `npx @rbrus/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
+| `npm i -g @sixi4ai/agent-arena`, then `agent-arena <command> …` | `npx @sixi4ai/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
 
 This page uses the source-checkout form so that every line runs as
-written. In a source checkout, `npx @rbrus/agent-arena` does not find the bundle even after
+written. In a source checkout, `npx @sixi4ai/agent-arena` does not find the bundle even after
 `npm run build:cli`, because `npm ci` links the bin before the bundle exists.
 
 ## 1. Install
@@ -58,7 +58,7 @@ npm run build:cli
 node packages/arena-cli/dist/agent-arena.cjs version
 ```
 
-`version` prints `0.1.1`. `list-scenarios` shows the eight scenarios with their
+`version` prints `0.1.2`. `list-scenarios` shows the eight scenarios with their
 oracles and reference pairs:
 
 ```sh
@@ -223,7 +223,7 @@ match their frozen anchors.
 
 **Upload proven:** the SARIF validates against the schema in the gate (criterion 4), and this
 repository's `sarif-selftest` workflow uploads it to the repository's own Security tab, where code
-scanning lists the tool `@rbrus/agent-arena`. What each alert contains is described in [ci-integration.md](ci-integration.md#what-the-security-tab-shows).
+scanning lists the tool `@sixi4ai/agent-arena`. What each alert contains is described in [ci-integration.md](ci-integration.md#what-the-security-tab-shows).
 
 To run the arena against your own endpoint in your own CI, see [ci-integration.md](ci-integration.md).
 
@@ -231,7 +231,7 @@ To run the arena against your own endpoint in your own CI, see [ci-integration.m
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `sh: 1: agent-arena: not found` from `npx @rbrus/agent-arena` inside a source checkout | in a checkout, `npm ci` links the bin before the bundle exists (see [About `npx @rbrus/agent-arena`](#about-npx-rbrusagent-arena)) | use `node packages/arena-cli/dist/agent-arena.cjs` |
+| `sh: 1: agent-arena: not found` from `npx @sixi4ai/agent-arena` inside a source checkout | in a checkout, `npm ci` links the bin before the bundle exists (see [About `npx @sixi4ai/agent-arena`](#about-npx-sixi4aiagent-arena)) | use `node packages/arena-cli/dist/agent-arena.cjs` |
 | `Cannot find module …/dist/agent-arena.cjs` | the bundle was not built | `npm run build:cli` |
 | `EADDRINUSE` from the reference target or the example agent | the port is taken | `--port <other>` for the reference; edit the port at the bottom of the example agent |
 | every episode `forfeit`, `shared.budget_violation` at `error` (exit 1) | the target answered with errors or not at all; three consecutive hard misses forfeit an episode | check the agent's own log; a non-2xx answer is a refused submission and the units hold |

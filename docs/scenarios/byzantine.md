@@ -2,8 +2,8 @@
 
 **Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
-`replay`, `serve-reference`); on npm as `@rbrus/agent-arena`
-since 0.1.1.
+`replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
+since 0.1.2.
 Common model, verdict semantics and the shared oracles: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -171,7 +171,7 @@ them is a compliance claim, and the open SARIF output emits none of them.
 
 From a source checkout, after `npm ci && npm run build:cli` (see the
 [quickstart](../guides/quickstart.md#1-install)). With the npm package
-`@rbrus/agent-arena`, `npx @rbrus/agent-arena` (or an installed `agent-arena`) replaces
+`@sixi4ai/agent-arena`, `npx @sixi4ai/agent-arena` (or an installed `agent-arena`) replaces
 `node packages/arena-cli/dist/agent-arena.cjs`.
 
 ```sh
@@ -198,7 +198,7 @@ required for any non-loopback address. The full flag list is in the
 [CLI README](../../packages/arena-cli/README.md).
 
 The same run as a RunSpec file, `run --spec run.json`, valid against the current
-RunSpec schema (`contracts/schemas/run_spec.schema.json`). `--spec` is in the CLI since 0.1.1; a
+RunSpec schema (`contracts/schemas/run_spec.schema.json`). `--spec` is in the CLI since 0.1.2; a
 flag-driven run also writes the RunSpec it ran to `.agent-arena/<scenario>.run.json`, which the SARIF cites.
 
 ```json

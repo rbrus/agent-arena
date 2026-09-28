@@ -33,8 +33,8 @@ leaderboard. See [Limitations](#limitations).
 
 ## Status
 
-`0.1.1`, on npm as `@rbrus/agent-arena`: the first published release (the `v0.1.0` tag was never
-published). Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
+`0.1.2`, on npm as `@sixi4ai/agent-arena`: the first published release (the `v0.1.0` and `v0.1.1`
+tags were never published). Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
 (see [Limitations](#limitations)). Everything marked **built** below is in this repository and
 covered by the release gate.
 
@@ -64,8 +64,8 @@ Release gates, re-run on the contracts 2.12.0 tree (2026-09-27):
 | Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 44/45; announced as runnable in 0.2.0 after the map review |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
 | `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
-| `@rbrus/agent-arena` on npm | published: 0.1.1 |
-| SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@rbrus/agent-arena` |
+| `@sixi4ai/agent-arena` on npm | published: 0.1.2 |
+| SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@sixi4ai/agent-arena` |
 
 ---
 
@@ -74,13 +74,13 @@ Release gates, re-run on the contracts 2.12.0 tree (2026-09-27):
 Needs Node.js 22+, npm and git. No Docker, no API key and no model. In the Phase 7 gate this path
 took 4.6 s from a clean clone to a report (aarch64, Node 24, warm npm cache).
 
-The CLI is on npm as `@rbrus/agent-arena` (bin name `agent-arena`). The steps below use a source
+The CLI is on npm as `@sixi4ai/agent-arena` (bin name `agent-arena`). The steps below use a source
 checkout, the form the gate timed, because the reference target script lives in the repository.
 The three forms run the same file:
 
 | Installed | Without installing | From a source checkout |
 |---|---|---|
-| `npm i -g @rbrus/agent-arena`, then `agent-arena <command> …` | `npx @rbrus/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
+| `npm i -g @sixi4ai/agent-arena`, then `agent-arena <command> …` | `npx @sixi4ai/agent-arena <command> …` | `node packages/arena-cli/dist/agent-arena.cjs <command> …` |
 
 Without a checkout, `agent-arena serve-reference --port 8080` serves the same reference target.
 

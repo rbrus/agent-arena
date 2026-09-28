@@ -333,7 +333,7 @@
       "source": "sixi_verified"
     },
     "tool": {
-      "name": "@rbrus/agent-arena",
+      "name": "@sixi4ai/agent-arena",
       "version": "0.1.0"
     }
   },
@@ -440,7 +440,7 @@
     "payload_type": "application/vnd.sixi.arena-report+json",
     "run_manifest_digest": "sha256:45faa04a295bd47a38da5239e0c7a8780bcc859e837f28319bac55b992f04a00",
     "sealed_at": "2026-11-10T14:05:00Z",
-    "signature": "48k9D2nhjyRvYhX6yzPi52yvRGaQAgufBPbG9N/4apAH+6XBrCJgHJuo/B0h72ZF8shl0VFSjGpWhw60nAf6AA==",
+    "signature": "nI5rDyygeirT5SsTh5xTdb9EUumuLXgokEBx9MtTy7FHpTPnCDnzwS+ZSW8oa9MKXlXuWXptB2dJdxIALu13Bg==",
     "signing_key_id": "sixi-arena-ed25519-20261101"
   },
   "summary": {

@@ -16,9 +16,9 @@
     {
       "document": "schemas/report.schema.json#/examples/2",
       "payload_type": "application/vnd.sixi.arena-report+json",
-      "jcs_bytes": 14378,
-      "jcs_sha256": "sha256:c5b8ae431713adcd719d11475c71a4ec1961079fe11337201ac77eebd68f5a65",
-      "signature": "hJ1zVeH4st8p5oqKwsEsYOL4ZQYy+vOibEDvdzghC/C3n7o8wKsTHn6Z1QNFyNZeLAPRBSRlQwe/OODTp2cEBw=="
+      "jcs_bytes": 14380,
+      "jcs_sha256": "sha256:c75db013f7a456a82c6c200d61cedf50e256776f49e75547716e7058d9ead875",
+      "signature": "s0MUOHKMN7xjzWSNcurObc2Jo35DAiIf0g+o7n+cAge2eDkN0NiW0/y+oRaUrzxGX/Ehodq5MmkUo/MuhCygDg=="
     },
     {
       "document": "schemas/hosted_context.schema.json#/examples/0",

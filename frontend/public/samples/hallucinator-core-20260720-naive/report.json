@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_WQ22YV44MM9BB47VMQ5RKSV1YF",
+    "run_id": "run_R0V5F4A06KXDP1NFHGW43DWE6J",
     "mode": "local",
-    "started_at": "2026-09-27T11:26:26.718Z",
-    "finished_at": "2026-09-27T11:26:26.726Z",
+    "started_at": "2026-09-28T04:01:46.575Z",
+    "finished_at": "2026-09-28T04:01:46.583Z",
     "tool": {
-      "name": "@rbrus/agent-arena",
-      "version": "0.1.0"
+      "name": "@sixi4ai/agent-arena",
+      "version": "0.1.2"
     },
     "spec": {
       "scenario_id": "hallucinator",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:a615dda08da9eafcb0fb6d3d5cb3c6a9d3b7e80f8659df60815eccfd277f804c",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:e0ba9bd85feb205ff02ef08a52a8c21d1bc7cd1c343eb215ed9a283000e2f0ea",
-      "blinding_key": "3b2a8266df7970cf8c9545dc8e7d22f69c3098532f379466b9842ebdd9e858be",
+      "blinding_key": "1c94b16d2e3fe858e12ba8f933c0732a909e248c75e788fea7ba3cf06c19bb76",
       "budget": {
         "tier": "core",
         "decisions": 23,

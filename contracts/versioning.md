@@ -155,6 +155,19 @@ bump implies a new path prefix (`/v2/`) served alongside `/v1/` during migration
 >   normally MAJOR; it is corrected in a MINOR only because no released tool ever emitted the 2.0.0
 >   formula (the open arena ships 2026-10-25). After the first public release this exception is closed.
 
+> **Worked example — the `2.14.0` tool rename is a MINOR.**
+>
+> * **A value, not a shape.** `run.tool.name` is a free string in `report.schema.json` (its description gave the old name
+>   as "e.g."); sarif-mapping.md §1 now pins the open CLI's value. No schema constraint, `$id`, error code, oracle id or
+>   SARIF rule id changes, and every 2.13.0 document still validates. Text and example edits are MINOR under §2.
+> * **Signed test vectors move, and that is allowed.** The tool name is inside signed example bytes (`report.schema.json`
+>   examples[2], `fixtures/hosted_report.sarif`), so their vectors are regenerated with the existing tools and the moved
+>   digests are listed in the CHANGELOG. The signing rules, the key and every other vector are unchanged.
+> * **What does not move.** Replay hashes and SARIF fingerprints never include the tool name, so no anchor, sample or
+>   `verify` result changes. `informationUri` and every `helpUri` keep the GitHub repository.
+> * **What a consumer sees.** GitHub code scanning keys analyses by tool name, so a repository that uploaded SARIF under the
+>   previous name sees the new name as a new tool. No released npm package carried the previous name.
+
 > **Worked example — the `2.13.0` evidence inputs are a MINOR.**
 >
 > * **New surfaces only.** A new `$id` (`wot:evidence_input:1`, the `agent-arena evidence --inputs` document), three new

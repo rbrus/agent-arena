@@ -236,7 +236,7 @@ What that means for your agent:
 built in the scenario package, but this version of the CLI does not run it:
 
 ```bash
-npx @rbrus/agent-arena run --scenario diplomacy_standard --seat auto --fill house --tier core \
+npx @sixi4ai/agent-arena run --scenario diplomacy_standard --seat auto --fill house --tier core \
   --target http://127.0.0.1:8080 --i-own-this-target
 ```
 

@@ -41,7 +41,7 @@ A literal loopback address is the CLI's explicit, logged opt-in.
 against the sandbox target from the host:
 
 ```bash
-npx @rbrus/agent-arena run --scenario byzantine --seat squad --target http://127.0.0.1:8081 --transport rest --i-own-this-target --out ./out
+npx @sixi4ai/agent-arena run --scenario byzantine --seat squad --target http://127.0.0.1:8081 --transport rest --i-own-this-target --out ./out
 ```
 
 ## `verify.sh`
@@ -257,7 +257,7 @@ b652ee3: 0, 6c4074c: -181).
     hashes equal to the frozen anchors, `report.json` + `report.sarif`
     written, and no secret in the log or the outputs.
 - **Not yet green in the real tree:** at the time of writing, `npm ci` fails
-  because `package-lock.json` lacks the new `@rbrus/agent-arena` workspace, and
+  because `package-lock.json` lacks the new `@sixi4ai/agent-arena` workspace, and
   `npm test` has 10 failures in `arena-scenarios`/`arena-report`, which other
   agents are still changing. The image build refuses both by design. Once B1
   and B2 commit a synced lockfile and a green tree, `./verify.sh` needs no

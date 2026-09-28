@@ -80,6 +80,10 @@
 //                EXAMPLE signature; each crosscheck_record valid against its own schema); must-rejects for every bound and
 //                pattern, an unknown member at every level, each report-only seal fact offered as a member, and a record
 //                that fails its own schema; the CLI compiles the contract file (no schema in code); the prose.
+//  19. V2.14.0   (2.14.0) the tool identity (GATE-DECISIONS NPM-1): every tool.name / tool.driver.name in a schema example,
+//                the OpenAPI examples, fixtures/hosted_report.sarif and sarif-mapping.md is `@sixi4ai/agent-arena`, every
+//                informationUri stays the GitHub repository; the CLI's package name and the report writer's TOOL_NAME agree;
+//                no contract file but CHANGELOG.md (history) names the previous npm scope.
 //
 // Dependency-free beyond what ascension/ already installs (ajv, js-yaml), resolved from there.
 // Run from the repo root:  node contracts/tools/contract-check.mjs  (or `npm run contracts:check` in the workspace)
@@ -2478,10 +2482,50 @@ const V2130_NEG = [];
   }
 }
 
+// ---------------------------------------------------------------- 19. V2.14.0
+// The tool identity (GATE-DECISIONS NPM-1): the npm package, the SARIF tool.driver.name and the report's run.tool.name are
+// one string; the repository (informationUri) is unchanged. Replay hashes never include it.
+const TOOL_ID = '@sixi4ai/agent-arena';
+const TOOL_URI = 'https://github.com/rbrus/agent-arena';
+const OLD_SCOPE = ['@', 'rbrus', '/'].join('');
+let toolIdCount = 0;
+{
+  const walk = (v, where, parentKey) => {
+    if (Array.isArray(v)) { v.forEach((x, i) => walk(x, `${where}/${i}`, parentKey)); return; }
+    if (v === null || typeof v !== 'object') return;
+    if ((parentKey === 'tool' || parentKey === 'driver') && typeof v.name === 'string' && /agent-arena$/.test(v.name)) {
+      toolIdCount++;
+      if (v.name !== TOOL_ID) fail(`TOOL ${where}: tool name ${JSON.stringify(v.name)}, 2.14.0 requires ${TOOL_ID}`);
+      if ('informationUri' in v && v.informationUri !== TOOL_URI) fail(`TOOL ${where}: informationUri ${v.informationUri}, the repository stays ${TOOL_URI}`);
+    }
+    for (const [k, x] of Object.entries(v)) walk(x, `${where}/${k}`, k);
+  };
+  for (const f of readdirSync(SCHEMAS).filter((x) => x.endsWith('.schema.json'))) walk(readJson(f).examples ?? [], `schemas/${f}#/examples`, null);
+  walk(JSON.parse(readFileSync(join(CONTRACTS, 'fixtures', 'hosted_report.sarif'), 'utf8')), 'fixtures/hosted_report.sarif', null);
+  const oa = readFileSync(join(CONTRACTS, 'openapi.yaml'), 'utf8');
+  for (const m of oa.matchAll(/"name":\s*"([^"]*agent-arena)"/g)) { toolIdCount++; if (m[1] !== TOOL_ID) fail(`TOOL openapi.yaml example tool name ${m[1]}, 2.14.0 requires ${TOOL_ID}`); }
+  const sm = readFileSync(join(CONTRACTS, 'sarif-mapping.md'), 'utf8');
+  if (!sm.includes(`| \`runs[0].tool.driver.name\` | \`run.tool.name\` | \`${TOOL_ID}\``)) fail('TOOL sarif-mapping.md §1 does not name the tool identity');
+  for (const m of sm.matchAll(/"name":\s*"([^"]*agent-arena)"/g)) { toolIdCount++; if (m[1] !== TOOL_ID) fail(`TOOL sarif-mapping.md excerpt tool name ${m[1]}`); }
+  if (!toolIdCount) fail('TOOL no tool identity found in the examples (the walker is broken)');
+  const scan = (dir, rel) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, e.name); const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) scan(full, r);
+      else if (r !== 'CHANGELOG.md' && readFileSync(full, 'utf8').includes(`${OLD_SCOPE}agent-arena`)) fail(`TOOL ${r} names the previous npm scope (GATE-DECISIONS NPM-1)`);
+    }
+  };
+  scan(CONTRACTS, '');
+  const cliPkg = join(WORKSPACE, 'packages', 'arena-cli', 'package.json');
+  const catalog = join(WORKSPACE, 'packages', 'arena-report', 'src', 'catalog.ts');
+  if (existsSync(cliPkg) && JSON.parse(readFileSync(cliPkg, 'utf8')).name !== TOOL_ID) fail(`TOOL packages/arena-cli/package.json name is not ${TOOL_ID}`);
+  if (existsSync(catalog) && !readFileSync(catalog, 'utf8').includes(`export const TOOL_NAME = '${TOOL_ID}';`)) fail(`TOOL packages/arena-report/src/catalog.ts TOOL_NAME is not ${TOOL_ID}`);
+}
+
 // ---------------------------------------------------------------- report
 if (failures.length) {
   console.error('Contract checks: FAIL');
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length + V2130_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order; 2.13.0: evidence_input (${EI.examples.length} examples, ${V2130_NEG.length} must-rejects), evidence step prose).`);
+console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length + V2130_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order; 2.13.0: evidence_input (${EI.examples.length} examples, ${V2130_NEG.length} must-rejects), evidence step prose; 2.14.0: tool identity (${toolIdCount} sites)).`);

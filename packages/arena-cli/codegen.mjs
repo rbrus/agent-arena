@@ -4,7 +4,7 @@
 // regenerates in memory and exits 1 when the committed file drifted (the test
 // suite runs it: CI fails on contract drift).
 //
-// Run: `npm run codegen -w @rbrus/agent-arena` (or `node codegen.mjs [--check]`).
+// Run: `npm run codegen -w @sixi4ai/agent-arena` (or `node codegen.mjs [--check]`).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

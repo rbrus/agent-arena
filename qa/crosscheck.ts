@@ -16,7 +16,7 @@
  * Legs (HOSTED-PROFILE §2.8 names in brackets):
  *   npm    [O1] the public CLI. Default: the workspace source (`node --import tsx
  *               packages/arena-cli/src/bin.ts`, the entry the published bundle wraps);
- *               `--npm-bin` points at an installed `@rbrus/agent-arena` bin instead.
+ *               `--npm-bin` points at an installed `@sixi4ai/agent-arena` bin instead.
  *   binary [O2] the Node SEA binary at `--binary`; `missing` when absent.
  *   docker [O3] `docker run <image>` where image = `--image` or ghcr.io/rbrus/agent-arena@<digest>;
  *               `missing` when docker or the image is unavailable.

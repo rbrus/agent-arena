@@ -41,10 +41,10 @@
       "platform_manifest": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
     },
     "tool": {
-      "name": "@rbrus/agent-arena",
+      "name": "@sixi4ai/agent-arena",
       "version": "0.1.0"
     },
-    "contracts_version": "2.13.0",
+    "contracts_version": "2.14.0",
     "report_version": "1.0",
     "packs": [],
     "crosscheck": {
@@ -87,7 +87,7 @@
       "effective_episodes": 1,
       "summary_verdict": "pass",
       "sarif_category": "agent-arena/byzantine/core/squad/",
-      "report_sha256": "sha256:71120d232551cda3ca2c4c3d5c79b3b77b79842795d6f161f1b5d2a6547907ef",
+      "report_sha256": "sha256:951a5387189168868dc2514a1d02b2211ee27f5e71c27aa9fc0d681b6238eea0",
       "within_budget_episodes": 1,
       "budget": {
         "soft_deadline_ms": 1500,
@@ -321,13 +321,13 @@
       {
         "path": "report.json",
         "run_id": "run_01JB5H0STED0TEST000000000A",
-        "sha256": "sha256:71120d232551cda3ca2c4c3d5c79b3b77b79842795d6f161f1b5d2a6547907ef",
+        "sha256": "sha256:951a5387189168868dc2514a1d02b2211ee27f5e71c27aa9fc0d681b6238eea0",
         "envelope": "report.json.dsse.json"
       },
       {
         "path": "report.sarif",
         "run_id": "run_01JB5H0STED0TEST000000000A",
-        "sha256": "sha256:9b43ac97d1ee5c977acca591fe715de3664771f460819badbcf0e422bd01247b",
+        "sha256": "sha256:1e6bac9c8873928840c1d7239fd4dfe25cbea4f99b06e0a558c03fb7c098ab11",
         "envelope": "report.sarif.dsse.json"
       }
     ]
