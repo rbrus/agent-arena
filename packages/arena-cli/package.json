@@ -45,5 +45,14 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rbrus/agent-arena.git",
+    "directory": "packages/arena-cli"
+  },
+  "homepage": "https://github.com/rbrus/agent-arena#readme",
+  "bugs": {
+    "url": "https://github.com/rbrus/agent-arena/issues"
   }
 }
