@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-labelledby="t d" font-family="ui-sans-serif, system-ui, sans-serif">
+  <title id="t">Open core and hosted</title>
+  <desc id="d">Left, open, this repository, free under Apache-2.0: the CLI, 8 scenarios and their oracles, reference agents, the replay inspector and sandbox, contracts and guides, and verify. Right, Sixi Arena, hosted and paid, planned and not public yet: a signed run manifest drives a hosted runner on the same open engine, which produces a sealed evidence bundle signed with Ed25519; anyone checks it with agent-arena verify --hosted-seal against keys pinned in the package.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f1b2d"/></marker>
+    <marker id="aht" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d6f6a"/></marker>
+  </defs>
+  <rect width="960" height="560" rx="12" fill="#f4f2ec"/>
+  <text x="24" y="44" font-size="22" font-weight="700" fill="#0f1b2d">Open core and hosted</text>
+  <text x="24" y="70" font-size="15" fill="#0f1b2d">Everything on the left is in this repository. The right side is a paid service built on the same engine.</text>
+
+  <rect x="12" y="90" width="440" height="402" rx="12" fill="none" stroke="#1d6f6a" stroke-width="2.5"/>
+  <text x="32" y="122" font-size="18" font-weight="700" fill="#1d6f6a">Open: this repository, free</text>
+  <text x="32" y="144" font-size="14" fill="#0f1b2d">Apache-2.0</text>
+  <g fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5">
+    <rect x="32" y="160" width="400" height="44" rx="8"/>
+    <rect x="32" y="214" width="400" height="44" rx="8"/>
+    <rect x="32" y="268" width="400" height="44" rx="8"/>
+    <rect x="32" y="322" width="400" height="44" rx="8"/>
+    <rect x="32" y="376" width="400" height="44" rx="8"/>
+    <rect x="32" y="430" width="400" height="44" rx="8" stroke="#1d6f6a" stroke-width="2.5"/>
+  </g>
+  <g font-size="15" fill="#0f1b2d">
+    <text x="48" y="187"><tspan font-weight="700">CLI</tspan>: run · verify · replay · list-scenarios</text>
+    <text x="48" y="241"><tspan font-weight="700">8 scenarios</tspan> and their oracles</text>
+    <text x="48" y="295"><tspan font-weight="700">reference agents</tspan>: golden pairs, no model</text>
+    <text x="48" y="349"><tspan font-weight="700">replay inspector</tspan> and Docker sandbox</text>
+    <text x="48" y="403"><tspan font-weight="700">contracts</tspan> and guides</text>
+    <text x="48" y="457"><tspan font-weight="700">verify</tspan>: re-simulate a report, recompute verdicts</text>
+  </g>
+
+  <rect x="480" y="90" width="468" height="402" rx="12" fill="none" stroke="#b45309" stroke-width="2.5"/>
+  <text x="500" y="122" font-size="18" font-weight="700" fill="#b45309">Sixi Arena: hosted, paid</text>
+  <text x="500" y="144" font-size="14" fill="#0f1b2d">planned: the service is not public yet</text>
+  <g fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5">
+    <rect x="500" y="160" width="428" height="58" rx="8"/>
+    <rect x="500" y="240" width="428" height="58" rx="8"/>
+    <rect x="500" y="320" width="428" height="58" rx="8"/>
+    <rect x="500" y="400" width="428" height="74" rx="8" stroke="#1d6f6a" stroke-width="2.5" stroke-dasharray="7 4"/>
+  </g>
+  <g font-size="16" font-weight="700" fill="#0f1b2d">
+    <text x="516" y="184">signed run manifest</text>
+    <text x="516" y="264">hosted runner</text>
+    <text x="516" y="344">sealed evidence bundle</text>
+    <text x="516" y="424">agent-arena verify --hosted-seal</text>
+  </g>
+  <g font-size="15" fill="#0f1b2d">
+    <text x="516" y="206">the only input that drives a hosted run</text>
+    <text x="516" y="286">the same open engine: agent-arena run --hosted</text>
+    <text x="516" y="366">report, SARIF and bundle manifest signed (Ed25519)</text>
+    <text x="516" y="446">against keys pinned in the package;</text>
+    <text x="516" y="466">the open CLI, so anyone can run it</text>
+  </g>
+  <g stroke="#0f1b2d" stroke-width="2" fill="none">
+    <line x1="714" y1="220" x2="714" y2="238" marker-end="url(#ah)"/>
+    <line x1="714" y1="300" x2="714" y2="318" marker-end="url(#ah)"/>
+    <line x1="714" y1="380" x2="714" y2="398" marker-end="url(#ah)"/>
+  </g>
+  <line x1="498" y1="452" x2="436" y2="452" stroke="#1d6f6a" stroke-width="2.5" marker-end="url(#aht)"/>
+
+  <text x="24" y="524" font-size="15" fill="#0f1b2d"><tspan font-weight="700">Conflict of interest.</tspan> This arena is maintained by Sixi AI, which sells Sixi Arena. Details in the README.</text>
+</svg>

@@ -12,6 +12,16 @@ and token budgets and reports which deterministic oracles fired.
   result cannot be contaminated by one.
 - **CI-shaped output.** `report.json` and SARIF 2.1.0, for CI and a GitHub Security tab.
 
+## At a glance
+
+![How a run works: your agent exchanges observations and actions with agent-arena run; the engine, the replay hash chain and the oracles produce report.json and SARIF; agent-arena verify re-simulates and recomputes every verdict](docs/diagrams/how-a-run-works.svg)
+
+![Scenarios: eight tiles, one per scenario, each with what it tests and the pattern that passes](docs/diagrams/scenarios.svg)
+
+![Open core and hosted: the open repository on the left; on the right, Sixi Arena (planned): signed run manifest, hosted runner on the same engine, sealed evidence bundle, checked with agent-arena verify --hosted-seal](docs/diagrams/open-core-and-hosted.svg)
+
+The architecture and the budget tiers as pictures: [docs/OVERVIEW.md](docs/OVERVIEW.md).
+
 ## Why this exists
 
 Agents that work with other agents fail in ways a single-turn probe cannot reach: a peer that lies, a partition, a stale observation, an opponent that learns their habits.
@@ -364,6 +374,8 @@ Read this before quoting a result.
 ## Read next
 
 - [docs/index.md](docs/index.md): every page, and what is built and what is planned.
+- [Overview](docs/OVERVIEW.md): the run loop, the architecture, the scenarios, the budget tiers and
+  open core versus hosted, as five diagrams.
 - [Quickstart](docs/guides/quickstart.md): install, run Byzantine against the bundled reference,
   open the report in the replay inspector, run against your own agent, read the SARIF in GitHub.
 - [Writing an agent](docs/guides/writing-an-agent.md): the frames your agent receives and sends,

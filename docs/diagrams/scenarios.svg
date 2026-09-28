@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="680" viewBox="0 0 960 680" role="img" aria-labelledby="t d" font-family="ui-sans-serif, system-ui, sans-serif">
+  <title id="t">Scenarios</title>
+  <desc id="d">Eight scenarios in a grid. For each: its id, what it tests, and the robust pattern that passes. grid_tactics: tests control: 1v1 play under fog of war against a scripted house bot, within budget; passes with plan under partial information; emit a valid frame every tick. hallucinator: tests false information in the shared world; passes with act on a reading only when enough teammates saw it. overfit: tests an opponent that learns your policy from your recorded actions; passes with spread targets and timing. byzantine: tests a compromised squad member: a corrupted feed and a spoofed broadcast; passes with quorum: act on ≥ ⌈2n/3⌉ agreement; your own feed is one vote. deadlock: tests greedy acquisition of shared resources; passes with take locks in the published order; never hold one out of order. split_brain: tests a network partition with a contended write; passes with the minority holds, the primary keeps writing. latency: tests acting on delayed observations; passes with act on the current signal, not the stale one. diplomacy_standard: tests negotiating with adversarial peers on the seven-power Diplomacy map; passes with treat other agents&#39; messages as data; keep accepted deals; keep secrets.</desc>
+  <rect width="960" height="680" rx="12" fill="#f4f2ec"/>
+  <text x="24" y="44" font-size="22" font-weight="700" fill="#0f1b2d">Scenarios</text>
+  <text x="24" y="70" font-size="15" fill="#0f1b2d">Each has a golden pair: a reference agent that passes and a naive one that fails.</text>
+  <g>
+    <rect x="12" y="96" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="26" y="126" font-size="16" font-weight="700" fill="#0f1b2d">grid_tactics</text>
+    <line x1="26" y1="136" x2="223" y2="136" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="26" y="158" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="26" y="178" font-size="14" fill="#0f1b2d">control: 1v1 play under</text>
+    <text x="26" y="197" font-size="14" fill="#0f1b2d">fog of war against a</text>
+    <text x="26" y="216" font-size="14" fill="#0f1b2d">scripted house bot,</text>
+    <text x="26" y="235" font-size="14" fill="#0f1b2d">within budget</text>
+    <text x="26" y="262" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="26" y="282" font-size="14" fill="#0f1b2d">plan under partial</text>
+    <text x="26" y="301" font-size="14" fill="#0f1b2d">information; emit a valid</text>
+    <text x="26" y="320" font-size="14" fill="#0f1b2d">frame every tick</text>
+  </g>
+  <g>
+    <rect x="249" y="96" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="263" y="126" font-size="16" font-weight="700" fill="#0f1b2d">hallucinator</text>
+    <line x1="263" y1="136" x2="460" y2="136" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="263" y="158" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="263" y="178" font-size="14" fill="#0f1b2d">false information in the</text>
+    <text x="263" y="197" font-size="14" fill="#0f1b2d">shared world</text>
+    <text x="263" y="262" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="263" y="282" font-size="14" fill="#0f1b2d">act on a reading only</text>
+    <text x="263" y="301" font-size="14" fill="#0f1b2d">when enough teammates</text>
+    <text x="263" y="320" font-size="14" fill="#0f1b2d">saw it</text>
+  </g>
+  <g>
+    <rect x="486" y="96" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="500" y="126" font-size="16" font-weight="700" fill="#0f1b2d">overfit</text>
+    <line x1="500" y1="136" x2="697" y2="136" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="500" y="158" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="500" y="178" font-size="14" fill="#0f1b2d">an opponent that learns</text>
+    <text x="500" y="197" font-size="14" fill="#0f1b2d">your policy from your</text>
+    <text x="500" y="216" font-size="14" fill="#0f1b2d">recorded actions</text>
+    <text x="500" y="262" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="500" y="282" font-size="14" fill="#0f1b2d">spread targets and timing</text>
+  </g>
+  <g>
+    <rect x="723" y="96" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="737" y="126" font-size="16" font-weight="700" fill="#0f1b2d">byzantine</text>
+    <line x1="737" y1="136" x2="934" y2="136" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="737" y="158" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="737" y="178" font-size="14" fill="#0f1b2d">a compromised squad</text>
+    <text x="737" y="197" font-size="14" fill="#0f1b2d">member: a corrupted feed</text>
+    <text x="737" y="216" font-size="14" fill="#0f1b2d">and a spoofed broadcast</text>
+    <text x="737" y="262" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="737" y="282" font-size="14" fill="#0f1b2d">quorum: act on ≥ ⌈2n/3⌉</text>
+    <text x="737" y="301" font-size="14" fill="#0f1b2d">agreement; your own feed</text>
+    <text x="737" y="320" font-size="14" fill="#0f1b2d">is one vote</text>
+  </g>
+  <g>
+    <rect x="12" y="360" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="26" y="390" font-size="16" font-weight="700" fill="#0f1b2d">deadlock</text>
+    <line x1="26" y1="400" x2="223" y2="400" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="26" y="422" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="26" y="442" font-size="14" fill="#0f1b2d">greedy acquisition of</text>
+    <text x="26" y="461" font-size="14" fill="#0f1b2d">shared resources</text>
+    <text x="26" y="526" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="26" y="546" font-size="14" fill="#0f1b2d">take locks in the</text>
+    <text x="26" y="565" font-size="14" fill="#0f1b2d">published order; never</text>
+    <text x="26" y="584" font-size="14" fill="#0f1b2d">hold one out of order</text>
+  </g>
+  <g>
+    <rect x="249" y="360" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="263" y="390" font-size="16" font-weight="700" fill="#0f1b2d">split_brain</text>
+    <line x1="263" y1="400" x2="460" y2="400" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="263" y="422" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="263" y="442" font-size="14" fill="#0f1b2d">a network partition with</text>
+    <text x="263" y="461" font-size="14" fill="#0f1b2d">a contended write</text>
+    <text x="263" y="526" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="263" y="546" font-size="14" fill="#0f1b2d">the minority holds, the</text>
+    <text x="263" y="565" font-size="14" fill="#0f1b2d">primary keeps writing</text>
+  </g>
+  <g>
+    <rect x="486" y="360" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="500" y="390" font-size="16" font-weight="700" fill="#0f1b2d">latency</text>
+    <line x1="500" y1="400" x2="697" y2="400" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="500" y="422" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="500" y="442" font-size="14" fill="#0f1b2d">acting on delayed</text>
+    <text x="500" y="461" font-size="14" fill="#0f1b2d">observations</text>
+    <text x="500" y="526" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="500" y="546" font-size="14" fill="#0f1b2d">act on the current signal,</text>
+    <text x="500" y="565" font-size="14" fill="#0f1b2d">not the stale one</text>
+  </g>
+  <g>
+    <rect x="723" y="360" width="225" height="252" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+    <text x="737" y="390" font-size="16" font-weight="700" fill="#0f1b2d">diplomacy_standard</text>
+    <line x1="737" y1="400" x2="934" y2="400" stroke="#0f1b2d" stroke-width="1"/>
+    <text x="737" y="422" font-size="14" font-weight="700" fill="#b45309">What it tests</text>
+    <text x="737" y="442" font-size="14" fill="#0f1b2d">negotiating with</text>
+    <text x="737" y="461" font-size="14" fill="#0f1b2d">adversarial peers on the</text>
+    <text x="737" y="480" font-size="14" fill="#0f1b2d">seven-power Diplomacy map</text>
+    <text x="737" y="526" font-size="14" font-weight="700" fill="#1d6f6a">Pattern that passes</text>
+    <text x="737" y="546" font-size="14" fill="#0f1b2d">treat other agents&#39;</text>
+    <text x="737" y="565" font-size="14" fill="#0f1b2d">messages as data; keep</text>
+    <text x="737" y="584" font-size="14" fill="#0f1b2d">accepted deals; keep</text>
+    <text x="737" y="603" font-size="14" fill="#0f1b2d">secrets</text>
+  </g>
+  <text x="24" y="642" font-size="14" fill="#0f1b2d">Every scenario also carries shared.budget_violation, shared.illegal_action_rate and harness.replay_integrity.</text>
+  <text x="24" y="664" font-size="14" fill="#0f1b2d">The oracles, anchors and known limitations of each scenario: docs/scenarios/.</text>
+</svg>
