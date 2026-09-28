@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="450" viewBox="0 0 960 450" role="img" aria-labelledby="t d" font-family="ui-sans-serif, system-ui, sans-serif">
+  <title id="t">Budget tiers</title>
+  <desc id="d">Four budget tiers. edge: soft deadline 800 ms, hard deadline 1,600 ms, action-token allowance 160 per seat. core, the default: 1,500 ms, 3,000 ms, 240. frontier: 3,000 ms, 6,000 ms, 360. extended: 15,000 ms, 30,000 ms, 540. Tick cap 120 in every tier. The arena never asks which model you run; it enforces what the referee can measure.</desc>
+  <rect width="960" height="450" rx="12" fill="#f4f2ec"/>
+  <text x="24" y="44" font-size="22" font-weight="700" fill="#0f1b2d">Budget tiers</text>
+  <text x="24" y="72" font-size="16" font-weight="700" fill="#1d6f6a">The arena never asks which model you run; it enforces what the referee can measure.</text>
+
+  <rect x="12" y="96" width="936" height="216" rx="10" fill="#fdfcf9" stroke="#0f1b2d" stroke-width="1.5"/>
+  <g stroke="#0f1b2d" stroke-width="1">
+    <line x1="12" y1="152" x2="948" y2="152" stroke-width="1.5"/>
+    <line x1="12" y1="192" x2="948" y2="192"/>
+    <line x1="12" y1="232" x2="948" y2="232"/>
+    <line x1="12" y1="272" x2="948" y2="272"/>
+  </g>
+  <g font-size="15" font-weight="700" fill="#0f1b2d">
+    <text x="28" y="130">Tier</text>
+    <text x="376" y="130" text-anchor="end">Soft deadline</text>
+    <text x="556" y="130" text-anchor="end">Hard deadline</text>
+    <text x="796" y="120" text-anchor="end">Action-token allowance</text>
+    <text x="796" y="142" text-anchor="end">per seat</text>
+    <text x="932" y="130" text-anchor="end">Tick cap</text>
+  </g>
+  <g font-size="15" fill="#0f1b2d">
+    <text x="28" y="178"><tspan font-weight="700">edge</tspan></text>
+    <text x="28" y="218"><tspan font-weight="700">core</tspan> (default)</text>
+    <text x="28" y="258"><tspan font-weight="700">frontier</tspan></text>
+    <text x="28" y="298"><tspan font-weight="700" fill="#b45309">extended</tspan></text>
+  </g>
+  <g font-size="15" fill="#0f1b2d" text-anchor="end">
+    <text x="376" y="178">800 ms</text><text x="556" y="178">1,600 ms</text><text x="796" y="178">160</text><text x="932" y="178">120</text>
+    <text x="376" y="218">1,500 ms</text><text x="556" y="218">3,000 ms</text><text x="796" y="218">240</text><text x="932" y="218">120</text>
+    <text x="376" y="258">3,000 ms</text><text x="556" y="258">6,000 ms</text><text x="796" y="258">360</text><text x="932" y="258">120</text>
+    <text x="376" y="298">15,000 ms</text><text x="556" y="298">30,000 ms</text><text x="796" y="298">540</text><text x="932" y="298">120</text>
+  </g>
+
+  <g font-size="15" fill="#0f1b2d">
+    <text x="24" y="346">A late action still applies and counts as a soft miss. No valid action by the hard deadline: the seat's units hold.</text>
+    <text x="24" y="370">Three hard misses in a row forfeit the episode. shared.budget_violation judges all of these.</text>
+    <text x="24" y="394"><tspan font-weight="700" fill="#b45309">extended</tspan> has no frozen anchors; a worst-case episode there is 120 × 30 s = 60 min.</text>
+    <text x="24" y="418">“Tokens” are the engine's action units. The arena does not see or meter model tokens.</text>
+  </g>
+</svg>

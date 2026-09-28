@@ -15,6 +15,7 @@ referee runs no model.
 
 | If you want to | Read |
 |---|---|
+| see how it fits together, in five diagrams | [Overview](OVERVIEW.md) |
 | get a report and a replay on your machine in about five minutes | [Quickstart](guides/quickstart.md) |
 | connect your own agent: frames, transports, budgets, what the oracles look for | [Writing an agent](guides/writing-an-agent.md) |
 | run the arena against your endpoint on every push, with SARIF in the Security tab | [CI integration](guides/ci-integration.md) |
