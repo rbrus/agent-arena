@@ -1,0 +1,192 @@
+# rbrus/agent-arena - hosted-crosscheck: the OPEN legs of the Phase 9 cross-check for one hosted
+# image digest (docs/phase-9/CROSSCHECK.md §3.2 and §10 in the program repository; HOSTED-PROFILE
+# §2.8). Dispatched by the hosted service's arena-crosscheck.yml, job open-legs, after it has run leg H
+# (one hosted run per matrix group) and published the H bundles to its public bucket.
+#
+#   inputs    image_digest (sha256:<64 hex>, the image INDEX digest), tool_version (X.Y.Z[-pre]; the
+#             release whose tag, npm package and SEA binary are used), trigger (pre_promotion |
+#             nightly | config_change), h_bundles_url (the public tarball of H bundles),
+#             h_bundles_sha256 (its sha256), request_id (the caller's correlation id)
+#   run-name  "hosted-crosscheck <request_id> ..."; the caller finds this run by that title
+#   legs      npm,binary,docker,hosted: O1 = @sixi4ai/agent-arena@<tool_version> as published,
+#             O2 = the release asset agent-arena-linux-x64 (attestation checked), O3 = the image
+#             ghcr.io/rbrus/agent-arena@<image_digest>, H = the H bundles (leg V: `verify --hosted
+#             --key pinned`, the report keys THIS release pins; nothing is fetched from the hosted
+#             service's key endpoint), A = the frozen anchors
+#   artifact  crosscheck-out: crosscheck_record.json (unsigned: the hosted sealer recomputes and
+#             signs), crosscheck_summary.json, matrix.json, timing.json; crosscheck-legs: the raw
+#             per-leg CLI output, for triage
+#
+# The job succeeds whenever the runner wrote a schema-valid record, WHATEVER its verdict: a `fail`
+# record is exactly what the hosted side must receive to hold admission. It fails only on a harness
+# error (bad input, a bundle that does not match its sha256 or is not a plain tree, a provenance check
+# that fails, runner exit 2 or no record). No secrets: the token is the read-only GITHUB_TOKEN.
+# The flags equal the hosted side's recomputation (compare-and-sign), so `qa/crosscheck.ts --compare`
+# can find the two records equal: no --spec-ref here, and --stable only fixes the ignored wall-clocks.
+name: hosted-crosscheck
+run-name: hosted-crosscheck ${{ inputs.request_id }} (${{ inputs.trigger }}, v${{ inputs.tool_version }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: 'The image index digest, sha256:<64 lowercase hex>'
+        required: true
+        type: string
+      tool_version:
+        description: 'The agent-arena release, X.Y.Z or X.Y.Z-pre (its tag vX.Y.Z is checked out)'
+        required: true
+        type: string
+      trigger:
+        description: 'Why the cross-check runs'
+        required: true
+        type: choice
+        options: [pre_promotion, nightly, config_change]
+        default: pre_promotion
+      h_bundles_url:
+        description: 'https://storage.googleapis.com/sixi-arena-crosscheck/<image_digest>/H/<run>-<attempt>.tar.gz'
+        required: true
+        type: string
+      h_bundles_sha256:
+        description: 'sha256 of that tarball, 64 lowercase hex'
+        required: true
+        type: string
+      request_id:
+        description: 'The caller correlation id (appears in the run name)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hosted-crosscheck-${{ inputs.request_id }}
+  cancel-in-progress: false
+
+jobs:
+  open-legs:
+    runs-on: ubuntu-24.04 # linux/amd64, the image platform
+    timeout-minutes: 120
+    permissions:
+      contents: read # the tag checkout and the release asset
+      attestations: read # gh attestation verify of the release binary
+    env:
+      IMAGE_DIGEST: ${{ inputs.image_digest }}
+      TOOL_VERSION: ${{ inputs.tool_version }}
+      TRIGGER: ${{ inputs.trigger }}
+      H_URL: ${{ inputs.h_bundles_url }}
+      H_SHA256: ${{ inputs.h_bundles_sha256 }}
+      REQUEST_ID: ${{ inputs.request_id }}
+      BIN_ASSET: agent-arena-linux-x64
+    steps:
+      # Inputs are read from the environment only, never interpolated into a script.
+      - name: Check the inputs
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::image_digest is not sha256:<64 hex>"; exit 1; }
+          [[ "$TOOL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "::error::tool_version is not X.Y.Z[-pre]"; exit 1; }
+          case "$TRIGGER" in pre_promotion|nightly|config_change) ;; *) echo "::error::trigger"; exit 1 ;; esac
+          [[ "$H_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::h_bundles_sha256 is not 64 hex"; exit 1; }
+          [[ "$REQUEST_ID" =~ ^[A-Za-z0-9._-]{1,64}$ ]] || { echo "::error::request_id is not [A-Za-z0-9._-]{1,64}"; exit 1; }
+          # The H bundles come from the hosted service's public cross-check bucket, for THIS digest.
+          re='^https://storage\.googleapis\.com/sixi-arena-crosscheck/sha256:[0-9a-f]{64}/H/[0-9]{1,20}-[0-9]{1,6}\.tar\.gz$'
+          [[ "$H_URL" =~ $re ]] || { echo "::error::h_bundles_url is not a tarball in the public cross-check bucket"; exit 1; }
+          [[ "$H_URL" == "https://storage.googleapis.com/sixi-arena-crosscheck/${IMAGE_DIGEST}/H/"* ]] || { echo "::error::h_bundles_url is for another digest"; exit 1; }
+          echo "request ${REQUEST_ID}: ${TRIGGER}, ${IMAGE_DIGEST}, v${TOOL_VERSION}"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/v${{ inputs.tool_version }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: The workspace at the tag (runner, leg V verifier, anchors)
+        run: |
+          set -euo pipefail
+          got=$(node -p "require('./packages/arena-cli/package.json').version")
+          [ "$got" = "$TOOL_VERSION" ] || { echo "::error::tag v${TOOL_VERSION} carries CLI ${got}"; exit 1; }
+          npm ci --ignore-scripts --no-audit --no-fund
+
+      # Outside the workspace: inside it, the name resolves to the workspace package, not the registry.
+      - name: O1 - the published npm package
+        run: |
+          set -euo pipefail
+          o1="$RUNNER_TEMP/o1"
+          mkdir -p "$o1"
+          npm install --prefix "$o1" --ignore-scripts --no-audit --no-fund --no-save "@sixi4ai/agent-arena@${TOOL_VERSION}"
+          "$o1/node_modules/.bin/agent-arena" --version | grep -F "$TOOL_VERSION"
+
+      - name: O2 - the release binary, provenance checked
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          gh release download "v${TOOL_VERSION}" -R "$GITHUB_REPOSITORY" --pattern "$BIN_ASSET" -D "$RUNNER_TEMP/bin"
+          gh attestation verify "$RUNNER_TEMP/bin/$BIN_ASSET" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --deny-self-hosted-runners > /dev/null
+          chmod +x "$RUNNER_TEMP/bin/$BIN_ASSET"
+          "$RUNNER_TEMP/bin/$BIN_ASSET" --version | grep -F "$TOOL_VERSION"
+
+      - name: H - fetch, check and unpack the H bundles
+        run: |
+          set -euo pipefail
+          t="$RUNNER_TEMP/h-bundles.tar.gz"
+          curl -fsS --proto '=https' --tlsv1.2 --max-time 600 --max-filesize 1073741824 -o "$t" "$H_URL"
+          echo "${H_SHA256}  ${t}" | sha256sum -c -
+          # A plain tree under h/<group id>/: regular files and directories only, no absolute path,
+          # no "..", no link or device entry. Checked before anything is written.
+          tar -tzvf "$t" > "$RUNNER_TEMP/h-list.txt"
+          if grep -Ev '^[-d]' "$RUNNER_TEMP/h-list.txt" | grep -q . || grep -q ' link to ' "$RUNNER_TEMP/h-list.txt"; then echo "::error::the H tarball has a non-regular entry"; exit 1; fi
+          if tar -tzf "$t" | grep -Ev '^h(/[A-Za-z0-9._-]+)*/?$' | grep -q .; then echo "::error::the H tarball has a path outside h/<group id>/"; exit 1; fi
+          if tar -tzf "$t" | grep -Eq '(^|/)\.\.?(/|$)'; then echo "::error::the H tarball has a dot path"; exit 1; fi
+          mkdir -p "$RUNNER_TEMP/hx"
+          tar -xzf "$t" -C "$RUNNER_TEMP/hx" --no-same-owner --no-same-permissions
+          test -d "$RUNNER_TEMP/hx/h"
+          echo "H: $(find "$RUNNER_TEMP/hx/h" -mindepth 1 -maxdepth 1 -type d | wc -l) group directories"
+
+      - name: Cross-check (O1, O2, O3, H, A; leg V)
+        run: |
+          set -euo pipefail
+          code=0
+          npx --no-install tsx qa/crosscheck.ts \
+            --legs npm,binary,docker,hosted \
+            --npm-bin "$RUNNER_TEMP/o1/node_modules/.bin/agent-arena" \
+            --binary "$RUNNER_TEMP/bin/$BIN_ASSET" \
+            --digest "$IMAGE_DIGEST" --platform linux/amd64 \
+            --hosted-dir "$RUNNER_TEMP/hx/h" --hosted-key pinned \
+            --trigger "$TRIGGER" \
+            --out crosscheck-out --stable || code=$?
+          echo "runner exit ${code}"
+          # 0 and 1 are verdicts (the record says which); 2 is a harness error with no verdict.
+          [ "$code" -le 1 ] || { echo "::error::harness error (runner exit ${code})"; exit 1; }
+          test -s crosscheck-out/crosscheck_record.json
+          verdict=$(node -p "require('./crosscheck-out/crosscheck_record.json').job_verdict")
+          echo "job verdict: ${verdict}"
+          {
+            echo "### hosted-crosscheck ${REQUEST_ID}"
+            echo
+            echo "- image \`${IMAGE_DIGEST}\`, tool v${TOOL_VERSION}, trigger ${TRIGGER}"
+            echo "- job verdict **${verdict}** (runner exit ${code}); the record is unsigned until the hosted sealer signs its recomputation"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: crosscheck-out
+          path: |
+            crosscheck-out/crosscheck_record.json
+            crosscheck-out/crosscheck_summary.json
+            crosscheck-out/matrix.json
+            crosscheck-out/timing.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: crosscheck-legs
+          path: crosscheck-out/legs
+          if-no-files-found: ignore
+          retention-days: 14

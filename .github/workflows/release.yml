@@ -240,15 +240,25 @@ jobs:
             tar -czf "$name.tar.gz" "$name"
             echo "file=sea/$name.tar.gz" >> "$GITHUB_OUTPUT"
           fi
+          # The bare executable as its own, version-less asset (agent-arena-linux-x64, ...): the
+          # cross-check's O2 leg downloads it by this exact name and checks its attestation
+          # (hosted-crosscheck.yml; the hosted side's arena-crosscheck.yml does the same).
+          bare="agent-arena-${{ matrix.target }}${{ matrix.ext }}"
+          cp "$BIN" "$bare"
+          echo "bare=sea/$bare" >> "$GITHUB_OUTPUT"
 
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: ${{ steps.pkg.outputs.file }}
+          subject-path: |
+            ${{ steps.pkg.outputs.file }}
+            ${{ steps.pkg.outputs.bare }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bin-${{ matrix.target }}
-          path: ${{ steps.pkg.outputs.file }}
+          path: |
+            ${{ steps.pkg.outputs.file }}
+            ${{ steps.pkg.outputs.bare }}
           if-no-files-found: error
           retention-days: 7
 
