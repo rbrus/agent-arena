@@ -20,7 +20,7 @@
 # with --strict-time. Needs only bash + docker (compose v2.24+, BuildKit).
 #
 # Output hygiene: nothing here prints .env; `docker compose config` is never
-# called (it would expand the pepper and key into the log).
+# called (it would expand any local .env into the log).
 set -euo pipefail
 cd "$(dirname "$0")"
 SANDBOX_DIR=$(pwd)
@@ -73,8 +73,8 @@ fi
 cleanup() {
   local rc=$?
   if [[ $rc -ne 0 ]]; then
-    echo "--- last arena/target logs ---" >&2
-    docker compose logs --no-color --tail 40 arena target >&2 || true
+    echo "--- last target logs ---" >&2
+    docker compose logs --no-color --tail 40 target >&2 || true
   fi
   if [[ $KEEP -eq 0 ]]; then docker compose --profile run down --remove-orphans >/dev/null 2>&1 || true; fi
   exit "$rc"
@@ -82,7 +82,6 @@ cleanup() {
 trap cleanup EXIT
 
 step "env (contracts context: ${ARENA_CONTRACTS_CONTEXT:-n/a})"
-if [[ ! -f .env ]]; then ./gen-env.sh; fi
 # The frozen-anchor copy must match anchors.ts. The image build enforces this;
 # check it here too when host deps are installed, because ARENA_IMAGE=... skips
 # the build.
@@ -95,8 +94,8 @@ if [[ -n "${ARENA_IMAGE:-}" ]]; then
   docker image inspect "$ARENA_IMAGE" >/dev/null 2>&1 || docker pull "$ARENA_IMAGE" >/dev/null || fail "cannot pull $ARENA_IMAGE"
   IMAGE="$ARENA_IMAGE"
 else
-  step "build agent-arena:local (npm ci, typecheck, test, bundles)"
-  docker compose build arena || fail "image build failed"
+  step "build agent-arena:local (npm ci, typecheck, anchor self-test, CLI bundle)"
+  docker compose build target || fail "image build failed"
   IMAGE=agent-arena:local
 fi
 
@@ -120,8 +119,8 @@ docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-
   --entrypoint /nodejs/bin/node "$IMAGE" /check/check-image-env.mjs /check/hosted_env.json \
   || fail "the image sets a variable the hosted runner requires to be absent" 2
 
-step "start arena + target, wait for /healthz"
-docker compose up -d --wait --wait-timeout 90 arena target || fail "services did not become healthy"
+step "start the reference target, wait for /healthz"
+docker compose up -d --wait --wait-timeout 90 target || fail "the target did not become healthy"
 docker compose ps --format 'table {{.Service}}\t{{.Status}}\t{{.Ports}}'
 
 step "CLI run from a second container (joins the target's netns; --target http://127.0.0.1:8081)"

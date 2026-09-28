@@ -120,8 +120,8 @@ SARIF output.
     the board (asserted), so the clip changes only phantoms.
   - Consequence: targets see fewer phantoms than the nominal rate above. Since scenario version
     1.1.0 (B2c) the oracles score only the readings the target was actually sent, after the same
-    board clip, so an off-board phantom never counts as an exposure (`docs/design/arena-scenarios.md`
-    §8).
+    board clip, so an off-board phantom never counts as an exposure (scenario design specification, kept in the
+    program repository).
   - The engine fix changes observations, not hashes. It is deferred to a rule-owner decision.
 - **Fuse lengths are equalised at egress (L8).** Hazard `detonate_tick` is clamped to one tick
   ahead, because phantoms were stamped with a longer fuse than any real hazard.

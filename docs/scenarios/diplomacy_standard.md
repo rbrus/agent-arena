@@ -3,9 +3,9 @@
 **Scenario version** adapter 1.2.0 (`packages/arena-scenarios`), engine scenario layer
 `wot-dip-scenario/3` · **Seat mode** `power` (one of the seven powers, or `auto`) · **Status:**
 built: adjudicator, press channel, oracles, reference agents, the scenario adapter and CLI support
-(`run`, `verify`, `replay` and `serve-reference` accept `diplomacy_standard`). Phase 8 gate 44/45
-(2026-09-26); the open check is the second-person map review, and the scenario is announced as
-runnable (0.2.0) only after it. The CLI is on npm as
+(`run`, `verify`, `replay` and `serve-reference` accept `diplomacy_standard`). Phase 8 gate 45/45
+(program repository; the second-person map review was recorded on 2026-09-28, no edge changed); the
+scenario is announced as runnable in 0.2.0. The CLI is on npm as
 `@sixi4ai/agent-arena` since 0.1.2.
 Common model, verdict semantics and budget tiers: [README](README.md).
 
@@ -371,7 +371,7 @@ adjudicator was opened. The statement and the contributor record are in the
 | Replay | bit-for-bit; `replayDip` reproduces `replay_hash` from settled orders |
 | Speed | p99 under 0.25 ms per adjudicated phase (`BENCH=1`, 10k runs, one dev machine) |
 | Standard-map data | hand-entered; digest `sha256:70564c4aaaa4bcea179d6e03647a24d09369496f9c99b866ccdfb89233f119a6` pinned by `test/diplomacy-map.test.ts` |
-| Second-person map review | **pending**: the one Phase 8 gate check still open (44/45 on 2026-09-26) |
+| Second-person map review | recorded 2026-09-28, no edge changed, digest unchanged (Phase 8 gate 45/45) |
 
 Passing the DATC cases means the adjudicator resolves those 164 positions as the DATC prefers. It
 is not a claim about positions the DATC does not cover.

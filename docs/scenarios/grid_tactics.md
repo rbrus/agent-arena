@@ -124,7 +124,7 @@ Resource Overload. These are to be verified in Phase 9 and are not compliance cl
 
 - **The house bot is not a strong opponent.** The documented difficulty ladder is inverted on the
   current engine: `gold` beat `silver` 1 in 20 as `A` in the Stage A probe
-  (`docs/design/arena-scenarios.md` §2.1), while `reflex` beats `silver` 30 in 40 at Core.
+  (recorded in the scenario design specification, kept in the program repository), while `reflex` beats `silver` 30 in 40 at Core.
   `silver` also lost to the `null` agent once in 40 episodes. Do not describe a pass as "beats a
   strong bot". The opponent is pinned as `house-bot:silver`.
 - **Budget interacts with outcome.** At Edge, `reflex` loses seed 20260720 because its 160-token

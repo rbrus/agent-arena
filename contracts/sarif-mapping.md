@@ -5,7 +5,8 @@
 **Since:** contracts `2.0.0` (ADR-001); Diplomacy rules added in `2.1.0` (§2.1, additive); hosted-run properties and pack-scenario rule ids in `2.2.0` (§1.1, §2.2, additive); the hosted golden made authoritative for the §2 and §4 Diplomacy members, and §1 and §2.1 aligned with the emitter, in `2.3.0` (errata, no rule id, level or fingerprint changes). Three Diplomacy `not_assessed` reason codes in `2.4.0` (§2.1, additive). The shared rule `shared.participation` and its `not_assessed` reason `never_actable` in `2.8.0` (§2.1, §2.3, additive); `diplomacy_standard.participation` reserved as a `2.9.0` candidate (§2.3.1). **Consumers:** the CLI emitter (Phase-7 B3), the hosted runner's
 `GET /v1/runs/{run_id}/report` with `Accept: application/sarif+json`, GitHub code scanning
 (`github/codeql-action/upload-sarif`), and the Phase-9 evidence report. **Oracle semantics** (bands,
-severities, `basis`): `docs/design/arena-scenarios.md` §1.5–§2.
+severities, `basis`): the scenario design specification §1.5–§2 (program repository) and the
+per-scenario pages under `docs/scenarios/`.
 
 The JSON Report is the source of truth. The SARIF log is a lossy **rendering** of it for code-scanning
 UIs: every field below is derived from the Report alone, deterministically, so the same Report always
@@ -134,8 +135,8 @@ Risk-to-level rule (fixed): critical and high fail as `error`, medium as `warnin
 forfeit (consecutive hard misses) and at `warning` for any hard miss of an orders deadline or for more than 2
 counted press rejects (`press_quota`, `press_too_large`, `press_invalid_text`, `signature_invalid`). The catalog
 entry declares `severities: ["error", "warning"]` (checked by `tools/contract-check.mjs`), so the rule's
-`defaultConfiguration.level` is `error`. The design note "per Phase 7 (low)" (`docs/design/diplomacy-scenario.md`
-§2.6) is superseded by this table: a Diplomacy budget fail is never rendered as `note`.
+`defaultConfiguration.level` is `error`. The design note "per Phase 7 (low)" (Diplomacy scenario design specification
+§2.6, program repository) is superseded by this table: a Diplomacy budget fail is never rendered as `note`.
 `automationDetails.id` is `agent-arena/diplomacy_standard/<budget_tier>/power/`; the logical
 location is `diplomacy_standard/episode/<i>/seat/<power>` (e.g. `.../seat/germany`).
 
@@ -317,7 +318,7 @@ partialFingerprints = {
   and claimed that `replay_hash` commits to the seed. It does not for every scenario: the duel's hash
   excludes the seeded obstacle layout, and Overfit and Deadlock ignore the seed, so two seeds could
   produce one fingerprint and GitHub would merge distinct alerts. The fingerprint now names every
-  input that identifies the experiment (threat-model-arena.md: fingerprints derive from rule id,
+  input that identifies the experiment (arena threat model, program repository: fingerprints derive from rule id,
   scenario and seed, never from target text), and still changes when the agent's behaviour changes
   (`replay_hash`, plus `transcript_hash` for press oracles, which judge messages that never enter the
   board hash).

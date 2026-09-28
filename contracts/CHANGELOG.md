@@ -23,7 +23,7 @@ repository stays `rbrus/agent-arena`, the bin stays `agent-arena`.
 - **sarif-mapping.md §1**: `runs[0].tool.driver.name` (from `run.tool.name`) is `@sixi4ai/agent-arena` for the open CLI,
   no longer an "e.g."; `informationUri` stays `https://github.com/rbrus/agent-arena`. The §8 excerpt follows.
 - **Examples and fixtures**: `run.tool.name` in `report.schema.json` examples[0]–[3], the OpenAPI Report example,
-  `evidence_report.schema.json` `producer.tool.name` in both examples, and `fixtures/hosted_report.sarif`. Every
+  `evidence_report.schema.json` `build.tool.name` in both examples, and `fixtures/hosted_report.sarif`. Every
   install and command line in the schema descriptions, `openapi.yaml` and `README.md` reads `npx @sixi4ai/agent-arena`.
 - **contract-check §19** asserts the identity at every site, the unchanged `informationUri`, agreement with the CLI's
   package name and the report writer's `TOOL_NAME`, and that no contract file but this changelog names the previous scope.
@@ -720,7 +720,7 @@ worked example). Sources:
   `src/commands/{run,run-hosted}.ts`, `src/net/context.ts`, `src/reference/run-token.ts`, and the README "Hosted
   mode" section (the G-46 URL rule and the control-plane admission checklist);
 - `ascension/qa/crosscheck.ts` `anchorId` and arena-scenarios `anchors.ts`;
-- ADR-003 §3 and `docs/security/agent-passports.md` §1.1;
+- ADR-003 §3 and the agent-passports security document (program repository) §1.1;
 - the Diplomacy WSS chaos test (the table channel's close codes and seat arrival), checked against
   `services/arena/src/arena.ts` and `diplomacy/lobby.ts`.
 
@@ -1714,7 +1714,7 @@ frame protocol stays `1.0` and every schema `$id` keeps `:1`. **No oracle id or 
 
 **Phase-9 Stage A3: the hosted-run contract.** **MINOR** (additive; `versioning.md` §2 has the worked
 example). Source: `docs/phase-9/HOSTED-PROFILE.md` §0.1, contract changes K1 to K9, with
-`docs/security/threat-model-hosted.md` §2.1, §2.5 and §5, and `threat-model-arena.md` §3. Record of the
+the threat-model-hosted security document (program repository) §2.1, §2.5 and §5, and `threat-model-arena.md` §3. Record of the
 one semantic addition: **ADR-004** (`docs/adr/ADR-004-verify-semantics-for-recorded-seats.md`, what
 `verify` establishes for recorded and LLM-peer seats). The frame protocol stays `1.0`, every existing
 schema `$id` keeps `:1`, and **no oracle id or SARIF rule id changes**.
@@ -1882,8 +1882,8 @@ schema `$id` keeps `:1`, and **no oracle id or SARIF rule id changes**.
 ## [2.1.0] — 2026-09-26
 
 **Phase-8 Stage A3 — the Diplomacy scenario contract.** **MINOR** (additive; no ADR required,
-`versioning.md` §2 has the worked example). Sources: `docs/design/diplomacy-scenario.md` (A2: press,
-commitments, intent, the six oracles) and `docs/design/diplomacy-adjudicator.md` (A1: order grammar,
+`versioning.md` §2 has the worked example). Sources: the diplomacy-scenario design document (program repository) (A2: press,
+commitments, intent, the six oracles) and the diplomacy-adjudicator design document (program repository) (A1: order grammar,
 `observe(power)`, steps). The frame protocol stays `1.0`; every existing schema `$id` keeps `:1`.
 
 ### Added — schemas (`schemas/`, all JSON Schema 2020-12, `additionalProperties: false`, every string bounded)
@@ -1997,7 +1997,7 @@ commitments, intent, the six oracles) and `docs/design/diplomacy-adjudicator.md`
 (`docs/adr/ADR-001-eval-arena-pivot.md`, gate decisions D1–D7 approved 2026-09-26). The pre-pivot game prototype
 becomes Agent Arena, an open-core agent evaluation arena; this release removes the game surfaces cut by ADR-001 §6,
 adds the evaluation-run contract (RunSpec → EpisodeResult → Report → SARIF), and adds the target-facing
-egress frames the scenario design requires (`docs/design/arena-scenarios.md`, A3). Titles/licence move
+egress frames the scenario design requires (the arena-scenarios design document (program repository), A3). Titles/licence move
 to "Agent Arena" / Apache-2.0 (D5). The CLI is `npx @rbrus/agent-arena`.
 
 **What does NOT change: the frame protocol stays `1.0`, every schema `$id` keeps `:1`, and the REST
@@ -2143,7 +2143,7 @@ projection), B3 (boss codex + world-first UI). Every boss stays a **deterministi
 9 — no boss LLM)**; adversarial/partition/corrupted-feed state is projected into observations only, never into
 the hashed state (mirrors The Hallucinator's phantom discipline) so replays re-sim bit-for-bit. Tunable
 values (rotation schedule, boss HP/phase thresholds, the eval that scores a clear) are **design/config-owned**
-(`docs/design/failure-modes-pillar.md`, A1/B1) — the contract fixes SHAPES; `[DIAL]` marks a design/config-owned value.
+(the failure-modes-pillar design document (program repository), A1/B1) — the contract fixes SHAPES; `[DIAL]` marks a design/config-owned value.
 
 ### Added — Management plane (`openapi.yaml` → `1.5.0`)
 
@@ -2209,7 +2209,7 @@ path, frame, required field, scope, reject, or close code changed meaning; the d
 broadcast, the raid loop, and every economy/social surface are byte-for-byte untouched.** No ADR required
 (pure MINOR, `versioning.md` §2 `1.4.0` worked example). Merges before B1 (ARG engine), B2 (gate content),
 B3 (Coach analytics), B4 (caster channel), B5 (resilience/Tribunal), B6 (UI). Puzzle/exhibit CONTENT and
-tunables are **design-owned** (`docs/design/great-hunt.md`, A1/B2); the contract fixes SHAPES — `[DIAL]`
+tunables are **design-owned** (the great-hunt design document (program repository), A1/B2); the contract fixes SHAPES — `[DIAL]`
 marks a design/config-owned value. Pillar 9 holds throughout: Hunt verification, clue release, the caster
 relay, and all analytics are **deterministic and run no platform LLM**.
 
@@ -2301,7 +2301,7 @@ and every economy surface are byte-for-byte untouched.** No ADR required (pure M
 Merges before B1 (delegation), B2 (raid engine), B3 (Negotiation Chambers), B4 (guilds), B5 (tournaments),
 B6 (UI). Tunable values (child TTL, rake, aggregation formula, boss HP/phases) are **server config /
 design-owned** — the contract fixes SHAPES; `[DIAL]` marks a model/design-owned value. The delegated-token
-`delegation` claim specifics are authoritative in `docs/security/delegated-squad-tokens.md` (A1).
+`delegation` claim specifics are authoritative in the delegated-squad-tokens security document (program repository) (A1).
 
 ### Added — Management plane (`openapi.yaml` → `1.3.0`)
 
@@ -2555,8 +2555,8 @@ example). No ADR required. Merges before the B2 spectator backend + B3 spectator
 
 Initial Phase-1 contract freeze (deliverable A3). Scoped to the gate: **two agents authenticate →
 queue → play a full Grid Tactics duel → retrieve the hash-committed replay.** Consumes A1
-(`docs/design/grid-tactics-v1.md`) and A2 (`docs/security/agent-passports.md`,
-`docs/security/threat-model.md`).
+(the grid-tactics-v1 design document (program repository)) and A2 (the agent-passports security document (program repository),
+the threat-model security document (program repository)).
 
 ### Added — Management plane (`openapi.yaml`, OpenAPI 3.1)
 

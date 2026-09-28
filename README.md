@@ -35,17 +35,20 @@ leaderboard. See [Limitations](#limitations).
 
 `0.1.2`, on npm as `@sixi4ai/agent-arena`: the first published release (the `v0.1.0` and `v0.1.1`
 tags were never published). Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
-(see [Limitations](#limitations)). Everything marked **built** below is in this repository and
-covered by the release gate.
+(see [Limitations](#limitations)). Everything marked **built** below is in this repository, and
+this repository's CI checks it on every pull request: typecheck, the full test suite (golden
+hashes included) on Node 22 and Node 24, the contract checks, the network lint, the CLI bundle
+reproducing the frozen anchors, the replay inspector, the SARIF self-test and a secrets scan.
 
-Release gates, re-run on the contracts 2.12.0 tree (2026-09-27):
+This repository holds what you need to **use** the arena: the CLI and the packages it is built
+from, the reference policies, the replay inspector, the Docker sandbox, the contracts, and the
+guides and scenario pages. The program that builds it (design specifications, security reviews,
+the release-gate harness and its evidence) is kept in a separate program repository. The release
+gates run there, not in this repository's CI:
 
-- **Phase 7 (open arena): `GATE: OPEN`, 82/82 checks** in the development repository. In this
-  repository's layout, `npm run gate` does not evaluate the checks that read private evidence
-  documents; this repository's CI runs it on Node 22 and Node 24 (80/80 on both at the first
-  public CI run).
-- **Phase 8 (Diplomacy): 44/45 checks.** `npm run gate:phase8 -- --full`. The 45th check is a
-  second-person review of the map data, which a person has to sign and which is still pending.
+- **Phase 7 (open arena): `GATE: OPEN`, 82/82 checks** in the program repository.
+- **Phase 8 (Diplomacy): `GATE: OPEN`, 45/45 checks** in the program repository, the last being a
+  second-person review of the map data (recorded 2026-09-28, no edge changed).
 
 | Component | State |
 |---|---|
@@ -59,9 +62,9 @@ Release gates, re-run on the contracts 2.12.0 tree (2026-09-27):
 | Target transports: REST, WebSocket, MCP, A2A | built: identical replay hashes, verdicts and SARIF fingerprints on all four (gate criterion 2, 15/15) |
 | Report writer (`report.json`) and SARIF 2.1.0 emitter (`packages/arena-report`) | built: every SARIF log the gate produced validates (18/18) |
 | `verify`: re-simulate a report and recompute every verdict | built |
-| Docker sandbox: one image with the arena server and a reference target (`sandbox/`) | built: `sandbox/verify.sh` checks 5/5 anchors end to end; not part of the gate run |
+| Docker sandbox: one image (the CLI) running a reference target and a CLI run against it (`sandbox/`) | built: `sandbox/verify.sh` checks 5/5 anchors end to end; not part of CI |
 | Replay inspector (static web page, `frontend/`) | built: loads `report.json` + replay, inert to hostile input, Diplomacy-aware; the 15 bundled samples verify |
-| Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 44/45; announced as runnable in 0.2.0 after the map review |
+| Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built: 164/164 DATC v3.0 cases; Phase 8 gate 45/45 (map review recorded); announced as runnable in 0.2.0 |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
 | `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
 | `@sixi4ai/agent-arena` on npm | published: 0.1.2 |
@@ -208,7 +211,8 @@ transport:
 - **No stored credentials.** `--auth env:NAME` reads a target's token from an environment
   variable at connect time and removes the variable. The value is never written to a report,
   replay, SARIF file or log.
-- **Transport-invariance (gated).** Transport is outside the hashed state. In the Phase 7 gate,
+- **Transport-invariance (gated).** Transport is outside the hashed state. In the Phase 7 gate
+  (program repository),
   the same reference over WebSocket, MCP and A2A produced the same replay hashes, verdicts and
   SARIF fingerprints as over REST (criterion 2, 15/15), for both the passing and the failing
   reference. That holds for a deterministic agent that answers inside the soft deadline.
@@ -306,8 +310,8 @@ Read this before quoting a result.
   - the Deadlock pass reference is a wrapper (`lockOrderDiscipline`) around the engine's own
     ordered-lock policy, which by itself fails both Deadlock oracles in squad mode;
   - a reference served over the network only approximates member seating, so a served
-    member-mode run need not reproduce the frozen member-mode anchors. The release gate compares
-    served runs with the anchors in squad mode.
+    member-mode run need not reproduce the frozen member-mode anchors. The release gate (program
+    repository) compares served runs with the anchors in squad mode.
 - **The referee is reproducible; your agent may not be.** An LLM-backed agent at non-zero
   temperature will usually send different actions on the same seed and so produce a different
   hash. Run several seeds and episodes, and report the distribution, not the best run.
@@ -315,6 +319,10 @@ Read this before quoting a result.
   on localhost and slow over a network can score differently in the same tier.
 - **Token budgets cover only what the referee can see.** The arena cannot measure the tokens your
   model spends internally.
+- **The release gates are not in this repository.** Its CI runs the tests, contract checks and
+  anchor reproductions listed under [Status](#status), but the Phase 7, 8 and 9 gate harnesses,
+  their evidence and the design and security documents they check against are kept in the
+  program repository. Gate results quoted here are that repository's.
 - **Abstractions, not your deployment.** The scenarios test coordination discipline under a
   failure mode in a grid world, and negotiation hygiene at a Diplomacy table. They do not test
   your tools, your data, or prompt injection against your real deployment. See agent-probe and

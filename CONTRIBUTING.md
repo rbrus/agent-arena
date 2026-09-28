@@ -16,9 +16,15 @@ npm ci
 npm run typecheck
 npm test
 npm run contracts:tier0
+npm run contracts:check
+npm run lint:net -w @sixi4ai/agent-arena
+node .github/scripts/md-link-check.mjs
 ```
 
-All four must pass. If your change touches the engine, the golden-hash tests are part of
+All of them must pass. CI also builds the CLI bundle and checks that it reproduces the frozen
+anchors, builds and tests the replay inspector (`cd frontend && npm ci && npm run verify`), runs
+the SARIF self-test and scans the history for secrets. The release gates of the project run in a
+separate program repository, not here. If your change touches the engine, the golden-hash tests are part of
 `npm test`; they must pass unchanged (see below).
 
 ## Ground rules

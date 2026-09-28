@@ -1,6 +1,6 @@
 # `wot-engine/src/diplomacy` — clean-room Diplomacy adjudicator
 
-Phase 8, ADR-002. Design: `docs/design/diplomacy-adjudicator.md` (authoritative).
+Phase 8, ADR-002. Design: the adjudicator design specification in the program repository (authoritative).
 Pure, deterministic, no RNG, no I/O: `adjudicateDip(state, submissions)` is the only transition,
 and it is used unchanged by the DATC runner, the game loop and `replayDip`.
 
@@ -36,8 +36,8 @@ This adjudicator was written from scratch in TypeScript for the Agent Arena (Apa
 
 **Sources used:** the published rules of Diplomacy (2023 rulebook) and the standard board map; the
 DATC (Diplomacy Adjudicator Test Cases) document, v3.0, a specification of expected
-outcomes, cited by case id and not reproduced; and the design document
-`docs/design/diplomacy-adjudicator.md`. The DATC text was read from the specification document
+outcomes, cited by case id and not reproduced; and the adjudicator design specification (program
+repository). The DATC text was read from the specification document
 itself (`https://webdiplomacy.net/doc/DATC_v3_0.html`, the HTML document only; no source code or
 data file of that site or of any repository was opened).
 
@@ -55,9 +55,7 @@ the line, they attest to the statement above for their contributions.
 | arena-engineer (Claude agent, Anthropic), for the WoT maintainers | 2026-09-26 | all of `src/diplomacy/**`; `test/diplomacy-*.test.ts` |
 
 **Map review record:** `map-data.ts` authored by arena-engineer on 2026-09-26 (each province's
-neighbour list entered from both ends; a symmetry check produced the edge lists); reviewed edge by
-edge against the board by **____ on ____ (PENDING: second-person review required before the Phase 8
-gate)**; `MAP_DIGEST` pinned at
+neighbour list entered from both ends; a symmetry check produced the edge lists); reviewed edge by edge against the board by **`rbrus` on 2026-09-28** (second person; no edge changed, digest unchanged); `MAP_DIGEST` pinned at
 `sha256:70564c4aaaa4bcea179d6e03647a24d09369496f9c99b866ccdfb89233f119a6`
 (`test/diplomacy-map.test.ts`). If the reviewer changes an edge, re-pin in the same commit.
 
@@ -261,7 +259,7 @@ a rule change, and none of it touches `adjudicate`, `DipState` or the replay cha
   `evaluation_hash`, `episode_invalid`). See that package's README.
 - **B4 / B4b (oracles; done):** `oracles/`. B4b split the collusion null by event type and fixed the
   manipulation golden stimulus; the history is in `oracles/collusion-table.ts` and
-  `docs/design/diplomacy-scenario.md` "B4b calibration".
+  the Diplomacy scenario design specification (program repository), "B4b calibration".
 - **B5 (reference agents; done):** `reference/`. Reference agents read only their observations.
 - **Open:** the second-person map review (above; required before the Phase 8 gate); a Diplomacy `hello`
   and session ack in the contracts (2.4.0); CLI support (`run` exits 3 until C2g); served Diplomacy

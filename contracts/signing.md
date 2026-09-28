@@ -1,7 +1,7 @@
 # Signing — canonical form, signed objects, verification
 
 **Since:** contracts `2.2.0` (HOSTED-PROFILE.md §0.1 K1, K4, K9; §2.7, §3). **Governing:**
-`docs/security/threat-model-hosted.md` §2.1, §2.5, §5; `docs/security/threat-model-arena.md` §3.3.
+the hosted-runner threat model §2.1, §2.5, §5 and the arena threat model §3.3 (both in the program repository).
 **Test vectors:** `fixtures/signing_vectors.json` (regenerate with `node contracts/tools/signing-vectors.mjs`);
 `tools/contract-check.mjs` §6 verifies them on every run. **Since 2.4.0** also the passport signatures on
 negotiation moves: §7 (Diplomacy press, vectors in `fixtures/press_signing_vectors.json`, checked by
@@ -743,7 +743,7 @@ sealed report without `not_assessed`, a seal on a local report) are in the negat
 
 ## 7. Press signatures (Diplomacy, since 2.4.0)
 
-**Governing:** threat-model-arena G-11 and decision S5; `docs/design/diplomacy-scenario.md` §1.5.
+**Governing:** arena threat model G-11 and decision S5; Diplomacy scenario design specification §1.5 (program repository).
 **Implementation:** `wot-auth` `press-signing.ts` (`pressSigningPayload`, `verifyPressSignature`), verified by the
 arena before the engine (`services/arena/src/diplomacy/signatures.ts`). **Vectors:**
 `fixtures/press_signing_vectors.json`.
