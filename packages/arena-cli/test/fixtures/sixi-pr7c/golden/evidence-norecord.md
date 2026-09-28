@@ -37,7 +37,7 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 | Engine version and commit | `arena@2.0.0` (commit not recorded) |
 | Runner image | `ghcr.io/rbrus/agent-arena@sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`, platform manifest `sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2` (`linux/arm64`) |
 | Tool | `@sixi4ai/agent-arena@0.1.0` |
-| Contracts version | `2.14.0` (the contract this renderer validates against), report format `1.0` |
+| Contracts version | `2.15.0` (the contract this renderer validates against), report format `1.0` |
 | Scenario versions | `byzantine@1.2.0` |
 | Scenario packs | none: open scenarios only |
 | Clause corpus | none: no pack in scope, so no clause mapping |

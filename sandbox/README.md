@@ -50,7 +50,7 @@ connections: the CLI dials out to your agent over REST, WebSocket, MCP or A2A
 
 1. Works out where `contracts/` is (`ARENA_CONTRACTS_CONTEXT`: `../contracts` in this repository's layout, `../../contracts` in the nested source layout). With host deps installed it also checks that `anchors.json` matches `anchors.ts`.
 2. Builds `agent-arena:local`. The build runs `npm ci --ignore-scripts`, `typecheck`, the `anchors.json` drift check, the five-seed anchor self-test and the CLI bundle.
-3. Prints `IMAGE_ID`, `IMAGE_DIGEST` and the image's Node version, then checks (`check-image-env.mjs`, inside the image) that the image's default environment sets none of the hosted runner's must-be-absent variables (`contracts/fixtures/hosted_env.json`, for example `WOT_CONTRACTS_DIR`).
+3. Prints `IMAGE_ID`, `IMAGE_DIGEST` and the image's Node version, then checks (`check-image-env.mjs`, inside the image) that the image's default environment sets none of the hosted runner's must-be-absent variables (`contracts/fixtures/hosted_env.json`, for example `WOT_CONTRACTS_DIR`), that every guarded-family variable is one the hosted runner accepts (`SSL_CERT_FILE` only as the distroless CA bundle, contracts 2.15.0), and that the image config `Env` holds only `PATH`, `HOME`, `NODE_VERSION` and the names `hosted_env.json` allows, which is the Sixi promotion's rule (SX-9).
 4. Runs `docker compose up --wait` and waits until `target` reports `/healthz` healthy.
 5. Runs the gate-1 evaluation from the one-shot `run` container.
 6. Checks `report.json` against the frozen anchors in `sandbox/anchors.json`, taken from the checkout, not the image. It runs `check-anchors.mjs` with the image's Node and `--network none`. `anchors.json` is the data copy of `SELF_TESTS` in `packages/arena-scenarios/src/anchors.ts`. The image cannot import `anchors.ts` itself, because that file pulls in `wot-engine` and the runtime image carries no sources. `anchors-json.ts --check` fails the image build if the copy drifts, and `anchors-json.ts --write` regenerates it after a re-freeze. Each episode's `replay_hash`, `outcome` and `terminal_tick` must equal the anchor for its scenario, tier, seating, seed and reference policy. All five gate seeds must be present.
@@ -147,6 +147,7 @@ read `contracts/*.md`. `.dockerignore` keeps `.git`, `node_modules`, `dist`,
 | `anchors-json: DRIFT` (build step or `verify.sh`) | `anchors.ts` was re-frozen, but `sandbox/anchors.json` was not regenerated. | `npx tsx sandbox/anchors-json.ts --write`, then review the diff: every changed hash is a re-freeze. |
 | `failed to solve: ... contracts: not found`, or `contracts/ build context not found` | `ARENA_CONTRACTS_CONTEXT` points at the wrong place, for example from a copied command line. | Unset the variable and use `verify.sh`. |
 | `IMAGE ENV FAIL: ... WOT_CONTRACTS_DIR` (or another name) | An `ENV` line in `sandbox/Dockerfile` sets a variable the hosted runner must not see, so `run --hosted` would refuse with `(environment)`. | Remove it from the runtime stage. |
+| `IMAGE ENV FAIL: ... (image Env: outside the hosted_env.json allow-list ...)` | An `ENV` line sets a name the Sixi promotion refuses (SX-9), for example a runtime default such as the pre-0.2.3 `WOT_PORT`. | Move the default into the CLI or the compose/run script; never widen the allow-list for it. |
 | `check-anchors: cannot read anchors` | `sandbox/anchors.json` is missing. | Restore it from git, or run `anchors-json.ts --write`. |
 
 Never paste the output of `docker compose config` or `docker inspect` into an
@@ -159,6 +160,6 @@ issue or CI log: both expand any local `.env`. `verify.sh` never calls them.
 | `Dockerfile` | Multi-stage build to distroless runtime. The one image. |
 | `docker-compose.yml` | `target`, and the `run` profile. |
 | `verify.sh`, `check-anchors.mjs` | End-to-end check and anchor comparison (plain Node, no imports beyond `node:fs`). |
-| `check-image-env.mjs` | Asserts the image's default env against the hosted must-be-absent list. |
+| `check-image-env.mjs` | Asserts the image's default env and config `Env` against `hosted_env.json` (must-be-absent list, guarded families, the SX-9 image-Env rule). |
 | `anchors.json`, `anchors-json.ts` | Data copy of the frozen anchors, and its generator and drift check (`--write` / `--check`). |
 | `healthcheck.mjs` | The shell-less `HEALTHCHECK` probe. |

@@ -1,4 +1,4 @@
-# `contracts/` — Agent Arena (contracts `2.14.0`)
+# `contracts/` — Agent Arena (contracts `2.15.0`)
 
 **The API is the product.** This directory is the merge-before-implementation contract of the open-core
 agent evaluation arena (ADR-001). It is the **single source of truth**: the services validate against
@@ -251,6 +251,10 @@ js-yaml already installed under `ascension/`):
    `fixtures/hosted_report.sarif` and the sarif-mapping.md excerpt is `@sixi4ai/agent-arena`, every `informationUri` is
    still the GitHub repository; the CLI's package name and the report writer's `TOOL_NAME` agree; no contract file but
    `CHANGELOG.md` names the previous npm scope.
+18. **2.15.0** — the trust-store value pin (SX-9 addendum): `SSL_CERT_FILE` is accepted only as
+   `/etc/ssl/certs/ca-certificates.crt`, no other `SSL*`/`OPENSSL*` name is accepted, the fixture cases cover both sides,
+   signing.md §3.1.3 states the value, the runner pins it, and the sandbox image's runtime-stage `ENV` holds only names the
+   promotion's image-Env check allows.
 
 Recommended wiring (platform-engineer, Phase-7 A5): run both in the CI job that runs Tier 0.
 

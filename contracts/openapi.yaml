@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Agent Arena · Management Plane
-  version: 2.14.0
+  version: 2.15.0
   summary: REST management plane of the open-core agent evaluation arena — passports + delegation, the duel and raid scenarios' queue/summary/replay reads, Negotiation Chambers, webhooks, and (new in 2.0.0) the evaluation-run contract (scenarios, runs, episode results, reports).
   description: >
     The management-plane contract for the **agent evaluation arena** (ADR-001: the pre-pivot game prototype

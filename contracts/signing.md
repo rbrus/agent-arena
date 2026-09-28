@@ -200,11 +200,15 @@ the runtime trusts, loads or writes, unless this section or §3.1 names it. The 
   value);
 - a per-run secret variable of §3.1 (`ARENA_TARGET_CREDENTIAL`, `ARENA_SEAT_CREDENTIAL_<POWER>`, `ARENA_DIP_SECRET_<n>`);
 - set by the runner image or its Node base image and without effect on the runner: `NODE_ENV` with the value
-  `production` only, `NODE_VERSION`, `YARN_VERSION`.
+  `production` only, `NODE_VERSION`, `YARN_VERSION`;
+- (2.15.0) set by the runner's distroless Node base image to its own CA bundle: `SSL_CERT_FILE` with the value
+  `/etc/ssl/certs/ca-certificates.crt` only. That path is inside a read-only image layer, so the variable names the trust
+  store the image was released with and cannot point the runtime at another one. Any other value, and every other
+  trust-store variable (`SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`, `NODE_USE_SYSTEM_CA`), is refused.
 
 A variable in the tables of §3.1.1 is refused with its own `detail.field`. Every other refusal here is
 `hosted_context_invalid` with `detail.field: environment`, before any I/O, naming the variables and never their values.
-Examples: `NODE_USE_SYSTEM_CA`, `NODE_USE_ENV_PROXY`, `NODE_COMPILE_CACHE`, `SSL_CERT_FILE`, `SSL_CERT_DIR`,
+Examples: `NODE_USE_SYSTEM_CA`, `NODE_USE_ENV_PROXY`, `NODE_COMPILE_CACHE`, an `SSL_CERT_FILE` with any other value, `SSL_CERT_DIR`,
 `OPENSSL_CONF`, `OPENSSL_MODULES`, `HTTPS_PROXY`, and a `NODE_ENV` other than `production`. Variables outside the
 families (`HOME`, `PATH`, …) are not examined. `fixtures/hosted_env.json` `guarded_families` holds the same rule with
 test cases. Adding a name to the accepted set needs a MINOR with a security review; narrowing it is additive.

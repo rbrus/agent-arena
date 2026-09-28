@@ -84,6 +84,10 @@
 //                the OpenAPI examples, fixtures/hosted_report.sarif and sarif-mapping.md is `@sixi4ai/agent-arena`, every
 //                informationUri stays the GitHub repository; the CLI's package name and the report writer's TOOL_NAME agree;
 //                no contract file but CHANGELOG.md (history) names the previous npm scope.
+//  20. V2.15.0   (2.15.0) the trust-store value pin (SX-9 addendum): SSL_CERT_FILE is accepted only as
+//                /etc/ssl/certs/ca-certificates.crt, no other SSL*/OPENSSL* name is accepted, the fixture cases cover both
+//                sides, signing.md §3.1.3 states the value, the runner pins it, and the sandbox image's runtime-stage ENV
+//                holds only names the promotion's image-Env check allows (no WOT_* defaults).
 //
 // Dependency-free beyond what ascension/ already installs (ajv, js-yaml), resolved from there.
 // Run from the repo root:  node contracts/tools/contract-check.mjs  (or `npm run contracts:check` in the workspace)
@@ -2522,10 +2526,46 @@ let toolIdCount = 0;
   if (existsSync(catalog) && !readFileSync(catalog, 'utf8').includes(`export const TOOL_NAME = '${TOOL_ID}';`)) fail(`TOOL packages/arena-report/src/catalog.ts TOOL_NAME is not ${TOOL_ID}`);
 }
 
+// ---------------------------------------------------------------- 20. V2.15.0
+// (2.15.0, security ruling SX-9 addendum) SSL_CERT_FILE is accepted only with the distroless base image's own CA bundle
+// path. It is the one trust-store variable the accepted set names, by value, and no other SSL*/OPENSSL* name is accepted
+// in any form. The runner and the image agree with the fixture.
+const SSL_CERT_VALUE = '/etc/ssl/certs/ca-certificates.crt';
+let v2150Count = 0;
+{
+  const gf2 = hostedEnv.guarded_families ?? { allowed: [], allowed_values: [], cases: [] };
+  const trust = /^(SSL|OPENSSL)/i;
+  const tAllowed = gf2.allowed.filter((n) => trust.test(n));
+  if (tAllowed.length) fail(`TRUST guarded_families.allowed names ${tAllowed.join(', ')}: a trust-store variable is accepted only with a fixed value (allowed_values)`);
+  const tValued = gf2.allowed_values.filter((a) => trust.test(a.name));
+  if (tValued.length !== 1 || tValued[0].name !== 'SSL_CERT_FILE' || tValued[0].value !== SSL_CERT_VALUE) fail(`TRUST allowed_values must hold exactly SSL_CERT_FILE=${SSL_CERT_VALUE} among SSL*/OPENSSL* names`);
+  const has = (value, expect) => gf2.cases.some((c) => c.name === 'SSL_CERT_FILE' && c.value === value && c.expect === expect);
+  if (!has(SSL_CERT_VALUE, 'accept')) fail('TRUST guarded_families.cases has no accepted SSL_CERT_FILE with the fixed value');
+  if (!gf2.cases.some((c) => c.name === 'SSL_CERT_FILE' && c.value !== undefined && c.value !== SSL_CERT_VALUE && c.expect === 'reject')) fail('TRUST guarded_families.cases has no refused SSL_CERT_FILE with another value');
+  v2150Count += 2;
+  const s313b = signingText.slice(signingText.indexOf('### 3.1.3'), signingText.indexOf('### 3.2'));
+  if (!s313b.includes(`\`SSL_CERT_FILE\` with the value\n  \`${SSL_CERT_VALUE}\` only`)) fail('TRUST signing.md §3.1.3 does not state SSL_CERT_FILE with its fixed value');
+  const envTs = join(WORKSPACE, 'packages', 'arena-cli', 'src', 'hosted', 'env.ts');
+  if (existsSync(envTs)) {
+    const src = readFileSync(envTs, 'utf8');
+    if (!src.includes(`SSL_CERT_FILE: '${SSL_CERT_VALUE}'`)) fail('TRUST the runner (arena-cli hosted/env.ts HOSTED_ALLOWED_VALUES) does not pin SSL_CERT_FILE to the fixed value');
+    v2150Count++;
+  }
+  const dockerfile = join(WORKSPACE, 'sandbox', 'Dockerfile');
+  if (existsSync(dockerfile)) {
+    const rt = readFileSync(dockerfile, 'utf8').split(/^FROM .* AS runtime$/m)[1] ?? '';
+    const envNames = [...rt.matchAll(/^\s*(?:ENV\s+)?([A-Za-z_][A-Za-z0-9_]*)=/gm)].map((m) => m[1]);
+    const okImage = new Set(['PATH', 'HOME', 'NODE_VERSION', ...gf2.allowed.filter((n) => !/^ARENA_/.test(n) && n !== 'NODE_OPTIONS'), ...gf2.allowed_values.map((a) => a.name)]);
+    for (const n of envNames) if (!okImage.has(n)) fail(`TRUST sandbox/Dockerfile runtime stage sets ${n}: the image Env holds only PATH, HOME, NODE_VERSION and the hosted_env.json allowed names (SX-9); defaults belong in the CLI or the compose file`);
+    if (!rt) fail('TRUST sandbox/Dockerfile has no runtime stage');
+    v2150Count++;
+  }
+}
+
 // ---------------------------------------------------------------- report
 if (failures.length) {
   console.error('Contract checks: FAIL');
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length + V2130_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order; 2.13.0: evidence_input (${EI.examples.length} examples, ${V2130_NEG.length} must-rejects), evidence step prose; 2.14.0: tool identity (${toolIdCount} sites)).`);
+console.log(`Contract checks: OK (${mirrorCount} mirrors + ${seenDefs.size} shared Diplomacy $defs, ${exCount} OpenAPI examples, ${NEG.length + V240_NEG.length + V250_NEG.length + V250B_NEG.length + V260_NEG.length + V270_NEG.length + V280_NEG.length + V290_NEG.length + COVERAGE_NEG.length + V2100_NEG.length + V2110_NEG.length + V2110B_NEG.length + V2120_NEG.length + V2130_NEG.length} negative cases, ${corpus.cases.length} press corpus cases, ${vectorCount} signing vectors + ${pressVectorCount} press-signature vectors, hosted linkage + SARIF golden, 2.3.0 linkage + consistency, 2.5.0 settlement linkage over ${cmtDocs.length} commitments, 2.6.0: ${rtv.length} run-token vectors, fixture pack + envelope must-rejects, hosted env tables + ${hostedEnv.image_digest_cases.length} image cases, bundle list, lint; 2.7.0: run-token lifetime, ${hostedEnv.guarded_families?.cases.length ?? 0} guarded-family cases, ARENA_HOSTED, admission rules, observed_truncated, anchor_id, architectBearer; 2.8.0: participation conditionals + example linkage, 4408 seat_timeout, Neutral Ground decisions, league tier never a member; 2.9.0: region enum (${HOSTED_REGIONS.length} regions, ${regionCopies.length} copies), pack coverage rule, fixture placeholder build; 2.10.0: extended tier (${tierCopies.length} tier enums), league refused, hosted caps A6 + M10; 2.11.0: pinned key set (example + CLI bundle, ${V2110_NEG.length} must-rejects, window vectors), ${DSV.vectors.length} digest-statement vectors; 2.12.0: verify --result (${VR.examples.length} CLI examples, seal precondition), §5.2 clarifications, evidence render order; 2.13.0: evidence_input (${EI.examples.length} examples, ${V2130_NEG.length} must-rejects), evidence step prose; 2.14.0: tool identity (${toolIdCount} sites); 2.15.0: trust-store value pin (${v2150Count} checks)).`);

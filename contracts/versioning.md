@@ -155,6 +155,17 @@ bump implies a new path prefix (`/v2/`) served alongside `/v1/` during migration
 >   normally MAJOR; it is corrected in a MINOR only because no released tool ever emitted the 2.0.0
 >   formula (the open arena ships 2026-10-25). After the first public release this exception is closed.
 
+> **Worked example — the `2.15.0` trust-store value pin is a MINOR.**
+>
+> * **A relaxation with a security review.** One name joins the accepted set of the guarded families (signing.md §3.1.3)
+>   with one fixed value: `SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt`. §3.1.3 says adding to the accepted set is a
+>   MINOR with a security review (GATE-DECISIONS SX9-ENV). Every environment a 2.14.0 runner accepted is still accepted.
+> * **By value, never by name.** Accepting the name with any value would be a different change: it could point TLS trust
+>   at another file, and it would need its own review. A later change that accepts another trust-store variable is not
+>   covered by this example.
+> * **What a consumer sees.** A 2.14.0 runner or promotion check refuses an image whose config sets the fixed value; a
+>   2.15.0 one accepts it. A control plane re-vendors `fixtures/hosted_env.json`. No schema, vector or code changes.
+
 > **Worked example — the `2.14.0` tool rename is a MINOR.**
 >
 > * **A value, not a shape.** `run.tool.name` is a free string in `report.schema.json` (its description gave the old name
