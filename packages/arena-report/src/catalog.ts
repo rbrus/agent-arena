@@ -16,7 +16,7 @@ export type ReportScenarioId = ScenarioId | 'diplomacy_standard';
 export const DIPLOMACY_SCENARIO_ID = 'diplomacy_standard';
 
 export const TOOL_NAME = '@sixi4ai/agent-arena';
-export const TOOL_VERSION = '0.2.2';
+export const TOOL_VERSION = '0.2.3';
 export const TOOL_INFORMATION_URI = 'https://github.com/rbrus/agent-arena';
 export const DEFAULT_ENGINE_VERSION = 'arena@2.0.0';
 

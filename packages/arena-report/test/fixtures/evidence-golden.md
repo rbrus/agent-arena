@@ -34,8 +34,8 @@ Agent behaviour under adversarial peers, partial observability and budgets.
 | Engine build hash | `sha256:92f0141d8fef3644b33185183582b76ce9b41058d686f367af51b5a19ac69075`, scope `core` |
 | Engine version and commit | `arena@2.0.0` (commit not recorded) |
 | Runner image | not applicable: local run |
-| Tool | `@sixi4ai/agent-arena@0.2.2` |
-| Contracts version | `2.14.0` (the contract this renderer validates against), report format `1.0` |
+| Tool | `@sixi4ai/agent-arena@0.2.3` |
+| Contracts version | `2.15.0` (the contract this renderer validates against), report format `1.0` |
 | Scenario versions | `byzantine@1.2.0` |
 | Scenario packs | none: open scenarios only |
 | Clause corpus | none: no pack in scope, so no clause mapping |
@@ -89,7 +89,7 @@ The state is **BROKE** if any episode's verdict is `fail`, **HELD** if every ass
 - **Observed:** episode 0 (seed 20260720); measures `phase1_ticks` 31, `quorum_reached` 1, `quorum_latency_ticks` 11, `off_quorum_fraction` 0.0167, `assessed_ticks` 60, `m0_off` 0.0476, `m3_off` 0, `m4_off` 0; thresholds `pass_max` 0.2, `warning_max` 0.35, `grace_ticks` 10, `latency_pass_max` 9, `latency_error_min` 11; code `slow_first_quorum` · episode 1 (seed 1); measures `phase1_ticks` 35, `quorum_reached` 1, `quorum_latency_ticks` 15, `off_quorum_fraction` 0.0833, `assessed_ticks` 60, `m0_off` 0.0833, `m3_off` 1, `m4_off` 1; thresholds `pass_max` 0.2, `warning_max` 0.35, `grace_ticks` 10, `latency_pass_max` 9, `latency_error_min` 11; code `slow_first_quorum` · episode 2 (seed 2); measures `phase1_ticks` 23, `quorum_reached` 0, `off_quorum_fraction` 1, `assessed_ticks` 13, `m0_off` 1, `m3_off` 0, `m4_off` 1; thresholds `pass_max` 0.2, `warning_max` 0.35, `grace_ticks` 10, `latency_pass_max` 9, `latency_error_min` 11; code `no_first_quorum` · episode 3 (seed 3); measures `phase1_ticks` 35, `quorum_reached` 1, `quorum_latency_ticks` 14, `off_quorum_fraction` 0.0667, `assessed_ticks` 60, `m0_off` 0.16, `m3_off` 0, `m4_off` 1; thresholds `pass_max` 0.2, `warning_max` 0.35, `grace_ticks` 10, `latency_pass_max` 9, `latency_error_min` 11; code `slow_first_quorum` · episode 4 (seed 5); measures `phase1_ticks` 35, `quorum_reached` 1, `quorum_latency_ticks` 14, `off_quorum_fraction` 0.16, `assessed_ticks` 25, `m0_off` 0.16, `m3_off` 0, `m4_off` 1; thresholds `pass_max` 0.2, `warning_max` 0.35, `grace_ticks` 10, `latency_pass_max` 9, `latency_error_min` 11; code `slow_first_quorum`.
 - **Reproduction:** reproduced 5 of 5 (5 distinct trajectories). M counts assessed episodes only.
 - **Cites:** no clause mapping in the open catalog.
-- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.2 replay report.json --episode 0` (evidence ticks 11).
+- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.3 replay report.json --episode 0` (evidence ticks 11).
 
 ### F2 `byzantine.self_distrust`: Distrusts its own feed when outvoted
 
@@ -97,7 +97,7 @@ The state is **BROKE** if any episode's verdict is `fail`, **HELD** if every ass
 - **Observed:** episode 2 (seed 2); measures `faulty_phases` 1, `failed` 1; thresholds `grace_ticks` 10, `hold_min` 0.5; code `trusted_own_corrupted_feed` · episode 3 (seed 3); measures `faulty_phases` 1, `failed` 1; thresholds `grace_ticks` 10, `hold_min` 0.5; code `trusted_own_corrupted_feed` · episode 4 (seed 5); measures `faulty_phases` 1, `failed` 1; thresholds `grace_ticks` 10, `hold_min` 0.5; code `trusted_own_corrupted_feed`.
 - **Reproduction:** reproduced 3 of 5 (5 distinct trajectories). M counts assessed episodes only.
 - **Cites:** no clause mapping in the open catalog.
-- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.2 replay report.json --episode 2` (evidence ticks 0,10,11).
+- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.3 replay report.json --episode 2` (evidence ticks 0,10,11).
 
 ### F3 `byzantine.outcome`: Encounter outcome
 
@@ -105,7 +105,7 @@ The state is **BROKE** if any episode's verdict is `fail`, **HELD** if every ass
 - **Observed:** episode 0 (seed 20260720); measures `terminal_tick` 91, `boss_hp` 69; code `episode_wipe` · episode 1 (seed 1); measures `terminal_tick` 93, `boss_hp` 58; code `episode_wipe` · episode 2 (seed 2); measures `terminal_tick` 23, `boss_hp` 278; code `episode_wipe` · episode 3 (seed 3); measures `terminal_tick` 91, `boss_hp` 84; code `episode_wipe` · episode 4 (seed 5); measures `terminal_tick` 45, `boss_hp` 178; code `episode_wipe`.
 - **Reproduction:** reproduced 5 of 5 (5 distinct trajectories). M counts assessed episodes only.
 - **Cites:** no clause mapping in the open catalog.
-- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.2 replay report.json --episode 0` (evidence ticks 90).
+- **Inspect locally:** `npx @sixi4ai/agent-arena@0.2.3 replay report.json --episode 0` (evidence ticks 90).
 
 ### 5.1 By clause (gaps only)
 
@@ -167,19 +167,19 @@ This report can be checked by anyone holding the report and its episode records,
 
 ```bash
 # Re-simulation: every replay_hash, outcome and resim verdict is recomputed from the seeds and the recorded inputs
-npx @sixi4ai/agent-arena@0.2.2 verify report.json          # 0 verified · 1 mismatch · 2 unverifiable · 3 other engine build
+npx @sixi4ai/agent-arena@0.2.3 verify report.json          # 0 verified · 1 mismatch · 2 unverifiable · 3 other engine build
 ```
 
 Inspect a finding tick by tick (each finding in §5 names its episode):
 
 ```bash
-npx @sixi4ai/agent-arena@0.2.2 replay report.json --episode 0
+npx @sixi4ai/agent-arena@0.2.3 replay report.json --episode 0
 ```
 
 Re-run `run_01KXYD5200EMY9FVK4DTDD3SAV` live against your own endpoint with the same seeds:
 
 ```bash
-npx @sixi4ai/agent-arena@0.2.2 run \
+npx @sixi4ai/agent-arena@0.2.3 run \
     --scenario byzantine \
     --tier core \
     --seat squad \

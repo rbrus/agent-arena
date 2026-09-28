@@ -10,6 +10,50 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions are Sem
 
 _Nothing pending._
 
+## [2.15.0] — 2026-09-28
+
+**`SSL_CERT_FILE` is accepted in the hosted environment with one fixed value.** **MINOR**: one entry added to the accepted
+set of the guarded name families (signing.md §3.1.3, `fixtures/hosted_env.json` `guarded_families.allowed_values`), with a
+security review as §3.1.3 requires. `versioning.md` §2 has the worked example. Source: GATE-DECISIONS SX9-ENV
+(2026-09-28, security) and the SX-9 addendum in docs/phase-9/SECURITY-REVIEW-SIXI.md. The 0.2.2 image's stage promotion
+(sixi-scanner run 36438970396) was refused by the image-Env check for `SSL_CERT_FILE`, which the distroless Node base image
+(`gcr.io/distroless/nodejs22-debian12`) sets to its own CA bundle, and for three `WOT_*` defaults the sandbox Dockerfile set
+(removed from the image in 0.2.3; no contract change is needed for that).
+
+### Changed
+
+- **signing.md §3.1.3**: a fourth accepted form, `SSL_CERT_FILE` with the value `/etc/ssl/certs/ca-certificates.crt` only.
+  The name is matched exactly (case-sensitive) and the value byte for byte. Any other value, `ssl_cert_file`, and every
+  other trust-store variable (`SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`, `NODE_USE_SYSTEM_CA`, `OPENSSL_CONF`) are still refused
+  with `hosted_context_invalid` (`environment`). The examples line now reads "an `SSL_CERT_FILE` with any other value".
+- **`fixtures/hosted_env.json`**: `guarded_families.allowed_values` gains `{ "name": "SSL_CERT_FILE", "value":
+  "/etc/ssl/certs/ca-certificates.crt", "since": "2.15.0" }`. Five cases are added: the fixed value is accepted; another
+  path, the value with a trailing space, the lower-case name with the fixed value and `SSL_CERT_DIR` are refused. The
+  existing valueless `SSL_CERT_FILE` case still expects a refusal.
+- **contract-check §20** asserts the pin: exactly one `SSL*`/`OPENSSL*` name is accepted, only by value; both sides are in
+  the cases; §3.1.3 states the value; the runner (`arena-cli` `hosted/env.ts` `HOSTED_ALLOWED_VALUES`) pins it; and the
+  sandbox image's runtime-stage `ENV` names nothing outside `PATH`, `HOME`, `NODE_VERSION` and the allowed names.
+
+### Why a fixed value is safe and an open one is not
+
+`SSL_CERT_FILE` tells OpenSSL which CA bundle to trust. A value the job or a later layer could choose would let whoever
+sets it add a CA and intercept the runner's outbound TLS (the customer target, the JWKS and pack fetches) without a
+certificate error. The fixed value names the file the distroless base ships in a read-only image layer, pinned with the
+image by digest, so it names the trust store the image was released with. Accepting it adds no trust the image did not
+already have. In its default configuration the runner does not consult it at all: Node uses its bundled CA store unless it is
+started with `--use-openssl-ca`, `--use-system-ca` or `NODE_USE_SYSTEM_CA`, and the hosted job's command is fixed, a
+non-empty `NODE_OPTIONS` is refused and `NODE_USE_SYSTEM_CA` is a refused guarded-family name.
+
+### Not changed
+
+- Every schema, `$id`, error code, oracle id, SARIF rule id, signing vector and digest-statement vector.
+- The must-be-absent list (§3.1.1) and the job-template variables (§3.1). The Sixi job template does not set
+  `SSL_CERT_FILE`; the value reaches the runner from the image config.
+- Before 2.15.0 a hosted runner refused every run of an image whose config sets `SSL_CERT_FILE`, which every
+  released `agent-arena` image does (0.1.x to 0.2.2). No hosted run was ever started on one of them: the promotion refused
+  first. From 0.2.3 the runner accepts the image's own value.
+- The evidence report's `producer.contracts_version` now says `2.15.0`.
+
 ## [2.14.0] — 2026-09-28
 
 **The open CLI's tool identity is `@sixi4ai/agent-arena`.** **MINOR**: one string value in examples, a fixture and

@@ -163,9 +163,18 @@ export const HOSTED_ALLOWED_ENV: Readonly<Record<string, string>> = {
   NODE_OPTIONS: 'job template (empty only)',
   ARENA_HOSTED: 'job template (hosted-mode assertion, G-48)',
   // Set by the agent-arena image (sandbox/Dockerfile) or its Node base image; no effect on the runner.
-  NODE_ENV: 'image (production only)',
   NODE_VERSION: 'base image (informational)',
   YARN_VERSION: 'base image (informational)',
+};
+/**
+ * hosted_env.json `guarded_families.allowed_values`: names accepted with exactly this value (case-sensitive name
+ * and value), refused with any other. (contracts 2.15.0, SX-9 addendum) `SSL_CERT_FILE` is the distroless base
+ * image's own CA bundle, a path inside a read-only image layer; any other value could point the runtime's TLS trust
+ * at a file an attacker controls, so it is refused like every other trust-store variable.
+ */
+export const HOSTED_ALLOWED_VALUES: Readonly<Record<string, string>> = {
+  NODE_ENV: 'production',
+  SSL_CERT_FILE: '/etc/ssl/certs/ca-certificates.crt',
 };
 /**
  * Per-run secret names (hosted_env.json `secrets`); taken and scrubbed before this check runs.
@@ -204,8 +213,8 @@ export function hostedEnvironmentProblems(env: NodeJS.ProcessEnv): { name: strin
   const listed = new Set(HOSTED_MUST_BE_ABSENT.map((r) => r.name));
   for (const name of Object.keys(env).sort()) {
     if (listed.has(name) || env[name] === undefined) continue;
-    if (name === 'NODE_ENV') {
-      if (env[name] !== 'production') out.push({ name, reason: 'NODE_ENV is accepted only as the image sets it (production)' });
+    if (Object.hasOwn(HOSTED_ALLOWED_VALUES, name)) {
+      if (env[name] !== HOSTED_ALLOWED_VALUES[name]) out.push({ name, reason: `${name} is accepted only with the value the image sets` });
       continue;
     }
     if (Object.hasOwn(HOSTED_ALLOWED_ENV, name) || SECRET_NAME.some((re) => re.test(name))) continue;

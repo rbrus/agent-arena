@@ -22,7 +22,7 @@ import { reportSchemaHasHostedMember, OBSERVED_TRUNCATED_IN_CONTRACT } from '../
 import { verifyHostedSeal } from '../src/commands/verify.ts';
 import { CliError, describeError, formatError } from '../src/errors.ts';
 import { diagnosticFlags } from '../src/hardening.ts';
-import { assertHostedEnvironment, HOSTED_ALLOWED_ENV, HOSTED_MUST_BE_ABSENT, HOSTED_SECRET_PATTERNS } from '../src/hosted/env.ts';
+import { assertHostedEnvironment, HOSTED_ALLOWED_ENV, HOSTED_ALLOWED_VALUES, HOSTED_MUST_BE_ABSENT, HOSTED_SECRET_PATTERNS, hostedEnvironmentProblems } from '../src/hosted/env.ts';
 import { addHostedPeerAddress, installHostedLogFilter, scrubHostedText, VERIFIED_ORIGIN_PLACEHOLDER } from '../src/hosted/log-filter.ts';
 import { checkImage, MANIFEST_MAX_AGE_MS, MANIFEST_MAX_WINDOW_MS } from '../src/hosted/manifest.ts';
 import { loadPacks, parseVariantParams, resolveVariant } from '../src/hosted/packs.ts';
@@ -375,6 +375,31 @@ describe('G-50 the hosted environment: contracts/fixtures/hosted_env.json is the
     assertHostedEnvironment({ ...hostedEnv(), ARENA_PACKS_DIR: '/packs', NODE_ENV: 'production', NODE_VERSION: '22.20.0', PATH: '/usr/bin', HOME: '/home/nonroot', LANG: 'C.UTF-8', WOT_HOST: '0.0.0.0' });
     assert.throws(() => assertHostedEnvironment({ NODE_ENV: 'development' }), /NODE_ENV/);
     assert.throws(() => assertHostedEnvironment({ ARENA_TOKEN_X: 'sk-live-SECRET-VALUE-123' }), (e: Error) => e.message.includes('ARENA_TOKEN_X') && !e.message.includes('SECRET-VALUE'), 'names, never values');
+  });
+  test('every guarded_families case of the fixture gives the same verdict in the runner, and allowed/allowed_values equal the fixture', () => {
+    const gf = fx.guarded_families;
+    for (const c of gf.cases as { name: string; value?: string; expect: string }[]) {
+      const bad = hostedEnvironmentProblems({ [c.name]: c.value ?? '1' });
+      assert.equal(bad.length === 0, c.expect === 'accept', `${c.name}=${c.value ?? '1'}: runner ${bad.length ? 'refuses' : 'accepts'}, fixture says ${c.expect}`);
+    }
+    assert.deepEqual(Object.keys(HOSTED_ALLOWED_ENV).sort(), [...gf.allowed].filter((n: string) => !Object.hasOwn(HOSTED_ALLOWED_VALUES, n)).sort());
+    assert.deepEqual(HOSTED_ALLOWED_VALUES, Object.fromEntries(gf.allowed_values.map((a: { name: string; value: string }) => [a.name, a.value])));
+  });
+  test('SX-9 (2.15.0): SSL_CERT_FILE passes only as the distroless CA bundle; a rewritten trust-store path is refused by name, never echoed', () => {
+    assertHostedEnvironment({ ...hostedEnv(), SSL_CERT_FILE: '/etc/ssl/certs/ca-certificates.crt' });
+    for (const v of ['/tmp/evil-ca.pem', '/out/ca.pem', '', '/etc/ssl/certs/ca-certificates.crt/', '/etc/ssl/certs/../../tmp/ca.pem']) {
+      assert.throws(() => assertHostedEnvironment({ ...hostedEnv(), SSL_CERT_FILE: v }), (e: Error) => /\(environment\)/.test(e.message) && e.message.includes('SSL_CERT_FILE') && (v === '' || !e.message.includes(v)), JSON.stringify(v));
+    }
+    for (const k of ['ssl_cert_file', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'NODE_USE_SYSTEM_CA']) {
+      assert.throws(() => assertHostedEnvironment({ ...hostedEnv(), [k]: '/etc/ssl/certs/ca-certificates.crt' }), new RegExp(k), k);
+    }
+  });
+  test('SX-9: the 0.2.3 image config Env (docker inspect) starts a hosted run; the 0.2.2 one did not', () => {
+    const base = { PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', SSL_CERT_FILE: '/etc/ssl/certs/ca-certificates.crt', NODE_ENV: 'production' };
+    assertHostedEnvironment({ ...hostedEnv(), ...base, HOME: '/home/nonroot', HOSTNAME: 'x' });
+    // 0.2.2 carried WOT_HOST/WOT_PORT/WOT_DEV_KEYS_DIR too; those are outside the guarded families (the runner ignores
+    // them, Sixi's promotion refuses them). What stopped 0.2.2 in the runner was SSL_CERT_FILE before 2.15.0.
+    assert.deepEqual(hostedEnvironmentProblems({ ...base, SSL_CERT_FILE: '/etc/ssl/certs/other.crt' }).map((b) => b.name), ['SSL_CERT_FILE']);
   });
   test('the image_digest cases of the fixture agree with checkImage', () => {
     const m = unsignedManifest(runSpec());

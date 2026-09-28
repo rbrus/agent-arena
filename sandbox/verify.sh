@@ -107,17 +107,22 @@ echo "IMAGE_ID=$IMAGE_ID"
 echo "IMAGE_DIGEST=${IMAGE_DIGEST:-<none: local build, not pushed>}"
 echo "IMAGE_NODE=$IMAGE_NODE"
 
-step "image default env has no hosted must-be-absent variable (contracts/fixtures/hosted_env.json)"
+step "image env: no must-be-absent variable, guarded families accepted, config Env allowed (hosted_env.json, SX-9)"
 HOSTED_ENV=""
 for c in "$ROOT_DIR/contracts" "$ROOT_DIR/../contracts"; do
   if [[ -f "$c/fixtures/hosted_env.json" ]]; then HOSTED_ENV="$c/fixtures/hosted_env.json"; break; fi
 done
 [[ -n "$HOSTED_ENV" ]] || fail "contracts/fixtures/hosted_env.json not found next to the checkout"
+CONFIG_ENV=$(mktemp)
+docker image inspect --format '{{json .Config.Env}}' "$IMAGE" > "$CONFIG_ENV" || fail "cannot read the image config Env" 2
+chmod 0644 "$CONFIG_ENV"
 docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true \
   -v "$SANDBOX_DIR/check-image-env.mjs:/check/check-image-env.mjs:ro" \
   -v "$HOSTED_ENV:/check/hosted_env.json:ro" \
-  --entrypoint /nodejs/bin/node "$IMAGE" /check/check-image-env.mjs /check/hosted_env.json \
-  || fail "the image sets a variable the hosted runner requires to be absent" 2
+  -v "$CONFIG_ENV:/check/config-env.json:ro" \
+  --entrypoint /nodejs/bin/node "$IMAGE" /check/check-image-env.mjs /check/hosted_env.json --config-env /check/config-env.json \
+  || { rm -f "$CONFIG_ENV"; fail "the image environment would be refused by the hosted runner or the Sixi promotion (SX-9)" 2; }
+rm -f "$CONFIG_ENV"
 
 step "start the reference target, wait for /healthz"
 docker compose up -d --wait --wait-timeout 90 target || fail "the target did not become healthy"

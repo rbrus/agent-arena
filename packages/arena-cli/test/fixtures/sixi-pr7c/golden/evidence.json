@@ -44,7 +44,7 @@
       "name": "@sixi4ai/agent-arena",
       "version": "0.1.0"
     },
-    "contracts_version": "2.14.0",
+    "contracts_version": "2.15.0",
     "report_version": "1.0",
     "packs": [],
     "crosscheck": {

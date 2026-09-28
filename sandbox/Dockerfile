@@ -105,20 +105,27 @@ LABEL org.opencontainers.image.title="agent-arena" \
       org.opencontainers.image.revision="${REVISION}"
 WORKDIR /app
 COPY --from=build --chown=0:0 /out/ /app/
-ENV NODE_ENV=production \
-    WOT_HOST=0.0.0.0 \
-    WOT_PORT=8080 \
-    WOT_DEV_KEYS_DIR=/tmp/wot-dev-keys
-# NO WOT_CONTRACTS_DIR here: it is on the hosted runner's must-be-absent list
-# (contracts/fixtures/hosted_env.json), and `run --hosted` refuses when it is
-# set. The CLI does not need it: it serves contracts/ from its embedded
-# snapshot.
-# verify.sh asserts the image's default env against that list.
+ENV NODE_ENV=production
+# The image Env is PATH and SSL_CERT_FILE (both from the distroless base; the
+# latter is its own CA bundle, /etc/ssl/certs/ca-certificates.crt, accepted by
+# contracts 2.15.0 with that value only) and NODE_ENV=production. Nothing else
+# (security ruling SX-9, 2026-09-28): Sixi's promotion refuses an image whose
+# config Env names anything outside hosted_env.json plus PATH, HOME and
+# NODE_VERSION. Runtime defaults belong in the CLI or in the compose/run
+# scripts, never here: the WOT_HOST/WOT_PORT/WOT_DEV_KEYS_DIR defaults of the
+# dial-in server were removed in 0.2.3 (that server is not in this image; the
+# CLI takes --host/--port flags, and healthcheck.mjs defaults to 8080).
+# NO WOT_CONTRACTS_DIR either: it is on the hosted runner's must-be-absent list
+# and `run --hosted` refuses when it is set; the CLI serves contracts/ from its
+# embedded snapshot.
+# verify.sh asserts the image's config Env and default process env against
+# contracts/fixtures/hosted_env.json (check-image-env.mjs); contract-check
+# refuses a runtime-stage ENV name outside that set.
 # 65532 = distroless "nonroot"; stated explicitly so a base swap cannot
 # silently make the image run as root.
 USER 65532:65532
 EXPOSE 8080 8081
-# Probes 127.0.0.1:${ARENA_HEALTH_PORT:-$WOT_PORT}/healthz; compose passes the
+# Probes 127.0.0.1:${ARENA_HEALTH_PORT:-8080}/healthz; compose passes the
 # port per service. Cloud Run ignores HEALTHCHECK and uses its own probe.
 HEALTHCHECK --interval=5s --timeout=3s --start-period=15s --retries=6 \
   CMD ["/nodejs/bin/node", "/app/healthcheck.mjs"]

@@ -44,6 +44,10 @@ the EvidenceArgs mounts: the tool name, the contracts version (`2.14.0`) and the
 bytes that differ from the 2.13.0 goldens. The Sixi side re-vendors 2.14.0 and regenerates its goldens with the released
 CLI.
 
+**Contracts 2.15.0 (SX-9 addendum, 2026-09-28).** Only the contracts version moved, from `2.14.0` to `2.15.0`: line 47
+of `golden/evidence.json` and line 40 of the two Markdown goldens. 2.15.0 changes the hosted environment contract, not a
+rendered input, so no other byte differs.
+
 **How the goldens were made.** Sixi's `testdata/seal/evidence-driver.mjs` (the proposed `agent-arena evidence`
 command over `renderEvidenceReport`) at contracts 2.12.0. The no-record golden is the same inputs with
 `crosscheck_record` removed from `render/input.json` (exit 1, `evidence.md` only).
