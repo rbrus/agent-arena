@@ -44,8 +44,13 @@ COPY contracts/ /
 # ---------------------------------------------------------------------------
 # build: npm ci -> typecheck -> anchor self-test -> CLI bundle. Any failure
 # fails the image.
+# Runs on the BUILD platform: its output (/out) is platform-independent
+# JavaScript, so a multi-platform build (release.yml: linux/amd64 +
+# linux/arm64) builds it once, natively, and every platform of the index
+# carries byte-identical /app files. A plain single-platform build (compose,
+# verify.sh) is unchanged: there the build and target platforms are the same.
 # ---------------------------------------------------------------------------
-FROM ${BUILD_IMAGE} AS build
+FROM --platform=$BUILDPLATFORM ${BUILD_IMAGE} AS build
 WORKDIR /src
 ENV CI=1 \
     npm_config_audit=false \
