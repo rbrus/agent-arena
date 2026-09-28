@@ -1,6 +1,6 @@
 # `grid_tactics` — the control scenario
 
-**Scenario version** 1.0.0 · **Seat mode** `duel` (player `A` or `B`) · **Status:** built:
+**Scenario version** 1.1.0 (1.1.0 added [`shared.participation`](shared.md); no other definition changed) · **Seat mode** `duel` (player `A` or `B`) · **Status:** built:
 scenario, oracles and anchors (`packages/arena-scenarios`), the run-level `win_rate` verdict in the
 report writer (`packages/arena-report`), and CLI support (`run`, `verify`, `replay`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -44,7 +44,7 @@ up to the unit's speed (1–2 steps) and costs 1 per step; an attack costs 2; ho
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Definition (scenario version 1.0.0) | Basis |
+| Oracle id | Primary | Severity on fail | Definition (scenario version 1.1.0) | Basis |
 |---|---|---|---|---|
 | [`grid_tactics.outcome`](#outcome) | yes | `warning` / `note` | win = pass | resim |
 | [`grid_tactics.win_rate`](#win_rate) (run-level) | | `warning` | pass ≥ 0.5 over ≥ 6 episodes with both sides played | resim |

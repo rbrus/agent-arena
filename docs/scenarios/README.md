@@ -9,7 +9,7 @@ scenario does **not** test.
 > deterministic predicate over a hash-committed replay of scripted reference agents; nothing is
 > scored by a model or by a person.
 
-**State as of 0.1.2.** Built: the scenarios, their oracles and the
+**State as of 0.2.0.** Built: the scenarios, their oracles and the
 frozen anchors (`packages/arena-scenarios`), the CLI that runs them against your agent over REST,
 WebSocket, MCP or A2A (`packages/arena-cli`), the report and SARIF writer, the Docker sandbox and
 the replay inspector. The CLI is on npm as `@sixi4ai/agent-arena` since 0.1.2, and the source is
@@ -19,14 +19,14 @@ recorded); both gates run in the program repository.
 
 | Scenario | Tests | Seat modes | Scenario version | Page |
 |---|---|---|---|---|
-| `grid_tactics` | control: planning under fog and a budget against a scripted bot | `duel` | 1.0.0 | [grid_tactics.md](grid_tactics.md) |
-| `hallucinator` | acting only on corroborated observations | `member`, `squad` | 1.1.0 | [hallucinator.md](hallucinator.md) |
-| `overfit` | staying unpredictable to an opponent that models you | `member`, `squad` | 1.1.0 | [overfit.md](overfit.md) |
-| `byzantine` | deciding by quorum when a peer (or you) is corrupted | `member`, `squad` | 1.1.0 | [byzantine.md](byzantine.md) |
-| `deadlock` | acquiring shared resources in a published order | `member`, `squad` | 1.1.0 | [deadlock.md](deadlock.md) |
-| `split_brain` | not writing from the minority side of a partition | `member`, `squad` | 1.1.0 | [split_brain.md](split_brain.md) |
-| `latency` | preferring the current signal over stale telemetry | `member`, `squad` | 1.1.0 | [latency.md](latency.md) |
-| `diplomacy_standard` | negotiating with adversarial peers: planted instructions, secrets, requests, commitments (announced as runnable in 0.2.0, after the map review) | `power` | adapter 1.2.0 | [diplomacy_standard.md](diplomacy_standard.md) |
+| `grid_tactics` | control: planning under fog and a budget against a scripted bot | `duel` | 1.1.0 | [grid_tactics.md](grid_tactics.md) |
+| `hallucinator` | acting only on corroborated observations | `member`, `squad` | 1.2.0 | [hallucinator.md](hallucinator.md) |
+| `overfit` | staying unpredictable to an opponent that models you | `member`, `squad` | 1.2.0 | [overfit.md](overfit.md) |
+| `byzantine` | deciding by quorum when a peer (or you) is corrupted | `member`, `squad` | 1.2.0 | [byzantine.md](byzantine.md) |
+| `deadlock` | acquiring shared resources in a published order | `member`, `squad` | 1.2.0 | [deadlock.md](deadlock.md) |
+| `split_brain` | not writing from the minority side of a partition | `member`, `squad` | 1.2.0 | [split_brain.md](split_brain.md) |
+| `latency` | preferring the current signal over stale telemetry | `member`, `squad` | 1.2.0 | [latency.md](latency.md) |
+| `diplomacy_standard` | negotiating with adversarial peers: planted instructions, secrets, requests, commitments (announced as runnable in 0.2.0; standard map reviewed by a second person) | `power` | adapter 1.2.0 (engine `wot-dip-scenario/3`) | [diplomacy_standard.md](diplomacy_standard.md) |
 
 For agent-to-agent text (Diplomacy press, and any structured peer claim), see
 [the defensive-parsing guide](../guides/defensive-parsing.md).
@@ -196,7 +196,7 @@ test.
 | **Primary oracle** | The behavioural oracle a scenario is judged on first. |
 | **Egress view** | What the target is sent (`eval_raid_observation`), built by whitelist so that no ground truth reaches it. |
 | **Trajectory class** | A hash of every seed-derived input a target could be exposed to; distinct classes are the effective episodes. |
-| **Scenario version** | Semver of a scenario's rules and oracle thresholds. Any threshold change bumps it. `grid_tactics` is at 1.0.0, the six raids at 1.1.0 (the B2c calibration), and the `diplomacy_standard` adapter at 1.2.0. `agent-arena list-scenarios` prints the versions of the build you run. |
+| **Scenario version** | Semver of a scenario's rules and oracle thresholds. Any threshold change bumps it. `grid_tactics` is at 1.1.0 and the six raids at 1.2.0 (both added `shared.participation`; the raid thresholds date from the 1.1.0 calibration), and the `diplomacy_standard` adapter at 1.2.0. `agent-arena list-scenarios` prints the versions of the build you run. |
 
 Shared and harness oracles, which every scenario carries, are documented in
 [shared.md](shared.md) and [harness.md](harness.md).

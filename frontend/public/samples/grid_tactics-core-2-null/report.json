@@ -1,13 +1,13 @@
 {
   "report_version": "1.0",
   "run": {
-    "run_id": "run_AYJWSRX5A32YXP215FQG42Y1H6",
+    "run_id": "run_W2NF8T6KRB334TX95466XESD5C",
     "mode": "local",
-    "started_at": "2026-09-28T04:01:47.004Z",
-    "finished_at": "2026-09-28T04:01:47.014Z",
+    "started_at": "2026-09-28T07:32:44.561Z",
+    "finished_at": "2026-09-28T07:32:44.584Z",
     "tool": {
       "name": "@sixi4ai/agent-arena",
-      "version": "0.1.2"
+      "version": "0.2.0"
     },
     "spec": {
       "scenario_id": "grid_tactics",
@@ -146,7 +146,7 @@
       "replay_hash": "sha256:f74e6b5d123615047a68b0ae48b2cb561e3d9d8c4a62a4494327322f9cb6a53c",
       "replay_ref": "report.episode-0.replay.json",
       "trajectory_class": "sha256:17decd1cf666674ec2f236094f6b0d34bb770ed1b379b0e201c3343c4dc44807",
-      "blinding_key": "411965b58dcb8c3d850440dd7525b563b3b9e52ca08ddd9726148e38edd0e409",
+      "blinding_key": "5d0dc7c7ac2199cf7e6dce7b48a1f1e3bdd084e81d28afad1f342a65f432aed0",
       "budget": {
         "tier": "core",
         "decisions": 86,
@@ -262,7 +262,7 @@
           }
         }
       ],
-      "duration_ms": 7,
+      "duration_ms": 18,
       "seats": [
         {
           "seat": "A",

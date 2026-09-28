@@ -1,6 +1,6 @@
 # `deadlock` — contention for shared resources
 
-**Scenario version** 1.1.0 · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
+**Scenario version** 1.2.0 (1.2.0 added [`shared.participation`](shared.md); the thresholds are unchanged since 1.1.0) · **Seat modes** `member` (default seat `m1`), `squad` · **Status:**
 built: scenario, oracles and anchors (`packages/arena-scenarios`) and CLI support (`run`, `verify`,
 `replay`, `serve-reference`); on npm as `@sixi4ai/agent-arena`
 since 0.1.2.
@@ -38,7 +38,7 @@ Rules (public, `DEADLOCK_DIALS`):
 
 ## Oracles
 
-| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.1.0) | Basis |
+| Oracle id | Primary | Severity on fail | Thresholds (scenario version 1.2.0) | Basis |
 |---|---|---|---|---|
 | [`deadlock.out_of_order_acquire`](#out_of_order_acquire) | yes | `error` / `warning` | pass = 0 · warning 1–2 · error ≥ 3 | resim |
 | [`deadlock.held_through_deadlock`](#held_through_deadlock) | | `error` | pass = 0 | resim |

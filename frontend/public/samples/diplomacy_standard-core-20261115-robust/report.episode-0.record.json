@@ -7375,7 +7375,7 @@
       "event": "decision",
       "tick": 0,
       "seat": "germany",
-      "latencyMs": 13,
+      "latencyMs": 56,
       "miss": "none",
       "frameBytes": 500
     },
@@ -7383,7 +7383,7 @@
       "event": "decision",
       "tick": 1,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 1282
     },
@@ -7391,7 +7391,7 @@
       "event": "decision",
       "tick": 2,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 7,
       "miss": "none",
       "frameBytes": 646
     },
@@ -7399,7 +7399,7 @@
       "event": "decision",
       "tick": 3,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 160
     },
@@ -7407,7 +7407,7 @@
       "event": "decision",
       "tick": 4,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 11,
       "miss": "none",
       "frameBytes": 213
     },
@@ -7415,7 +7415,7 @@
       "event": "decision",
       "tick": 5,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 496
     },
@@ -7423,7 +7423,7 @@
       "event": "decision",
       "tick": 6,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 7,
       "miss": "none",
       "frameBytes": 491
     },
@@ -7431,7 +7431,7 @@
       "event": "decision",
       "tick": 7,
       "seat": "germany",
-      "latencyMs": 6,
+      "latencyMs": 18,
       "miss": "none",
       "frameBytes": 532
     },
@@ -7439,7 +7439,7 @@
       "event": "decision",
       "tick": 8,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 160
     },
@@ -7447,7 +7447,7 @@
       "event": "decision",
       "tick": 9,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 217
     },
@@ -7455,7 +7455,7 @@
       "event": "decision",
       "tick": 10,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 182
     },
@@ -7463,7 +7463,7 @@
       "event": "decision",
       "tick": 11,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 523
     },
@@ -7471,7 +7471,7 @@
       "event": "decision",
       "tick": 12,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 1307
     },
@@ -7479,7 +7479,7 @@
       "event": "decision",
       "tick": 13,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 647
     },
@@ -7487,7 +7487,7 @@
       "event": "decision",
       "tick": 14,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7495,7 +7495,7 @@
       "event": "decision",
       "tick": 15,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 252
     },
@@ -7503,7 +7503,7 @@
       "event": "decision",
       "tick": 16,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 8,
       "miss": "none",
       "frameBytes": 523
     },
@@ -7511,7 +7511,7 @@
       "event": "decision",
       "tick": 17,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 13,
       "miss": "none",
       "frameBytes": 456
     },
@@ -7519,7 +7519,7 @@
       "event": "decision",
       "tick": 18,
       "seat": "germany",
-      "latencyMs": 6,
+      "latencyMs": 18,
       "miss": "none",
       "frameBytes": 292
     },
@@ -7527,7 +7527,7 @@
       "event": "decision",
       "tick": 19,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7535,7 +7535,7 @@
       "event": "decision",
       "tick": 20,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 7,
       "miss": "none",
       "frameBytes": 236
     },
@@ -7543,7 +7543,7 @@
       "event": "decision",
       "tick": 21,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 182
     },
@@ -7559,7 +7559,7 @@
       "event": "decision",
       "tick": 23,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 9,
       "miss": "none",
       "frameBytes": 1325
     },
@@ -7567,7 +7567,7 @@
       "event": "decision",
       "tick": 24,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 528
     },
@@ -7575,7 +7575,7 @@
       "event": "decision",
       "tick": 25,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 8,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7591,7 +7591,7 @@
       "event": "decision",
       "tick": 27,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 15,
       "miss": "none",
       "frameBytes": 525
     },
@@ -7607,7 +7607,7 @@
       "event": "decision",
       "tick": 29,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 14,
       "miss": "none",
       "frameBytes": 628
     },
@@ -7615,7 +7615,7 @@
       "event": "decision",
       "tick": 30,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7623,7 +7623,7 @@
       "event": "decision",
       "tick": 31,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 6,
       "miss": "none",
       "frameBytes": 246
     },
@@ -7639,7 +7639,7 @@
       "event": "decision",
       "tick": 33,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 537
     },
@@ -7647,7 +7647,7 @@
       "event": "decision",
       "tick": 34,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 1,
       "miss": "none",
       "frameBytes": 1325
     },
@@ -7655,7 +7655,7 @@
       "event": "decision",
       "tick": 35,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 8,
       "miss": "none",
       "frameBytes": 528
     },
@@ -7663,7 +7663,7 @@
       "event": "decision",
       "tick": 36,
       "seat": "germany",
-      "latencyMs": 3,
+      "latencyMs": 4,
       "miss": "none",
       "frameBytes": 161
     },
@@ -7671,7 +7671,7 @@
       "event": "decision",
       "tick": 37,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 5,
       "miss": "none",
       "frameBytes": 258
     },
@@ -7687,7 +7687,7 @@
       "event": "decision",
       "tick": 39,
       "seat": "germany",
-      "latencyMs": 1,
+      "latencyMs": 2,
       "miss": "none",
       "frameBytes": 533
     },
@@ -7703,7 +7703,7 @@
       "event": "decision",
       "tick": 41,
       "seat": "germany",
-      "latencyMs": 4,
+      "latencyMs": 7,
       "miss": "none",
       "frameBytes": 652
     },
@@ -7711,7 +7711,7 @@
       "event": "decision",
       "tick": 42,
       "seat": "germany",
-      "latencyMs": 2,
+      "latencyMs": 3,
       "miss": "none",
       "frameBytes": 290
     },
@@ -7725,7 +7725,7 @@
     }
   ],
   "adapterCoercions": [],
-  "blindingKey": "575283bba748ee8e22b57f260789ac43adfccec188d47ed444a7d71d2a7f7240",
+  "blindingKey": "81fe1586039c972a667d413d73500b70c37e75d53aab9e35c400c5b8e1526c2f",
   "perTickHashes": [
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",
     "sha256:94bdf696f67f89bd63fd42187b361cc8fa1289bf6084b701c7246e1ad9cb77bd",

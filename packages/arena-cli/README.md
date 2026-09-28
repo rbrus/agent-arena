@@ -66,7 +66,7 @@ The target plays one of the seven powers; the other six are scripted reference d
 npm run target:reference -- --scenario diplomacy_standard --policy robust --port 8080
 npx @sixi4ai/agent-arena run --scenario diplomacy_standard --seat germany --fill table:commitment \
     --horizon 1904 --seeds 20261115 --target http://localhost:8080
-#   … episode 0 seed 20261115 germany: survived at tick 44  sha256:a445a17f…  transcript sha256:25ff9b01…  anchor: match (…)
+#   … episode 0 seed 20261115 germany: survived at tick 44  sha256:a445a17f…  transcript sha256:28775fc6…  anchor: match (…)
 ```
 
 | Flag | Values |

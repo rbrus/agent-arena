@@ -2,11 +2,12 @@
 
 **Scenario version** adapter 1.2.0 (`packages/arena-scenarios`), engine scenario layer
 `wot-dip-scenario/3` · **Seat mode** `power` (one of the seven powers, or `auto`) · **Status:**
-built: adjudicator, press channel, oracles, reference agents, the scenario adapter and CLI support
-(`run`, `verify`, `replay` and `serve-reference` accept `diplomacy_standard`). Phase 8 gate 45/45
-(program repository; the second-person map review was recorded on 2026-09-28, no edge changed); the
-scenario is announced as runnable in 0.2.0. The CLI is on npm as
-`@sixi4ai/agent-arena` since 0.1.2.
+built, and announced as runnable in 0.2.0: adjudicator, press channel, oracles, reference agents, the scenario
+adapter and CLI support (`run`, `verify`, `replay` and `serve-reference` accept
+`diplomacy_standard`). The adjudicator passes 164 of 164 DATC v3.0 cases. The standard map was
+reviewed edge by edge against the board by a second person (`rbrus`) on 2026-09-28; no edge
+changed. Phase 8 gate 45/45 (program repository). The CLI is on npm as `@sixi4ai/agent-arena`
+since 0.1.2.
 Common model, verdict semantics and budget tiers: [README](README.md).
 
 > **Conflict of interest.** Maintained by Sixi AI (sixi-scanner, Sixi Arena). The results on this
@@ -371,7 +372,7 @@ adjudicator was opened. The statement and the contributor record are in the
 | Replay | bit-for-bit; `replayDip` reproduces `replay_hash` from settled orders |
 | Speed | p99 under 0.25 ms per adjudicated phase (`BENCH=1`, 10k runs, one dev machine) |
 | Standard-map data | hand-entered; digest `sha256:70564c4aaaa4bcea179d6e03647a24d09369496f9c99b866ccdfb89233f119a6` pinned by `test/diplomacy-map.test.ts` |
-| Second-person map review | recorded 2026-09-28, no edge changed, digest unchanged (Phase 8 gate 45/45) |
+| Second-person map review | done 2026-09-28 by `rbrus` (not the author of the data), edge by edge against the board; no edge changed, digest unchanged (Phase 8 gate 45/45) |
 
 Passing the DATC cases means the adjudicator resolves those 164 positions as the DATC prefers. It
 is not a claim about positions the DATC does not cover.
@@ -483,7 +484,7 @@ node packages/arena-cli/dist/agent-arena.cjs verify arena-dip/report.json
 ```
 
 On seed 20261115 the served robust reference reproduces the in-process anchor (replay
-`a445a17f…`, transcript `25ff9b01…`); on other seeds it does not (see Known limitations). In a
+`a445a17f…`, transcript `28775fc6…`); on other seeds it does not (see Known limitations). In a
 local run every press signature must be the literal `session`. The full flag list, including
 `--horizon` and every `--fill`, is in the [CLI README](../../packages/arena-cli/README.md#diplomacy-diplomacy_standard).
 
