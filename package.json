@@ -1,6 +1,6 @@
 {
   "name": "ascension",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "Agent Arena npm workspace: the engine, scenarios, report writer, contracts bindings and the CLI. Run via tsx, no build step.",

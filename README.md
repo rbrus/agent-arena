@@ -43,7 +43,7 @@ leaderboard. See [Limitations](#limitations).
 
 ## Status
 
-`0.2.1`, on npm as `@sixi4ai/agent-arena` (0.2.1 adds `serve-reference --ownership-token` for hosted reference origins and updates two transitive dependencies). The first published release was 0.1.2 (the `v0.1.0`
+`0.2.2`, on npm as `@sixi4ai/agent-arena` (0.2.2 is release engineering only: the container image is a linux/amd64 + linux/arm64 index with an SPDX SBOM attestation; 0.2.1 added `serve-reference --ownership-token` for hosted reference origins). The first published release was 0.1.2 (the `v0.1.0`
 and `v0.1.1` tags were never published); 0.2.0 is the first release in which the Diplomacy scenario
 is announced as runnable. Pre-1.0: contracts, oracle ids and thresholds may still change between minor versions
 (see [Limitations](#limitations)). Everything marked **built** below is in this repository, and
@@ -78,7 +78,7 @@ gates run there, not in this repository's CI:
 | Diplomacy scenario `diplomacy_standard`: clean-room adjudicator, negotiation channel, oracles, reference agents, CLI support | built and runnable: 164/164 DATC v3.0 cases; standard map reviewed edge by edge by a second person (2026-09-28); scenario version adapter 1.2.0, engine `wot-dip-scenario/3` |
 | Hosted mode: `run --hosted`, driven only by a signed run manifest, and `verify --hosted-seal` | built in the CLI for the Sixi Arena runner; the hosted service itself is not public |
 | `--spec <run.json>`, `replay --hash`, the SARIF location file `.agent-arena/<scenario>.run.json` | built |
-| `@sixi4ai/agent-arena` on npm | published: 0.2.1 (first release: 0.1.2) |
+| `@sixi4ai/agent-arena` on npm | published: 0.2.2 (first release: 0.1.2) |
 | SARIF upload to a GitHub Security tab | built: this repository's `sarif-selftest` workflow uploads the CLI's SARIF, and code scanning lists the tool `@sixi4ai/agent-arena` |
 
 ---
