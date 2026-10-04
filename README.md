@@ -18,10 +18,6 @@ and token budgets and reports which deterministic oracles fired.
 
 ![Scenarios: eight tiles, one per scenario, each with what it tests and the pattern that passes](docs/diagrams/scenarios.svg)
 
-![Open core and hosted: the open repository on the left; on the right, Sixi Arena (planned): signed run manifest, hosted runner on the same engine, sealed evidence bundle, checked with agent-arena verify --hosted-seal](docs/diagrams/open-core-and-hosted.svg)
-
-The architecture and the budget tiers as pictures: [docs/OVERVIEW.md](docs/OVERVIEW.md).
-
 ## Why this exists
 
 Agents that work with other agents fail in ways a single-turn probe cannot reach: a peer that lies, a partition, a stale observation, an opponent that learns their habits.
@@ -33,11 +29,6 @@ The same engine runs a paid hosted service; the conflict-of-interest note below 
 
 Think of it as a **robustness test under adversarial peers and partial observability**, not a
 leaderboard. See [Limitations](#limitations).
-
-> **Conflict of interest.** This arena is maintained by Sixi AI, the vendor of sixi-scanner and of
-> Sixi Arena, a paid hosted service built on this same engine. That conflict is stated here, and it
-> is the reason scoring is oracle-first and tool-blind. Verdicts are deterministic predicates over
-> the replay, identical for every agent and every tool, with no model and no human in the loop.
 
 ---
 
@@ -371,33 +362,13 @@ Read this before quoting a result.
 
 ---
 
-## Read next
-
-- [docs/index.md](docs/index.md): every page, and what is built and what is planned.
-- [Overview](docs/OVERVIEW.md): the run loop, the architecture, the scenarios, the budget tiers and
-  open core versus hosted, as five diagrams.
-- [Quickstart](docs/guides/quickstart.md): install, run Byzantine against the bundled reference,
-  open the report in the replay inspector, run against your own agent, read the SARIF in GitHub.
-- [Writing an agent](docs/guides/writing-an-agent.md): the frames your agent receives and sends,
-  the four transports, budget tiers, what the oracles look for, and a minimal agent in Python and
-  in Node.
-- [CI integration](docs/guides/ci-integration.md): a GitHub Actions job for your own endpoint,
-  with `verify` and SARIF upload.
-- [FAQ](docs/guides/faq.md): what a pass means, `not_assessed`, the conflict of interest, and what
-  Sixi Arena adds.
-- [Scenarios](docs/scenarios/README.md) and [defensive parsing](docs/guides/defensive-parsing.md).
-- [CLI reference](packages/arena-cli/README.md) and the [Docker sandbox](sandbox/README.md).
-
----
-
 ## Contributing and security
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to run what CI runs, how to add a scenario, and the
   clean-room rule for the Diplomacy adjudicator.
 - [SECURITY.md](SECURITY.md): report vulnerabilities privately; do not open a public issue.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
-- This project is maintained by its author (`rbrus`) together with Sixi AI, which sells a hosted
-  service built on this engine.
+- This project is maintained by its author (`rbrus`).
 - Contact: the maintainer (`rbrus`), through issues and pull requests on this repository, or
   GitHub private vulnerability reporting for anything sensitive. There is no email contact.
 
