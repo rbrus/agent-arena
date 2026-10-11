@@ -120,19 +120,19 @@ jobs:
             -w @sixi4ai/agent-arena > "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
           node -e "const b=require(process.argv[1]); if(b.bomFormat!=='CycloneDX'||!b.components?.length) process.exit(1); console.log(b.bomFormat, b.specVersion, b.components.length, 'components')" \
             "$RUNNER_TEMP/sbom/agent-arena-${{ steps.v.outputs.version }}.cdx.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cli-bundle
           path: packages/arena-cli/dist
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: golden
           path: ${{ runner.temp }}/golden
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom
           path: ${{ runner.temp }}/sbom
@@ -258,7 +258,7 @@ jobs:
             ${{ steps.pkg.outputs.file }}
             ${{ steps.pkg.outputs.bare }}
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bin-${{ matrix.target }}
           path: |
@@ -423,7 +423,7 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           sbom-path: ${{ runner.temp }}/image-sbom/agent-arena-${{ env.VERSION }}-image-linux-amd64.spdx.json
           push-to-registry: true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: image-sbom
           path: ${{ runner.temp }}/image-sbom
