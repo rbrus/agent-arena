@@ -23,7 +23,7 @@
     "licenses:third-party": "node packages/arena-cli/scripts/licenses.mjs"
   },
   "devDependencies": {
-    "@types/node": "^24.19.0",
+    "@types/node": "^24.19.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
